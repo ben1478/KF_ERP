@@ -1,0 +1,326 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script src="../Base.js"></script>
+    <title>作業平台</title>
+</head>
+<body>
+    <style type="text/css">
+        td {
+            text-align: center;
+            font-family: DFKai-sb;
+            font-size: 22px;
+        }
+
+            td.left {
+                text-align: left;
+            }
+
+        .Title {
+            font-size: 32px;
+        }
+    </style>
+    <div class="Noprint">
+        <table width="1048" border="0" cellpadding="0" cellspacing=0 class="c12-k">
+            <tr>
+                <td colspan="1" align="center" height="40">
+                    <div class="Noprint">
+                        <input type="button" value="列　　印" OnClick="print();">
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+    <table width="1048" border="0" cellspacing="0" cellpadding="3" bgcolor="#FFFFFF">
+        <tr>
+            <td class="Title" colspan="3">
+                <label>國峯租賃股份有限公司</label>
+            </td>
+        </tr>
+        <tr>
+            <td class="Title" colspan="3">請購單、採購單</td>
+        </tr>
+        <tr>
+            <td style="text-align:left;">
+                部門名稱：
+                <span id="BC_Name"></span>
+            </td>
+            <td style="text-align:left;">
+                申請日期：
+                <span id="PM_AppDate"></span>
+            </td>
+            <td style="text-align:left;">
+                單號：
+                <span id="PM_ID"></span>
+            </td>
+        </tr>
+    </table>
+    <table width="1024" border="1" cellspacing="0" cellpadding="3" bgcolor="#FFFFFF" style="table-layout: fixed;">
+        <tr class="14-k" bgcolor="#FFFFFF" height="25">
+            <td colspan="5">請購資料</td>
+            <td colspan="4">採購資料</td>
+        </tr>
+        <tr>
+            <td>項次</td>
+            <td>品名</td>
+            <td>單位</td>
+            <td>數量</td>
+            <td>需求日期</td>
+            <td colspan="2">價格</td>
+            <td>廠商名稱</td>
+            <td>預計節省成本</td>
+        </tr>
+
+        <tbody id="detailsRows"></tbody>
+
+        <tr class="14-k" bgcolor="#FFFFFF" height="25">
+            <td rowspan="3" style="writing-mode: vertical-rl; text-align: center;">需求說明</td>
+            <td rowspan="3" colspan="4">
+                <span id="PM_Caption"></span>
+            </td>
+            <td>合計總價</td>
+            <td colspan="3">
+                <span id="PM_Amt"></span>
+            </td>
+        </tr>
+        <tr>
+            <td>5%營業稅</td>
+            <td colspan="3">
+                <span id="PM_Busin_Tax"></span>
+            </td>
+        </tr>
+        <tr>
+            <td>含稅價格</td>
+            <td colspan="3">
+                <span id="PM_Tax_Amt"></span>
+            </td>
+        </tr>
+        <tr class="14-k" bgcolor="#FFFFFF">
+            <td rowspan="2" style="writing-mode: vertical-rl; text-align: center;">附加檔案</td>
+            <td rowspan="2" colspan="4" id="Filename">
+            </td>
+            <td height="45">付款方式</td>
+            <td colspan="3">
+                <span id="PM_Pay_Type"></span>
+            </td>
+        </tr>
+        <tr>
+            <td height="45">其他說明</td>
+            <td colspan="3">
+                <span id="PM_Other"></span>
+            </td>
+        </tr>
+
+        <tr>
+            <td rowspan="2" style="writing-mode: vertical-rl; text-align: center;">請購單位</td>
+            <td colspan="4">部門主管</td>
+            <td colspan="4">請購人</td>
+        </tr>
+        <tr style="height: 75px;">
+            <td colspan="4">
+                <span id="sign1"></span>
+            </td>
+            <td colspan="4">
+                <span id="sign"></span>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2" >管理部</td>
+            <td colspan="2" >財務</td>
+            <td colspan="2" >會計</td>
+            <td colspan="3" >會簽單位</td>
+        </tr>
+        <tr style="height: 120px;">
+            <td colspan="2">
+                <span id="sign4"></span>
+                <br />
+                <span id="signDate4"></span>
+                <br />
+                <span id="signDesc4"></span>
+            </td>
+            <td colspan="2">
+                <span id="sign3"></span>
+                <br />
+                <span id="signDate3"></span>
+                <br />
+                <span id="signDesc3"></span>
+            </td>
+            <td colspan="2">
+                <span id="sign2"></span>
+                <br />
+                <span id="signDate2"></span>
+                <br />
+                <span id="signDesc2"></span>
+            </td>
+            <td colspan="3" id="conRow">
+            </td>
+        </tr>
+        <tr>
+            <td colspan="9">核准主管</td>
+        </tr>
+        <tr>
+            <td colspan="3">總經理</td>
+            <td colspan="3">副總經理</td>
+            <td colspan="3">副總經理</td>
+        </tr>
+        <tr style="height: 130px;">
+            <td colspan="3"></td>
+            <td colspan="3">
+                <span id="sign6"></span>
+                <br />
+                <span id="signDate6"></span>
+                <br />
+                <span id="signDesc6"></span>
+            </td>
+            <td colspan="3">
+                <span id="sign5"></span>
+                <br />
+                <span id="signDate5"></span>
+                <br />
+                <span id="signDesc5"></span>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>
+<script>
+    const Params = new URLSearchParams(window.location.search);
+    let PM_ID = decryptParameter(Params.get('PM_ID'));
+
+    let data = [];
+    fetchData();
+
+    function fetchData() {
+        const url = `${BASE_URL}/AE_PRO/GetPrintData?PM_ID=${PM_ID}`;
+
+        fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+            .then(response => response.json())
+            .then(responseData => {
+                if (responseData.resultCode == "000") {
+                    data = JSON.parse(responseData.objResult);
+                    document.getElementById("BC_Name").textContent = data.BC_Name;
+                    document.getElementById("PM_AppDate").textContent = data.PM_AppDate;
+                    document.getElementById("PM_ID").textContent = data.PM_ID;
+                    document.getElementById("PM_Caption").textContent = data.PM_Caption;
+                    document.getElementById("PM_Amt").textContent = data.PM_Amt;
+                    document.getElementById("PM_Busin_Tax").textContent = data.PM_Busin_Tax;
+                    document.getElementById("PM_Tax_Amt").textContent = data.PM_Tax_Amt;
+                    document.getElementById("PM_Pay_Type").textContent = data.PM_Pay_Type;
+                    document.getElementById("PM_Other").textContent = data.PM_Other;
+
+                    const detailsList = data.PT_Deatil_List || [];
+                    const filesList = data.PT_File_List || [];
+                    const flowsList = data.PT_Flow_List || [];
+
+                    const detailstbody = document.getElementById("detailsRows");
+                    const totalRows = 7;
+                    const detailsCount = detailsList.length;
+                    for (var i = 0; i < totalRows; i++) {
+                        let row = {}; 
+                        if (i < detailsCount) {
+                            row = detailsList[i];
+                        } else {
+                            row = {
+                                PD_Pro_name: '',
+                                PD_Unit: '',
+                                PD_Count: '',
+                                PD_Date: '',
+                                PD_Univalent: '',
+                                PD_Company_name: '',
+                                PD_Est_Cost: '',
+                                PD_Amt: ''
+                            };
+                        }
+
+                        const tr = document.createElement("tr");
+                        tr.innerHTML = `
+                        <td rowspan="2"><span>${i + 1}</span></td>
+                            <td rowspan="2"><span>${row.PD_Pro_name || ''}</span></td>
+                            <td rowspan="2"><span>${row.PD_Unit || ''}</span></td>
+                            <td rowspan="2"><span>${row.PD_Count || ''}</span></td>
+                            <td rowspan="2"><span>${row.PD_Date || ''}</span></td>
+                            <td>單價</td>
+                            <td style="width: 90px;"><span>${row.PD_Univalent || ''}</span></td>
+                            <td rowspan="2"><span>${row.PD_Company_name || ''}</span></td>
+                            <td rowspan="2"><span>${row.PD_Est_Cost || ''}</span></td>
+                        `;
+                        detailstbody.appendChild(tr);
+
+                        const tr_s = document.createElement("tr");
+                        tr_s.innerHTML = `
+                            <td>總價</td>
+                            <td style="width: 90px;">
+                                <span>${row.PD_Amt || ''}</span>
+                            </td>
+                        `;
+                        detailstbody.appendChild(tr_s);
+                    }
+
+                    let fileIndex = 0
+                    while (fileIndex < filesList.length) {
+                        const fileData = filesList[fileIndex];
+                        const spanElement = document.createElement('span');
+                        spanElement.textContent = fileData.upload_name_show;
+                        const brElement = document.createElement('br');
+                        const RowTd = document.getElementById('Filename');
+                        RowTd.appendChild(spanElement);
+                        RowTd.appendChild(brElement);
+                        fileIndex++;
+                    }
+
+                    document.getElementById("sign").textContent = data.U_name + ' ' + data.add_date;
+                    const sign1 = flowsList.find(flow => flow.FD_Sign_Countersign === 'S' && flow.FD_Step === '1')
+                    document.getElementById("sign1").textContent = sign1.U_name + ' ' + sign1.FD_Step_date;
+
+                    const sign2 = flowsList.find(flow => flow.FD_Sign_Countersign === 'S' && flow.FD_Step === '2')
+                    document.getElementById("sign2").textContent = sign2.U_name;
+                    document.getElementById("signDate2").textContent = sign2.FD_Step_date;
+                    document.getElementById("signDesc2").textContent = sign2.FD_Step_desc;
+                    const sign3 = flowsList.find(flow => flow.FD_Sign_Countersign === 'S' && flow.FD_Step === '3')
+                    document.getElementById("sign3").textContent = sign3.U_name;
+                    document.getElementById("signDate3").textContent = sign3.FD_Step_date;
+                    document.getElementById("signDesc3").textContent = sign3.FD_Step_desc;
+                    const sign4 = flowsList.find(flow => flow.FD_Sign_Countersign === 'S' && flow.FD_Step === '4')
+                    document.getElementById("sign4").textContent = sign4.U_name;
+                    document.getElementById("signDate4").textContent = sign4.FD_Step_date;
+                    document.getElementById("signDesc4").textContent = sign4.FD_Step_desc;
+
+                    const signdata = flowsList.filter(flow => flow.FD_Sign_Countersign === 'S' && flow.FD_Step === '5')
+                    document.getElementById("sign5").textContent = signdata[0].U_name;
+                    document.getElementById("signDate5").textContent = signdata[0].FD_Step_date;
+                    document.getElementById("signDesc5").textContent = signdata[0].FD_Step_desc;
+                    document.getElementById("sign6").textContent = signdata[1].U_name;
+                    document.getElementById("signDate6").textContent = signdata[1].FD_Step_date;
+                    document.getElementById("signDesc6").textContent = signdata[1].desc;
+
+                    const condata = flowsList.filter(flow => flow.FD_Sign_Countersign === 'C')
+                    let currentIndex = 0
+                    while (currentIndex < condata.length) {
+                        const currentData = condata[currentIndex];
+                        const spanElement = document.createElement('span');
+                        spanElement.textContent = currentData.U_name + ' ' + currentData.FD_Step_desc;
+                        const brElement = document.createElement('br');
+                        const conRowTd = document.getElementById('conRow');
+                        conRowTd.appendChild(spanElement);
+                        conRowTd.appendChild(brElement);
+                        currentIndex++;
+                    }
+                } else {
+                    alert(response.resultMsg);
+                }
+            })
+            .catch(error => {
+                alert('API 請求失敗:', error);
+            });
+    }
+</script>

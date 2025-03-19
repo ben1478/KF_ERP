@@ -1,0 +1,234 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script src="../Base.js"></script>
+    <title>作業平台</title>
+</head>
+<body>
+    <table width="400" border="0" cellpadding="0" cellspacing="0" bgcolor="#FFFFFF" align="left">
+        <tbody>
+            <tr bgcolor="#FFFFFF">
+                <td width="400" valign="top">
+                    <table width="900" border="0" cellspacing="1" cellpadding="3" bgcolor="#999999">
+                        <tbody>
+                            <tr class="c12-k" bgcolor="#CCCCFF" height="30">
+                                <td colspan="7" align="center">
+                                    <span class="c14k">年假管理</span>
+                                </td>
+                            </tr>
+                            <tr class="c12-k" bgcolor="#FFFFFF">
+                                <td width="100" align="right" bgcolor="#CCCCFF">員編</td>
+                                <td width="800" align="left" colspan="6">
+                                    <input type="text" name="U_num" size="10" maxlength="10" class="box" value="">
+                                </td>
+                            </tr>
+                            <tr class="c12-k" bgcolor="#FFFFFF">
+                                <td align="right" bgcolor="#CCCCFF">姓名</td>
+                                <td align="left" colspan="6">
+                                    <input type="text" name="U_name" size="10" maxlength="10" class="box" value="">
+                                </td>
+                            </tr>
+                            <tr class="c12-k" bgcolor="#FFFFFF">
+                                <td align="right" bgcolor="#CCCCFF">到職日</td>
+                                <td align="left" colspan="6">
+                                    民國
+                                    <input type="text" name="str_U_arrive_date" size="10" maxlength="10" class="box" value="">
+                                </td>
+                            </tr>
+                            <tr class="c12-k" bgcolor="#FFFFFF" id="afterData">
+                                <td align="center" bgcolor="#CCCCFF">服務年資</td>
+                                <td align="center" bgcolor="#CCCCFF">年假使用區間</td>
+                                <td align="center" bgcolor="#CCCCFF">年度新增天數</td>
+                                <td align="center" bgcolor="#CCCCFF">調整天數</td>
+                                <td align="center" bgcolor="#CCCCFF">調整時數</td>
+                                <td align="center" bgcolor="#CCCCFF">調整備註</td>
+                                <td align="center" bgcolor="#CCCCFF">小計天數</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</body>
+</html>
+<script>
+    const params = new URLSearchParams(window.location.search);
+    const U_num = params.get('U_num');
+
+    dateTW();
+    fetchDataUser();
+    fetchData();
+
+    function fetchDataUser() {
+        const url = `${BASE_URL}/AE_HR/User_M_SQuery?U_num=${encodeURIComponent(U_num)}`;
+
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({}),
+            credentials: 'include'
+        })
+            .then(response => response.json())
+            .then(responseData => {
+                if (responseData.resultCode == "000") {
+                    data = JSON.parse(responseData.objResult);
+                    const user = data[0];
+                    document.querySelector('input[name="U_num"]').value = user.U_num;
+                    document.querySelector('input[name="U_name"]').value = user.U_name;
+                    document.querySelector('input[name="str_U_arrive_date"]').value = convertToROCDate(user.U_arrive_date);
+                } else {
+                    console.error('API 回傳資料格式錯誤');
+                }
+            })
+            .catch(error => {
+                console.error('API 請求失敗:', error);
+            });
+    }
+
+    function fetchData() {
+        const url = `${BASE_URL}/AE_HR/User_Hday_List_Change?U_num=${encodeURIComponent(U_num)}`;
+
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({}),
+            credentials: 'include'
+        })
+            .then(response => response.json())
+            .then(responseData => {
+
+                if (responseData.resultCode == "000") {
+                    const data = JSON.parse(responseData.objResult);
+
+                    const targetRow = document.querySelector('#afterData');
+
+                    if (targetRow) {
+                        let rowsHTML = '';
+
+                        data.forEach((item, i) => {
+                            let yearLabel = '';
+
+                            if (i === 0) {
+                                yearLabel = '未滿6個月';
+                            } else if (i === 1) {
+                                yearLabel = '6個月至未滿1年';
+                            } else {
+                                yearLabel = `滿${i - 1}年`;
+                            }
+
+                            const customRow = `
+                        <tr class="c12-k" bgcolor="#FFFFFF">
+                            <td align="center">
+                                ${yearLabel}
+                                <input type="hidden" class="text_box_1" name="H_year_count_${item.H_year_count}" size="4" maxlength="6" value="${item.H_year_count}">
+                            </td>
+                            <td align="center">
+                                <input type="text" class="datepickerTW" name="H_begin_${item.H_year_count}" size="8" maxlength="10" value="${convertToROCDate(item.H_begin)}"> ～ 
+                                <input type="text" class="datepickerTW" name="H_end_${item.H_year_count}" size="8" maxlength="10" value="${convertToROCDate(item.H_end)}">
+                            </td>
+                            <td align="center">
+                                <input type="text" class="text_box_1" name="H_day_base_${item.H_year_count}" size="4" maxlength="6" value="${item.H_day_base}">
+                            </td>
+                            <td align="center">
+                                <input type="text" class="text_box_1" name="H_day_adjust_${item.H_year_count}" size="4" maxlength="6" value="${item.H_day_adjust}">
+                            </td>
+                            <td align="center">
+                                <input type="text" class="text_box_1" name="H_hours_${item.H_year_count}" size="4" maxlength="6" value="${item.H_hours}">
+                            </td>
+                            <td align="center">
+                                <input type="text" class="text_box_1" name="H_day_adjust_note_${item.H_year_count}" size="20" maxlength="50" value="${item.H_day_adjust_note}">
+                            </td>
+                            <td align="center">
+                                <input type="text" class="text_box_1" name="H_day_total_${item.H_year_count}" size="4" maxlength="6" readonly="" value="${item.H_day_total}">
+                            </td>
+                        </tr>
+                    `;
+
+                            rowsHTML += customRow;
+                        });
+
+                        rowsHTML += `
+                    <tr class="c12-k" bgcolor="#CCCCFF" height="30">
+                        <td colspan="7" align="center">
+                            <input type="button" class="btn" value=" 確定修改" onclick="Save();">
+                        </td>
+                    </tr>
+                    `;
+
+                        targetRow.insertAdjacentHTML('afterend', rowsHTML); 
+                    }
+                } else {
+                    console.error('API 回傳資料格式錯誤');
+                }
+            })
+            .catch(error => {
+                console.error('API 請求失敗:', error);
+            });
+    }
+
+    function Save() {
+        const formDataObject = {};
+        const userHdays = [];
+        const inputs = document.querySelectorAll('input[name^="H_"]');
+        inputs.forEach(input => {
+            formDataObject[input.name] = input.value;
+        });
+
+
+        const indices = Object.keys(formDataObject).reduce((acc, key) => {
+            const match = key.match(/^H_.*_(\d+)$/);
+            if (match) {
+                acc.add(match[1]);
+            }
+            return acc;
+        }, new Set());
+        indices.forEach(index => {
+            const userHday = {
+                U_num: U_num, 
+                H_year_count: formDataObject[`H_year_count_${index}`],
+                str_H_begin: formDataObject[`H_begin_${index}`], 
+                str_H_end: formDataObject[`H_end_${index}`],     
+                H_day_base: parseFloat(formDataObject[`H_day_base_${index}`]) || 0,
+                H_day_adjust: parseFloat(formDataObject[`H_day_adjust_${index}`]) || 0,
+                H_hours: parseFloat(formDataObject[`H_hours_${index}`]) || 0,
+                H_day_adjust_note: formDataObject[`H_day_adjust_note_${index}`] || "",
+                H_day_total: (parseFloat(formDataObject[`H_day_base_${index}`]) || 0) + (parseFloat(formDataObject[`H_day_adjust_${index}`]) || 0)
+            };
+
+            userHdays.push(userHday);
+        });
+
+
+        const url = `${BASE_URL}/AE_HR/User_Hday_Upd`;
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(userHdays),
+            credentials: 'include'
+        })
+            .then(response => response.json())
+            .then(responseData => {
+                if (responseData.resultCode == "000") {
+                    data = JSON.parse(responseData.objResult);  // 儲存資料
+                    alert("修改成功");
+                } else {
+                    alert("修改失敗");
+                }
+            })
+            .catch(error => {
+                alert('API 請求失敗:', error);
+            });
+    }
+</script>

@@ -1,0 +1,230 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script src="../Base.js"></script>
+    <title>作業平台</title>
+</head>
+<body>
+    <table border="0" width="100%">
+        <thead>
+            <tr class="c12-k">
+                <td height="24" align="center">
+                    <span>財務表單總表</span>
+                </td>
+            </tr>
+        </thead>
+        <tbody>
+            <tr class="c12-k">
+                <td width="86%">
+                    <span>財務表單:</span>
+                    <select name="Type" id="Type">
+                        <option value="" selected>不限</option>
+                        <option value="PO">請購</option>
+                        <option value="PA">請款</option>
+                        <option value="PP">預支</option>
+                        <option value="PS">沖銷預支</option>
+                    </select>
+                    &nbsp;
+                    申請日期：
+                    <input type="text" name="Date_S" size="10" maxlength="10" class="datepickerTW" value="">
+                    ~
+                    <input type="text" name="Date_E" size="10" maxlength="10" class="datepickerTW" value="">
+                    <br />
+                    <input type="button" name="query" class="" value="查詢" onclick="fetchData();">
+                    <input type="button" name="excel" value="匯出Excel" onclick="Excel();">
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table width="650" border="0" cellspacing="0" cellpadding="0">
+        <tbody>
+            <tr>
+                <td valign="top"> </td>
+                <td align="center" valign="top">
+                    <table id="MainTable" width="980" border="0" cellpadding="4" cellspacing="1" bgcolor="#666666">
+                        <thead>
+                            <tr align="center" bgcolor="#CCCCFF" class="c12-k">
+                                <td width="50">序號</td>
+                                <th width="50">單號</th>
+                                <td width="50">類型</td>
+                                <td width="150">申請部門</td>
+                                <td width="100">申請人</td>
+                                <td width="150">費用類別</td>
+                                <td width="120">總價</td>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr align="center" class="c12-k" bgcolor="#FFFFFF" onmouseover="this.style.background='#FFFF66';" onmouseout="this.style.background='#FFFFFF'; " style="background: rgb(255, 255, 255);">
+                            </tr>
+
+                            <tr align="center" class="c12-k" bgcolor="#FFFFFF" onmouseover="this.style.background='#FFFF66';" onmouseout="this.style.background='#FFFFFF'; " style="background: rgb(255, 255, 255);">
+                            </tr>
+
+                            <tr align="center" height="30" bgcolor="#CCCCFF">
+                                <td class="c12-k" colspan="16">
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div id="pagination"></div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</body>
+</html>
+<script>
+    const itemsPerPage = 50;  
+    let currentPage = 1;  
+    let data = [];  
+
+    window.onload = function () {
+        dateTW();
+        const currentDate = new Date();
+
+        const dateStart = new Date(currentDate);
+        dateStart.setMonth(currentDate.getMonth() - 3);
+
+        const dateEnd = new Date(currentDate);
+        dateEnd.setDate(currentDate.getDate() + 1);
+
+        const getRepublicDate = (date) =>
+            `${date.getFullYear() - 1911}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
+
+        document.querySelector('input[name="Date_S"]').value = getRepublicDate(dateStart);
+        document.querySelector('input[name="Date_E"]').value = getRepublicDate(dateEnd);
+
+        fetchData();
+    }
+    
+    function fetchData() {
+
+        const url = `${BASE_URL}/AE_PRO/PT_Rpt`;
+
+        const PT_Rpt_req = {
+            Type: document.querySelector('select[name="Type"]').value,
+            Date_S: document.querySelector('input[name="Date_S"]').value,
+            Date_E: document.querySelector('input[name="Date_E"]').value
+        };
+
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(PT_Rpt_req)
+        })
+            .then(response => response.json())
+            .then(responseData => {
+                if (responseData.resultCode == "000") {
+                    data = JSON.parse(responseData.objResult);
+                    showPage(currentPage);
+                    createPagination();
+                } else {
+                    alert(response.resultMsg);
+                }
+            })
+            .catch(error => {
+                alert('API 請求失敗:', error);
+            });
+    }
+
+    function showPage(page) {
+        const tbody = document.querySelector('#MainTable tbody');
+        tbody.innerHTML = '';
+
+        const startIndex = (page - 1) * itemsPerPage;
+        const endIndex = Math.min(startIndex + itemsPerPage, data.length);
+        const pageData = data.slice(startIndex, endIndex);
+
+        for (let item of pageData) {
+            const row = document.createElement('tr');
+            row.setAttribute('align', 'center');
+            row.setAttribute('class', 'c12-k');
+            row.setAttribute('bgcolor', '#FFFFFF');
+            row.setAttribute('onmouseover', "this.style.background='#FCFCC0';");
+            row.setAttribute('onmouseout', "this.style.background='#FFFFFF';");
+
+            const columnOrder = ['Form_ID', 'strType', 'BC_Name', 'U_Name', 'str_Name', 'str_Amt'];
+
+            const serialCell = document.createElement('td');
+            serialCell.textContent = startIndex + pageData.indexOf(item) + 1;
+            row.appendChild(serialCell);
+            let Form_ID = "";
+            let strType = "";
+            for (let key of columnOrder) {
+                const cell = document.createElement('td');
+                switch (key) {
+                    case 'Form_ID':
+                        Form_ID = item[key];
+                        cell.textContent = Form_ID;
+                        row.appendChild(cell);
+                        break;
+                    case 'strType':
+                        strType = item[key] || '';
+                        switch (strType) {
+                            case 'PO':
+                                cell.textContent = '請採購';
+                                break;
+                            case 'PA':
+                                cell.textContent = '請款';
+                                break;
+                            case 'PP':
+                                cell.textContent = '預支';
+                                break;
+                            case 'PS':
+                                cell.textContent = '沖銷預支';
+                                break;
+                            default:
+                                cell.textContent = '-';
+                        }
+                        row.appendChild(cell);
+                        break;
+                    default:
+                        cell.textContent = item[key] || '';
+                        row.appendChild(cell);
+                }
+            }
+            tbody.appendChild(row);
+        }
+    }
+
+    function Excel() {
+        const url = `${BASE_URL}/AE_PRO/PT_Rpt_Excel`;
+
+        const PT_Rpt_req = {
+            Type: document.querySelector('select[name="Type"]').value,
+            Date_S: document.querySelector('input[name="Date_S"]').value,
+            Date_E: document.querySelector('input[name="Date_E"]').value
+        };
+
+        $.ajax({
+            url: url,
+            method: 'POST',
+            xhrFields: {
+                responseType: 'blob'
+            },
+            data: JSON.stringify(PT_Rpt_req),
+            contentType: 'application/json',
+            success: function (response) {
+                const url = window.URL.createObjectURL(response);
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = url;
+                a.download = `財務表單總表.csv`;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+            },
+            error: function (err) {
+                alert('Error generating file');
+            }
+        });
+    }
+
+</script>

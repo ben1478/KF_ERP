@@ -1,0 +1,177 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="../Base.js"></script>
+    <title>作業平台</title>
+</head>
+<body leftmargin="5" topmargin="10" onload="window.focus();">
+    <center>
+        <form name="form1" enctype="multipart/form-data">
+            <input type="hidden" name="ftpUpload" value="">
+            <table width="700" border="0" cellpadding="4" cellspacing="1" bgcolor="#666666">
+                <tbody>
+                    <tr align="center" height="30" bgcolor="#CCCCFF">
+                        <td class="c12-k" colspan="2">
+                            <font color="#000080" >檔案上傳:</font>
+                        </td>
+                    </tr>
+                    <tr align="center" height="30" bgcolor="#CCCCFF">
+                        <td class="c12-k" colspan="2">
+                            <font color="#000080">檔案編號：<span id="cknum-display">cknum</span></font>
+                        </td>
+                    </tr>
+                    <tr align="center" height="30" bgcolor="#CCCCFF" class="c12-k">
+                        <td width="100">
+                            <font size="2" color="#000000" class="c12">序號</font>
+                        </td>
+                        <td width="600">
+                            <font size="2" color="#000000" class="c12">請選擇上傳檔案</font>
+                        </td>
+                    </tr>
+                    <tr align="center" class="c12-k" bgcolor="#FFFFFF" onmouseover="this.style.background='#FCFCC0';" onmouseout="this.style.background='#FFFFFF'; " style="background: rgb(255, 255, 255);">
+                        <td>檔案01</td>
+                        <td align="left">
+                            <input type="file" name="File1" size="40" id="File1">
+                        </td>
+                    </tr>
+                    <tr align="center" class="c12-k" bgcolor="#FFFFFF" onmouseover="this.style.background='#FCFCC0';" onmouseout="this.style.background='#FFFFFF'; " style="background: rgb(255, 255, 255);">
+                        <td>檔案02</td>
+                        <td align="left">
+                            <input type="file" name="File2" size="40" id="File2">
+                        </td>
+                    </tr>
+                    <tr align="center" class="c12-k" bgcolor="#FFFFFF" onmouseover="this.style.background='#FCFCC0';" onmouseout="this.style.background='#FFFFFF'; " style="background: rgb(255, 255, 255);">
+                        <td>檔案03</td>
+                        <td align="left">
+                            <input type="file" name="File3" size="40" id="File3">
+                        </td>
+                    </tr>
+                    <tr align="center" class="c12-k" bgcolor="#FFFFFF" onmouseover="this.style.background='#FCFCC0';" onmouseout="this.style.background='#FFFFFF'; " style="background: rgb(255, 255, 255);">
+                        <td>檔案04</td>
+                        <td align="left">
+                            <input type="file" name="File4" size="40" id="File4">
+                        </td>
+                    </tr>
+                    <tr align="center" class="c12-k" bgcolor="#FFFFFF" onmouseover="this.style.background='#FCFCC0';" onmouseout="this.style.background='#FFFFFF'; " style="background: rgb(255, 255, 255);">
+                        <td>檔案05</td>
+                        <td align="left">
+                            <input type="file" name="File5" size="40" id="File5">
+                        </td>
+                    </tr>
+                    <tr align="center" class="c12-k" bgcolor="#FFFFFF" onmouseover="this.style.background='#FCFCC0';" onmouseout="this.style.background='#FFFFFF'; " style="background: rgb(255, 255, 255);">
+                        <td>檔案06</td>
+                        <td align="left">
+                            <input type="file" name="File6" size="40" id="File6">
+                        </td>
+                    </tr>
+                    <tr align="center" class="c12-k" bgcolor="#FFFFFF" onmouseover="this.style.background='#FCFCC0';" onmouseout="this.style.background='#FFFFFF'; " style="background: rgb(255, 255, 255);">
+                        <td>檔案07</td>
+                        <td align="left">
+                            <input type="file" name="File7" size="40" id="File7">
+                        </td>
+                    </tr>
+                    <tr align="center" class="c12-k" bgcolor="#FFFFFF" onmouseover="this.style.background='#FCFCC0';" onmouseout="this.style.background='#FFFFFF'; " style="background: rgb(255, 255, 255);">
+                        <td>檔案08</td>
+                        <td align="left">
+                            <input type="file" name="File8" size="40" id="File8">
+                        </td>
+                    </tr>
+                    <tr align="center" class="c12-k" bgcolor="#FFFFFF" onmouseover="this.style.background='#FCFCC0';" onmouseout="this.style.background='#FFFFFF'; " style="background: rgb(255, 255, 255);">
+                        <td>檔案09</td>
+                        <td align="left">
+                            <input type="file" name="File9" size="40" id="File9">
+                        </td>
+                    </tr>
+                    <tr align="center" class="c12-k" bgcolor="#FFFFFF" onmouseover="this.style.background='#FCFCC0';" onmouseout="this.style.background='#FFFFFF'; ">
+                        <td>檔案10</td>
+                        <td align="left">
+                            <input type="file" name="File10" size="40" id="File10">
+                        </td>
+                    </tr>
+                    <tr align="center" height="30" bgcolor="#CCCCFF">
+                        <td class="c12-k" colspan="2">
+                            <font color="#000080">
+                                <input type="hidden" size="30" maxlength="30" name="cknum" value="201801142021320080599999">
+                                <input type="button" class="btn" value="確認上傳檔案" onclick="uploadFiles();">
+                            </font>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </form>
+    </center>
+</body>
+</html>
+<script>
+    let Params = new URLSearchParams(window.location.search);
+    let cknum = Params.get('cknum');
+    let WebUser = decryptParameter(Params.get('WebUser'));
+
+    if (cknum) {
+        const cknumDisplay = document.getElementById('cknum-display');
+        cknumDisplay.textContent = cknum;  // 設定 'cknum' 的值顯示在網頁中
+    }
+    function uploadFiles() {
+        // 取得表單元素
+        var form = document.forms['form1'];
+
+        // 準備要上傳的檔案
+        var files = [];
+        for (var i = 1; i <= 10; i++) {
+            var fileInput = form['File' + i];
+            if (fileInput && fileInput.files.length > 0) {
+                files.push(fileInput.files[0]); // 收集檔案
+            }
+        }
+
+        // 檢查是否有檔案選擇
+        if (files.length === 0) {
+            alert('請選擇至少一個檔案上傳！');
+            return;
+        }
+
+        const url = `${BASE_URL}/AE/ASP_File_Upload?cknum=${encodeURIComponent(cknum)}&WebUser=${WebUser}`;
+
+        // 上傳每個檔案
+        for (var i = 0; i < files.length; i++) {
+            var file = files[i];
+
+            // 建立 FormData 並將檔案添加到表單中
+            var formData = new FormData();
+            formData.append('file', file);  // 檔案欄位名稱為 'file'
+
+            // 使用 XMLHttpRequest 上傳檔案
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', url, true);
+            xhr.withCredentials = true;
+
+            // 設定回應處理邏輯
+            xhr.onload = function () {
+                if (xhr.status === 200) {
+                    // 解析 JSON 回應
+                    alert(`檔案 ${file.name} 上傳成功`);
+                    window.close();
+                    window.opener.location.reload();
+                } else {
+                    let errorMessage = "未知錯誤";
+                    const response = JSON.parse(xhr.responseText);
+                    errorMessage = response.ResultMsg || `錯誤代碼: ${xhr.status}`;
+                    alert(`檔案 ${file.name} 上傳錯誤: ${errorMessage}`);
+                }
+            };
+
+            // 處理錯誤
+            xhr.onerror = function () {
+                alert(`檔案 ${file.name} 上傳時發生錯誤`);
+            };
+
+            // 發送請求
+            xhr.send(formData);
+        }
+    }
+
+
+
+</script>

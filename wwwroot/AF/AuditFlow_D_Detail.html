@@ -1,0 +1,79 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script src="../Base.js"></script>
+    <title>作業平台</title>
+</head>
+<body>
+    <div id="tables-container"></div>
+</body>
+</html>
+<script>
+    let Params = new URLSearchParams(window.location.search);
+    let AF_ID = decryptParameter(Params.get('AF_ID'));
+    let Form_ID = decryptParameter(Params.get('FM_Source_ID'));
+    let WebUser = decryptParameter(Params.get('User'));
+
+    let data = [];  
+
+    fetchData();
+
+    function fetchData() {
+        const url = `${BASE_URL}/AE_AF/AuditFlow_D_LQuery?Form_ID=${Form_ID}`;
+        fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+            .then(response => response.json())
+            .then(responseData => {
+                if (responseData.resultCode === '000') {
+                    let data = JSON.parse(responseData.objResult);
+                    renderTables(data);
+                }
+            })
+            .catch(erroe => {
+                alert('請求失敗，請稍後再試。');
+            });
+    }
+
+    function renderTables(data) {
+        let container = $('#tables-container');
+        data.forEach((item) => {
+            let buttonHtml = '';
+            if (item.FD_Step_SignType === 'FSIGN001') {
+                buttonHtml = `<input type="button" value="變更" onclick="personChange(${item.FD_ID});">`;
+            }
+            let tableHtml = `
+                <table width="600" border="0" cellspacing="1" cellpadding="2" bgcolor="#999999">
+                    <thead>
+                        <tr class="c12-k" bgcolor="#CCCCFF" height="30">
+                            <th colspan="3" align="center">
+                                <span class="c14k">審核階段: ${item.FD_Step}</span>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="c12-k" bgcolor="#FFFFFF">
+                            <td width="150" align="center">${item.U_name}</td>
+                            <td width="400" align="left">${item.FD_Step_num}</td>
+                            <td>${buttonHtml}</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <br/>
+            `;
+            container.append(tableHtml);
+        });
+    }
+
+    function personChange(FD_ID) {
+        window.open(`AF_Person_Chg.html?FD_ID=${encryptParameter(FD_ID)}&User=${encryptParameter(WebUser)}`, '_blank', 'scrollbars=yes,resizable=yes,top=100,width=700,height=650');
+    }
+</script>

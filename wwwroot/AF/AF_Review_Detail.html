@@ -1,0 +1,309 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script src="../Base.js"></script>
+    <title>作業平台</title>
+</head>
+<body>
+    <table width="1050" cellspacing="1" cellpadding="2" bgcolor="#666666" frameborder="0">
+        <tbody>
+            <tr align="center" bgcolor="#CCCCFF" height="30">
+                <td class="c12-k" colspan="2">
+                    <b><font size="3">簽核</font> </b>
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td align="right">簽核流程</td>
+                <td>
+                    <table border="0" cellspacing="1" bgcolor="6666ff" id="FlowTable">
+                        <tbody>
+                        </tbody>
+                    </table>
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td align="right">簽核結果</td>
+                <td colspan="1">
+                    <input name="FD_Step_SignType" type="radio" id="FD_Step_SignType" value="FSIGN001" checked="">簽核中
+                    <input name="FD_Step_SignType" type="radio" id="FD_Step_SignType" value="FSIGN002">同意
+                    <input name="FD_Step_SignType" type="radio" id="FD_Step_SignType" value="FSIGN003">不同意
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td align="right">簽核說明</td>
+                <td colspan="1">
+                    <textarea rows="2" cols="60" name="FD_Step_desc"></textarea>
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td align="right">是否需要會簽</td>
+                <td colspan="1">
+                    <input type="button" value="選擇會簽人員" onclick="countersignPeople();" id="btencounter"/> <span style="color:red">一旦選擇會簽人員後 須等會簽完畢後才可審核</span>
+                </td>
+            </tr>
+            <tr align="center" bgcolor="#CCCCFF">
+                <td class="c12-k" colspan="2">
+                    <input type="button" class="btn" value="確定簽核" onclick="reviewData();" id="btnReview">
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <br />
+    <table width="1050" cellspacing="1" cellpadding="2" bgcolor="#666666" frameborder="0" id="counterTable" style="display:none;" >
+        <thead>
+            <tr align="center" bgcolor="#CCCCFF" height="30">
+                <td class="c12-k" colspan="2">
+                    <b><font size="3">會簽</font> </b>
+                </td>
+            </tr>
+        </thead>
+        <tbody>
+
+        </tbody>
+    </table>
+    <br />
+    <iframe id="myIframe" width="1050" height="900" frameborder="0"></iframe>
+</body>
+</html>
+<script>
+    let Params = new URLSearchParams(window.location.search);
+    let encodedPath = Params.get("path"); 
+    let encodedForm_ID = Params.get("Form_ID"); 
+    let encryptedUser = Params.get("User"); 
+    let path = decodeURIComponent(encodedPath);
+
+    let AF_ID;
+    let FM_Step;
+    let FM_Source_ID = decryptParameter(encodedForm_ID);
+    let data = [];  
+
+    getIframeSource(path);
+    fetchData();
+
+    function getIframeSource(path) {
+        var iframe = document.getElementById("myIframe");
+        iframe.src = BASE_WEB + path; 
+    }
+
+    function fetchData() {
+        const url = `${BASE_URL}/AE_AF/RevFlow_SQuery?FormID=${FM_Source_ID}`;
+
+        fetch(url, {
+            method: 'GET'
+        })
+            .then(response => response.json())
+            .then(responseData => {
+                if (responseData.resultCode == "000") {
+                    data = JSON.parse(responseData.objResult);
+                    AF_ID = data[0].AF_ID;
+                    FM_Step = data[0].FM_Step;
+
+                    const countersignData = data.filter(item => item.FD_Sign_Countersign === 'C');
+                    if (countersignData.length > 0) {
+                        const counter = countersignData.filter(item => decryptParameter(encryptedUser) === item.FD_Step_num);
+                        const counterTable = document.querySelector('#counterTable tbody');
+                        let tableHTML = '';
+
+                        if (counter.length > 0) {
+                            counter.forEach(item => {
+                                tableHTML += `
+                                    <tr class="c12-k" bgcolor="#FFFFFF">
+                                        <td align="right">會簽意見</td>
+                                        <td colspan="1">
+                                            <textarea rows="2" cols="60" name="C_FD_Step_desc">${item.FD_Step_desc}</textarea>
+                                        </td>
+                                    </tr>
+                                    <tr align="center" bgcolor="#CCCCFF">
+                                        <td class="c12-k" colspan="2">
+                                            <input type="hidden" name="C_FM_Source_ID" value="${item.FM_Source_ID}">
+                                            <input type="hidden" name="C_FD_Step_num" value="${item.FD_Step_num}">
+                                            <input type="button" class="btn" value="送出意見" onclick="counterData();" id="btnCounter">
+                                        </td>
+                                    </tr>
+                                `;
+                            });
+                            document.querySelector('#btnReview').setAttribute('disabled', true);
+                            document.querySelector('#btencounter').setAttribute('disabled', true);
+                        } else {
+                            countersignData.forEach(item => {
+                                tableHTML += `
+                                    <tr class="c12-k" bgcolor="#FFFFFF">
+                                        <td align="right"><span>${item.U_name}</span></td>
+                                        <td colspan="1">
+                                            <textarea rows="2" cols="60" name="C_FD_Step_desc" readonly>${item.FD_Step_desc}</textarea>
+                                        </td>
+                                    </tr>
+                                   
+                                `;
+                            });
+                        }
+                        
+                        counterTable.innerHTML = tableHTML;
+
+                        const countersignTable = document.querySelector('#counterTable');
+                        if (countersignTable) {
+                            countersignTable.style.display = '';
+                        }
+
+                    }
+
+                    FlowShow();
+                }
+            })
+            .catch(error => {
+                alert('API 請求失敗:', error);
+            });
+    }
+
+    function FlowShow() {
+        const url = `${BASE_URL}/AE_AF/RevFlow_Query?FormID=${decryptParameter(encodedForm_ID)}`;
+        const flowTable = document.querySelector('#FlowTable tbody');
+        flowTable.innerHTML = '<span>載入中...</span>';
+
+        fetch(url, {
+            method: 'GET'
+        })
+            .then(response => response.json())
+            .then(responseData => {
+                if (responseData.resultCode === '000') {
+                    const objResult = JSON.parse(responseData.objResult);
+                    let tableHTML = `
+                    <tr bgcolor="#E2F1F7" height="25" class="c12-k" align="center">
+                `;
+                    objResult.forEach(item => {
+                        const title = item.FD_Step_title;
+                        const bgcolor = (FM_Step === item.FD_Step) ? '#E2CCF7' : '';
+                        tableHTML += `<td width="120" bgcolor="${bgcolor}">${title}</td>`;
+                    });
+                    tableHTML += '</tr>';
+
+                    setTimeout(() => {
+                        flowTable.innerHTML = tableHTML;
+                    }, 150);
+                } else {
+                    flowTable.innerHTML = '<span>無法加載數據</span>';
+                }
+            })
+            .catch(error => {
+                flowTable.innerHTML = '<span>請求失敗</span>';
+            });
+    }
+
+    function countersignPeople() {
+        window.open(`Countersign_Peple.html?FormID=${encodedForm_ID}&FM_Step=${encryptParameter(FM_Step)}&AF_ID=${encryptParameter(AF_ID)}&User=${encryptedUser}`, 'add', 'scrollbars=yes,resizable=yes,width=550,height=500,left=250,top=100')
+    }
+
+    function counterData() {
+
+        if (!document.querySelector('textarea[name="C_FD_Step_desc"]').value.trim()) {
+            alert('請輸入會簽意見');
+            return;
+        }
+
+        const formData = {
+            FM_Source_ID: document.querySelector('input[name="C_FM_Source_ID"]').value,
+            FD_Sign_Countersign: 'C',
+            FD_Step_SignType: 'FSIGN002',
+            FM_Step: FM_Step,
+            FD_Step_desc: document.querySelector('textarea[name="C_FD_Step_desc"]').value,
+            User: decryptParameter(encryptedUser)
+        };
+
+        const url = `${BASE_URL}/AE_AF/AuditFlow_D_Upd`;
+
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(formData)
+        })
+            .then(response => response.json())
+            .then(responseData => {
+                if (responseData.resultCode === '000') {
+                    alert('會簽完畢');
+                    if (window.opener) {
+                        window.opener.location.reload();
+                    }
+                    window.close();
+                }
+            }).catch(error => {
+                alert('請求失敗，請稍後再試。');
+            });
+    }
+
+    function reviewData() {
+        const textareas = document.querySelectorAll('textarea[name="C_FD_Step_desc"]');
+
+        for (let textarea of textareas) {
+            if (!textarea.value.trim()) {
+                alert('會簽意見尚未填寫完畢');
+                return;
+            }
+        }
+
+        if (document.querySelector('input[name="FD_Step_SignType"]:checked').value === 'FSIGN003') {
+            const textdesc = document.querySelector('textarea[name="FD_Step_desc"]');
+            if (!textdesc.value.trim()) {
+                alert('請填寫駁回意見');
+                return;
+            }
+        }
+
+        if (document.querySelector('input[name="FD_Step_SignType"]:checked').value !== 'FSIGN003') {
+            var iframe = document.getElementById('myIframe');
+            var iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+            var inputs = iframeDoc.querySelectorAll('input[required]');
+            var isValid = true;
+            for (var i = 0; i < inputs.length; i++) {
+                var input = inputs[i];
+                if (!input.value.trim()) {
+                    alert("必填請輸入");
+                    isValid = false;
+                    break;
+                }
+            }
+            if (!isValid) {
+                return;
+            }
+        }
+
+        const formData = {
+            FM_Source_ID: FM_Source_ID,
+            FD_Sign_Countersign: 'S',
+            FD_Step_SignType: document.querySelector('input[name="FD_Step_SignType"]:checked').value,
+            FM_Step: FM_Step,
+            FD_Step_desc: document.querySelector('textarea[name="FD_Step_desc"]').value,
+            User: decryptParameter(encryptedUser)
+        };
+
+        const url = `${BASE_URL}/AE_AF/AuditFlow_D_Upd`;
+
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(formData)
+        })
+            .then(response => response.json())
+            .then(responseData => {
+                if (responseData.resultCode === '000') {
+                    alert('審核完畢');
+                    if (window.opener) {
+                        window.opener.location.reload();
+                    }
+                    window.close();
+                } else {
+                    alert(responseData.ResultMsg);
+                }
+            }).catch(error => {
+                alert('請求失敗，請稍後再試。');
+            });
+    }
+</script>

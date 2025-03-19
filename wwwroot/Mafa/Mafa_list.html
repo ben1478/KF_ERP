@@ -1,0 +1,179 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script src="../Base.js"></script>
+    <title>作業平台</title>
+</head>
+<body>
+    <table border="0" width="100%">
+        <tbody>
+            <tr class="c12-k">
+                <td width="86%">
+                    供應商代號：
+                    <input type="text" name="MF_ID" id="MF_ID" size="10" maxlength="10" class="box">
+                    &nbsp;
+                    供應商名稱：
+                    <input type="text" name="Company_name" id="Company_name" size="10" maxlength="10" class="box">
+                    聯絡地址：
+                    <input type="text" name="Company_addr" id="Company_addr" size="10" maxlength="10" class="box">
+                    <br />
+                    <input type="button" value="查詢" onclick="fetchData();" />  &nbsp;
+                    <input type="button" name="add" value="新增廠商" onclick="addManufacturer();">
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    
+    <table width="1050" border="0" cellspacing="0" cellpadding="0">
+        <tbody>
+            <tr>
+                <td valign="top"> </td>
+                <td align="center" valign="top">
+                    <table id="MainTable" width="1050" border="0" cellpadding="4" cellspacing="1" bgcolor="#666666">
+                        <thead>
+                            <tr align="center" height="30" bgcolor="#CCCCFF" class="c12-k">
+                                <td width="40">序號</td>
+                                <td width="40">供應商代號</td>
+                                <td width="40">公司統編</td>
+                                <td width="100">公司全稱</td>
+                                <td width="200">公司營業地址</td>
+                                <td width="40">開立發票</td>
+                                <td width="40">國外廠商</td>
+                                <td width="40">修改</td>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr align="center" class="c12-k" bgcolor="#FFFFFF" onmouseover="this.style.background='#FFFF66';" onmouseout="this.style.background='#FFFFFF'; " style="background: rgb(255, 255, 255);">
+                            </tr>
+                            <tr align="center" class="c12-k" bgcolor="#FFFFFF" onmouseover="this.style.background='#FFFF66';" onmouseout="this.style.background='#FFFFFF'; " style="background: rgb(255, 255, 255);">
+                            </tr>
+                            <tr align="center" height="30" bgcolor="#CCCCFF">
+                                <td class="c12-k" colspan="16">
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div id="pagination"></div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</body>
+</html>
+<script>
+    const Params = getQueryParams();
+    let WebUser = Params.WebUser;
+    let WebBC = Params.WebBC;
+
+    const itemsPerPage = 20;  
+    let currentPage = 1;
+    let data = []; 
+
+    fetchData();
+
+    function fetchData() {
+        let Manufacturer = {
+            MF_ID: $("input[name='MF_ID']").val() || '',
+            Company_name: $("input[name='Company_name']").val(),
+            Company_addr: $("input[name='Company_addr']").val()
+        };
+
+        const url = `${BASE_URL}/AE_MAF/Manufacturer_LQuery`;
+
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include',
+            body: JSON.stringify(Manufacturer)
+        })
+            .then(response => response.json())
+            .then(responseData => {
+                if (responseData.resultCode == "000") {
+                    data = JSON.parse(responseData.objResult);
+                    showPage(currentPage);
+                    createPagination();
+                } else {
+                    alert(response.resultMsg);
+                }
+            })
+            .catch(error => {
+                alert('API 請求失敗:', error);
+            });
+    }
+
+    function showPage(page) {
+        const tbody = document.querySelector('#MainTable tbody');
+        tbody.innerHTML = '';
+
+        const startIndex = (page - 1) * itemsPerPage;
+        const endIndex = Math.min(startIndex + itemsPerPage, data.length);
+        const pageData = data.slice(startIndex, endIndex);
+
+        for (let item of pageData) {
+            const row = document.createElement('tr');
+            row.setAttribute('align', 'center');
+            row.setAttribute('class', 'c12-k');
+            row.setAttribute('bgcolor', '#FFFFFF');
+            row.setAttribute('onmouseover', "this.style.background='#FCFCC0';");
+            row.setAttribute('onmouseout', "this.style.background='#FFFFFF';");
+
+            const columnOrder = ['MF_Number','MF_ID','Company_number', 'Company_name', 'Company_busin', 'Invoice_Iss', 'Overseas'];
+
+            const serialCell = document.createElement('td');
+            serialCell.textContent = startIndex + pageData.indexOf(item) + 1;
+            row.appendChild(serialCell);
+            let MF_Number;
+            for (let key of columnOrder) {
+                const cell = document.createElement('td');
+                switch (key) {
+                    case 'MF_Number':
+                        MF_Number = item[key];
+                        break;
+                    case 'Invoice_Iss':
+                        if (item[key] === 'N') {
+                            cell.textContent = '否';
+                        } else {
+                            cell.textContent = '是';
+                        }
+                        row.appendChild(cell);
+                        break;
+                    case 'Overseas':
+                        if (item[key] === 'N') {
+                            cell.textContent = '否';
+                        } else {
+                            cell.textContent = '是';
+                        }
+                        row.appendChild(cell);
+                        break;
+                    default:
+                        cell.textContent = item[key] || '';
+                        row.appendChild(cell);
+                }
+            }
+            let encryptedMF_Number = encryptParameter(MF_Number);
+            let encryptedWebUser = encryptParameter(WebUser);
+            row.appendChild(createButtonCell(
+                "../images/edit.png",
+                "修改",
+                function () {
+                    window.open(`Mafa_Detail.html?ID=${encryptedMF_Number}&User=${encryptedWebUser}`, '_blank', 'scrollbars=yes,resizable=yes,top=100,width=800,height=500');
+                }
+            ));
+            tbody.appendChild(row);
+        }
+    }
+
+    function addManufacturer() {
+        const MF_ID = 'add';
+        let encryptedMF_ID = encryptParameter(MF_ID);
+        let encryptedWebUser = encryptParameter(WebUser);
+        window.open(`Mafa_Detail.html?ID=${encryptedMF_ID}&User=${encryptedWebUser}`, '_blank', 'scrollbars=yes,resizable=yes,top=100,width=800,height=500');
+    }
+</script>

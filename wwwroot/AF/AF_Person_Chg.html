@@ -1,0 +1,152 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script src="../Base.js"></script>
+    <title>作業平台</title>
+</head>
+<body>
+    <div>
+        <label>公司別</label>
+        <select name="U_BC" id="U_BC" class=""></select>
+        <input type="button" value="查詢" name="query" />
+    </div>
+    <table width="400" border="0" cellspacing="0" cellpadding="0">
+        <tbody>
+            <tr>
+                <td valign="top">　</td>
+                <td align="center" valign="top">
+                    <table id="MainTable" width="400" border="0" cellpadding="4" cellspacing="1" bgcolor="#666666">
+                        <thead>
+                            <tr align="center" bgcolor="#CCCCFF" class="c12-k">
+                                <td width="50">序號</td>
+                                <td width="60">公司別</td>
+                                <td width="60">員編</td>
+                                <td width="100">姓名</td>
+                                <td width="60">職稱</td>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                    <div id="pagination"></div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+</body>
+</html>
+<script>
+    let Params = new URLSearchParams(window.location.search);
+    let FD_ID = decryptParameter(Params.get('FD_ID'));
+    let WebUser = decryptParameter(Params.get('User'));
+
+    const itemsPerPage = 500;
+    let currentPage = 1;
+    let data = [];
+
+    loadBCDropdown();
+    fetchData();
+
+    function getQueryParam(param) {
+        var urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get(param);
+    }
+
+    document.querySelector('input[name="query"]').addEventListener('click', function () {
+        const U_BC = document.querySelector('#U_BC').value;
+        fetchData(U_BC);
+    });
+
+    function fetchData(U_BC = '') {
+        const url = `${BASE_URL}/AE_HR/GetUserMenuList?U_BC=${encodeURIComponent(U_BC)}`;
+        fetch(url)
+            .then(response => response.json())
+            .then(responseData => {
+                if (responseData.resultCode == "000") {
+                    data = JSON.parse(responseData.objResult);  // 儲存資料
+                    showPage(currentPage);  // 顯示初始頁面
+                    createPagination();  // 創建分頁
+                } else {
+                    console.error('API 回傳資料格式錯誤');
+                }
+            })
+            .catch(error => {
+                console.error('API 請求失敗:', error);
+            });
+    }
+
+    function showPage(page) {
+        const tbody = document.querySelector('#MainTable tbody');
+        tbody.innerHTML = '';
+
+        const startIndex = (page - 1) * itemsPerPage;
+        const endIndex = Math.min(startIndex + itemsPerPage, data.length);
+        const pageData = data.slice(startIndex, endIndex);  // 當前頁面的資料
+
+        pageData.forEach((item, index) => {
+            const row = document.createElement('tr');
+            row.setAttribute('align', 'center');
+            row.setAttribute('class', 'c12-k');
+            row.setAttribute('bgcolor', '#FFFFFF');
+            row.setAttribute('onmouseover', "this.style.background='#FCFCC0';");
+            row.setAttribute('onmouseout', "this.style.background='#FFFFFF';");
+
+            // 序號
+            const serialCell = document.createElement('td');
+            serialCell.textContent = startIndex + index + 1;
+            row.appendChild(serialCell);
+
+            const keys = Object.keys(item);
+            keys.forEach(key => {
+                const cell = document.createElement('td');
+                cell.textContent = item[key];
+                row.appendChild(cell);
+            });
+
+            // 點擊選擇該員工
+            row.addEventListener('click', function () {
+                const reason = prompt('請輸入異動原因:');
+                if (reason) {
+                    const formData = {
+                        FD_ID: FD_ID,
+                        Reason: reason,
+                        FD_Step_num: item['U_num'],
+                        User: WebUser
+                    };
+                    const url = `${BASE_URL}/AE_AF/AuditFlowD_UpdReason`;
+
+                    fetch(url, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(formData)
+                    })
+                        .then(response => response.json())
+                        .then(responseData => {
+                            if (responseData.resultCode === '000') {
+                                alert('變動成功');
+
+                                if (window.opener) {
+                                    window.opener.location.reload();
+                                }
+                                window.close();
+                            }
+                        })
+                        .catch(error => {
+                            alert('請求失敗，請稍後再試。');
+                        });
+                   
+                }
+            });
+
+            tbody.appendChild(row);
+        });
+    }
+
+</script>

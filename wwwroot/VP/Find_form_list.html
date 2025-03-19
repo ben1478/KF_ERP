@@ -1,0 +1,164 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script src="../Base.js"></script>
+    <title>作業平台</title>
+</head>
+<body>
+    <table width="650" border="0" cellspacing="0" cellpadding="0">
+        <tbody>
+            <tr>
+                <td valign="top"> </td>
+                <td align="center" valign="top">
+                    <table id="MainTable" width="600" border="0" cellpadding="4" cellspacing="1" bgcolor="#666666">
+                        <thead>
+                            <tr align="center" height="30" bgcolor="#CCCCFF" class="c12-k">
+                                <td width="10"></td>
+                                <td width="100">單號</td>
+                                <td width="300">費用內容</td>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr align="center" class="c12-k" bgcolor="#FFFFFF" onmouseover="this.style.background='#FFFF66';" onmouseout="this.style.background='#FFFFFF'; " style="background: rgb(255, 255, 255);">
+                            </tr>
+
+                            <tr align="center" class="c12-k" bgcolor="#FFFFFF" onmouseover="this.style.background='#FFFF66';" onmouseout="this.style.background='#FFFFFF'; " style="background: rgb(255, 255, 255);">
+                            </tr>
+
+                            <tr align="center" height="30" bgcolor="#CCCCFF">
+                                <td class="c12-k" colspan="16">
+                                </td>
+                            </tr>
+                        </tbody>
+                        <tr class="c12-k" bgcolor="#CCCCFF" height="30">
+                            <td colspan="3" align="center">
+                                <input type="button" value="確認" name="save" onclick="saveData();" />
+                            </td>
+                        </tr>
+                    </table>
+                    <div id="pagination"></div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</body>
+</html>
+<script>
+    let Params = new URLSearchParams(window.location.search);
+    let FormType = decryptParameter(Params.get('Type'));
+    let WebUser = decryptParameter(Params.get('User'));
+
+    const itemsPerPage = 100;
+    let currentPage = 1;
+    let data = []; 
+
+    fetchData();
+
+    function fetchData() {
+        const url = `${BASE_URL}/AE_VP/Fina_form_LQuery?User=${WebUser}&Type=${FormType}`;
+
+        fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include'
+        })
+            .then(response => response.json())
+            .then(responseData => {
+                if (responseData.resultCode == "000") {
+                    data = JSON.parse(responseData.objResult);
+                    showPage(currentPage);
+                    createPagination();
+                }
+            })
+            .catch(error => {
+                alert('API 請求失敗:', error);
+            });
+    }
+
+    function showPage(page) {
+        const groupedData = data.reduce((acc, item) => {
+            const groupKey = item.FormID;
+            if (!acc[groupKey]) {
+                acc[groupKey] = [];
+            }
+            acc[groupKey].push(item);
+            return acc;
+        }, {});
+
+        const tbody = document.querySelector('#MainTable tbody');
+        tbody.innerHTML = ''; 
+
+        const groupedDataArray = Object.values(groupedData);
+        const startIndex = (page - 1) * itemsPerPage;
+        const endIndex = Math.min(startIndex + itemsPerPage, groupedDataArray.length);
+
+        const pageData = groupedDataArray.slice(startIndex, endIndex);
+
+        pageData.forEach(group => {
+            const row = document.createElement('tr');
+            row.setAttribute('align', 'center');
+            row.setAttribute('class', 'c12-k');
+            row.setAttribute('bgcolor', '#FFFFFF');
+            row.setAttribute('onmouseover', "this.style.background='#FCFCC0';");
+            row.setAttribute('onmouseout', "this.style.background='#FFFFFF';");
+
+            const formIDCheckbox = document.createElement('input');
+            formIDCheckbox.type = 'checkbox';
+            formIDCheckbox.value = group[0].FormID; 
+            const checkboxCell = document.createElement('td');
+            checkboxCell.appendChild(formIDCheckbox);
+            row.appendChild(checkboxCell);
+
+            const idCell = document.createElement('td');
+            idCell.textContent = group[0].FormID;
+            row.appendChild(idCell);
+
+            const formCaptions = group.map(item => item.FormCaption).join('; ');
+            const captionCell = document.createElement('td');
+            captionCell.textContent = formCaptions;  
+            row.appendChild(captionCell);
+
+            tbody.appendChild(row);  
+        });
+    }
+
+    function saveData() {
+        const selectedGroups = [];
+        const checkboxes = document.querySelectorAll('#MainTable input[type="checkbox"]:checked');
+
+        checkboxes.forEach(checkbox => {
+            const groupId = checkbox.value;
+            const groups = data.filter(item => item.FormID == groupId);
+
+            if (groups && groups.length > 0) {
+                groups.forEach(group => {
+                    const formattedGroup = {
+                        FormID: group.FormID,
+                        FormCaption: group.FormCaption,
+                        FormMoney: group.FormMoney.toString()
+                    };
+                    selectedGroups.push(formattedGroup);
+                });
+            }
+        });
+
+        if (selectedGroups.length > 0) {
+            if (window.opener) {
+                window.opener.receiveDataFromChild(selectedGroups);
+                window.close();  // 如果不需要關閉視窗，保留此行
+            } else {
+                alert('無法找到父視窗，請確認當前頁面是否為子視窗或 iframe。');
+            }
+        } else {
+            alert('請至少選擇一筆資料。');
+        }
+    }
+
+</script>

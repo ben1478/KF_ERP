@@ -1,0 +1,223 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script src="../Base.js"></script>
+    <title>作業平台</title>
+</head>
+<body>
+    <table width="650" border="0" cellspacing="1" cellpadding="2" bgcolor="#999999">
+        <tbody>
+            <tr class="c12-k" bgcolor="#CCCCFF" height="30">
+                <td colspan="2" align="center">
+                    <span class="c14k">廠商資料</span>
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td width="150" align="right" bgcolor="#CCCCFF">客戶供應商代號</td>
+                <td width="500" align="left">
+                    <input type="text" name="MF_ID" size="15" maxlength="10" class="box" value="" style="background-color: #f0f0f0" readonly>
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td width="150" align="right" bgcolor="#CCCCFF">公司全稱</td>
+                <td width="500" align="left">
+                    <input type="text" name="Company_name" size="35" maxlength="35" class="box" value="">
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td align="right" bgcolor="#CCCCFF">統編</td>
+                <td align="left">
+                    <input type="text" name="Company_number" size="10" maxlength="100" class="box" value="">
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td align="right" bgcolor="#CCCCFF">公司登記地址</td>
+                <td align="left">
+                    <input type="text" name="Company_addr" size="55" maxlength="55" class="box" value="">
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td align="right" bgcolor="#CCCCFF">公司營業地址</td>
+                <td align="left">
+                    <input type="text" name="Company_busin" size="55" maxlength="55" class="box" value="">
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td align="right" bgcolor="#CCCCFF">電話</td>
+                <td align="left">
+                    <input type="text" name="Company_tel" size="15" maxlength="15" class="box" value="">
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td align="right" bgcolor="#CCCCFF">傳真</td>
+                <td align="left">
+                    <input type="text" name="Company_fax" size="15" maxlength="15" class="box" value="">
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td align="right" bgcolor="#CCCCFF">開立發票</td>
+                <td align="left">
+                    <input type="radio" name="Invoice_Iss" value="Y" />是
+                    <input type="radio" name="Invoice_Iss" value="N" />否
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td align="right" bgcolor="#CCCCFF">國外廠商</td>
+                <td align="left">
+                    <input type="radio" name="Overseas" value="Y" />是
+                    <input type="radio" name="Overseas" value="N" />否
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#CCCCFF" height="30">
+                <td colspan="2" align="center">
+                    <input type="button" value="儲存" onclick="saveData();" />
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</body>
+</html>
+<script>
+    let Params = new URLSearchParams(window.location.search);
+    let MF_Number = decryptParameter(Params.get('ID'));
+    let WebUser = decryptParameter(Params.get('User'));
+    let ChkRole;
+
+    ChkUserRole();
+
+    function fetchData() {
+        if (MF_Number !== 'add') {
+            const url = `${BASE_URL}/AE_MAF/Manufacturer_SQuery?ID=${MF_Number}&User=${WebUser}`;
+            fetch(url, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+                .then(response => response.json())
+                .then(response => {
+                    if (response.resultCode === '000') {
+                        const data = JSON.parse(response.objResult)[0];
+                        $("input[name='MF_ID']").val(data.MF_ID);
+                        $("input[name='Company_name']").val(data.Company_name);
+                        $("input[name='Company_number']").val(data.Company_number);
+                        $("input[name='Company_addr']").val(data.Company_addr);
+                        $("input[name='Company_busin']").val(data.Company_busin);
+                        $("input[name='Company_tel']").val(data.Company_tel);
+                        $("input[name='Company_fax']").val(data.Company_fax);
+                        if (data.Invoice_Iss === 'Y') {
+                            $("input[name='Invoice_Iss'][value='Y']").prop('checked', true);
+                        } else if (data.Invoice_Iss === 'N') {
+                            $("input[name='Invoice_Iss'][value='N']").prop('checked', true);
+                        }
+                        if (data.Overseas === 'Y') {
+                            $("input[name='Overseas'][value='Y']").prop('checked', true);
+                        } else if (data.Overseas === 'N') {
+                            $("input[name='Overseas'][value='N']").prop('checked', true);
+                        }
+                    } else {
+                        alert(response.resultMsg);
+                    }
+                })
+                .catch(error => {
+                    alert('API 請求失敗:', error);
+                });
+        }
+    }
+
+    function saveData() {
+        let Manufacturer = {
+            MF_Number: MF_Number,
+            MF_ID: $("input[name='MF_ID']").val() || '',
+            Company_name: $("input[name='Company_name']").val(),
+            Company_number: $("input[name='Company_number']").val(),
+            Company_addr: $("input[name='Company_addr']").val(),
+            Company_busin: $("input[name='Company_busin']").val(),
+            Company_tel: $("input[name='Company_tel']").val(),
+            Company_fax: $("input[name='Company_fax']").val(),
+            Invoice_Iss: $("input[name='Invoice_Iss']:checked").val(),  
+            Overseas: $("input[name='Overseas']:checked").val(),
+            add_num: WebUser,
+            edit_num: WebUser
+        };
+        if (MF_Number !== 'add') {
+            const url = `${BASE_URL}/AE_MAF/Manufacturer_Upd`;
+
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(Manufacturer)
+            })
+                .then(response => response.json())
+                .then(response => {
+                    if (response.resultCode === '000') {
+                        alert('修改成功');
+                        window.close();
+                        window.opener.location.reload();
+                    } else {
+                        alert(data.resultMsg);
+                    }
+                })
+                .catch(error => {
+                    alert('請求失敗，請稍後再試。');
+                });
+        } else {
+            const url = `${BASE_URL}/AE_MAF/Manufacturer_Ins`; 
+
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(Manufacturer)
+            })
+                .then(response => response.json())
+                .then(response => {
+                    if (response.resultCode === '000') {
+                        alert('新增成功');
+                        window.close();
+                        let locationUrl = BASE_WEB + '/Mafa/Mafa_list';
+                        if (window.opener.location.href === locationUrl) {
+                             window.opener.location.reload();
+                        }
+                    } else {
+                        alert(data.resultMsg);
+                    }
+                })
+                .catch(error => {
+                    alert('請求失敗，請稍後再試。');
+                });
+        }
+    }
+
+    function ChkUserRole() {
+        const url = `${BASE_URL}/AE_VP/ChkUserRole?User=${WebUser}`;
+        fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+            .then(response => response.json())
+            .then(responseData => {
+                if (responseData.resultCode === '000') {
+                    ChkRole = responseData.objResult;
+                    if (ChkRole === 'Y') {
+                        document.querySelector('input[name="MF_ID"]').removeAttribute('readonly');
+                        document.querySelector('input[name="MF_ID"]').style.removeProperty('background-color');
+                    }
+                    fetchData();
+                }
+            })
+            .catch(error => {
+                alert('角色辨別失敗，請稍後再試。');
+            })
+    }
+</script>

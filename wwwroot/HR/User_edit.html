@@ -1,0 +1,477 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script src="../Base.js"></script>
+    <title>作業平台</title>
+</head>
+<body>
+    <input type="hidden" name="U_id" value="" />
+    <table width="650" border="0" cellspacing="1" cellpadding="2" bgcolor="#999999">
+        <tbody>
+            <tr class="c12-k" bgcolor="#CCCCFF" height="30">
+                <td colspan="2" align="center">
+                    <span class="c14k">使用者資料修改</span>
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td width="150" align="right" bgcolor="#CCCCFF">員編</td>
+                <td width="440" align="left">
+                    <input type="text" name="U_num" size="10" maxlength="10" class="box" value="">
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td align="right" bgcolor="#CCCCFF">中文姓名</td>
+                <td align="left">
+                    <input type="text" name="U_name" size="10" maxlength="10" class="box" value="">
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td align="right" bgcolor="#CCCCFF">英文姓名</td>
+                <td align="left">
+                    <input type="text" id="U_Ename" name="U_Ename" size="10" maxlength="20" class="box" value="">
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td align="right" bgcolor="#CCCCFF">生日</td>
+                <td align="left">
+                    <input type="text" value="" name="str_U_Birthday" class="datepickerTW" placeholder="年 /月 /日" style="width:80px;">
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td align="right" bgcolor="#CCCCFF">性別</td>
+                <td align="left">
+                    <input type="radio" id="U_sex" name="U_sex" value="M" checked="">男
+                    <input type="radio" id="U_sex" name="U_sex" value="F">女
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td align="right" bgcolor="#CCCCFF">婚姻狀況</td>
+                <td align="left">
+                    <input type="radio" id="Marriage" name="Marriage" checked="" value="Y">已婚
+                    <input type="radio" id="Marriage" name="Marriage" value="N">未婚
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td align="right" bgcolor="#CCCCFF">子女數</td>
+                <td align="left">
+                    <input type="text" id="Children" name="Children" size="10" maxlength="20" class="box" value="" oninput="value=value.replace(/[^\d]/g,'')">
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td align="right" bgcolor="#CCCCFF">身份証字號</td>
+                <td align="left">
+                    <input type="text" id="U_PID" name="U_PID" size="10" maxlength="20" class="box" value="">
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td align="right" bgcolor="#CCCCFF">兵役狀況</td>
+                <td align="left">
+                    <input type="radio" id="Military" name="Military" value="0" style="background='#00FF00'">役畢
+                    入/退伍日 民國
+                    <input type="text" id="Military_SY" name="Military_SY" size="2" maxlength="3" value="" oninput="value=value.replace(/[^\d]/g,'')"> 年
+                    <input type="text" id="Military_SM" name="Military_SM" size="2" maxlength="2" value="" oninput="value=value.replace(/[^\d]/g,'')"> 月
+                    ~
+                    <input type="text" id="Military_EY" name="Military_EY" size="2" maxlength="3" value="" oninput="value=value.replace(/[^\d]/g,'')"> 年
+                    <input type="text" id="Military_EM" name="Military_EM" size="2" maxlength="2" value="" oninput="value=value.replace(/[^\d]/g,'')"> 月
+                    <br>
+                    <input type="radio" id="Military" name="Military" value="1" style="background='#00FF00'">未役
+                    <input type="radio" id="Military" name="Military" value="2" style="background='#00FF00'">免役
+                    事由：
+                    <input type="text" name="Military_Exemption" size="36" maxlength="50" class="box" value="">
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td align="right" bgcolor="#CCCCFF">駕照類型</td>
+                <td align="left">
+                    <input type="checkbox" id="License_Car" name="License_Car" value="C" checked="" style="background='#00FF00'">汽車&nbsp;&nbsp;
+                    (自備)
+                    <input type="radio" id="Self_Car" name="Self_Car" value="0" style="background='#00FF00'">是
+                    <input type="radio" id="Self_Car" name="Self_Car" value="1" style="background='#00FF00'">否
+                    <br>
+                    <input type="checkbox" id="License_Motorcycle" name="License_Motorcycle" value="M" checked="" style="background='#00FF00'">機車&nbsp;&nbsp;
+                    (自備)
+                    <input type="radio" id="Self_Motorcycle" name="Self_Motorcycle" value="0" style="background='#00FF00'">是
+                    <input type="radio" id="Self_Motorcycle" name="Self_Motorcycle" value="1" style="background='#00FF00'">否
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td align="right" bgcolor="#CCCCFF">家用電話</td>
+                <td align="left">
+                    <input type="text" id="U_Tel" name="U_Tel" size="10" maxlength="20" class="box" value="">
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td align="right" bgcolor="#CCCCFF">行動電話</td>
+                <td align="left">
+                    <input type="text" id="U_MTel" name="U_MTel" size="10" maxlength="20" class="box" value="">
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td align="right" bgcolor="#CCCCFF">電子信箱</td>
+                <td align="left">
+                    <input type="text" id="U_Email" name="U_Email" size="20" maxlength="50" class="box" value="">
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td align="right" bgcolor="#CCCCFF">緊急連絡人</td>
+                <td align="left">
+                    <input type="text" id="Emergency_contact" name="Emergency_contact" size="10" maxlength="20" class="box" value="">
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td align="right" bgcolor="#CCCCFF">緊急連絡人電話</td>
+                <td align="left">
+                    <input type="text" id="Emergency_Tel" name="Emergency_Tel" size="10" maxlength="20" class="box" value="">
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td align="right" bgcolor="#CCCCFF">緊急連絡人手機號碼</td>
+                <td align="left">
+                    <input type="text" id="Emergency_MTel" name="Emergency_MTel" size="40" maxlength="50" class="box" value="">
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td align="right" bgcolor="#CCCCFF">最高學歷資訊</td>
+                <td align="left">
+                    學&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;歷：
+                    <select style="width:90px" name="School_Level" id="School_Level" class=""></select>
+                    <br>
+                    學校名稱：
+                    <input type="text" id="School_Name" name="School_Name" size="40" maxlength="50" class="box" value="">
+                    <br>
+                    就學起訖：民國
+                    <input type="text" id="School_SY" name="School_SY" size="2" maxlength="3" value="" oninput="value=value.replace(/[^\d]/g,'')"> 年
+                    <input type="text" id="School_SM" name="School_SM" size="2" maxlength="2" value="" oninput="value=value.replace(/[^\d]/g,'')"> 月
+                    ~
+                    <input type="text" id="School_EY" name="School_EY" size="2" maxlength="3" value="" oninput="value=value.replace(/[^\d]/g,'')"> 年
+                    <input type="text" id="School_EM" name="School_EM" size="2" maxlength="2" value="" oninput="value=value.replace(/[^\d]/g,'')"> 月
+                    <br>
+                    就學狀態：
+
+                    <input type="radio" id="School_Graduated" name="School_Graduated" value="SG001" checked="" style="background='#00FF00'">畢業
+                    <input type="radio" id="School_Graduated" name="School_Graduated" value="SG002" style="background='#00FF00'">肄業
+                    <input type="radio" id="School_Graduated" name="School_Graduated" value="SG003" style="background='#00FF00'">在學
+                    <br>
+                    日&nbsp;&nbsp;/&nbsp;&nbsp;夜：
+                    <input type="radio" id="School_D_N" name="School_D_N" value="0" checked="" style="background='#00FF00'">日間部
+                    <input type="radio" id="School_D_N" name="School_D_N" value="1" style="background='#00FF00'">夜間部
+                    <br>
+                    科&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;系：
+                    <input type="text" id="School_Major" name="School_Major" size="10" maxlength="20" class="box" value="">
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td align="right" bgcolor="#CCCCFF">分公司</td>
+                <td align="left">
+                    <select name="U_BC" id="U_BC" class=""></select>
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td align="right" bgcolor="#CCCCFF">職稱</td>
+                <td align="left">
+                    <select name="U_PFT" id="U_PFT" class=""></select>
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td align="right" bgcolor="#CCCCFF">角色</td>
+                <td align="left">
+                    <select name="role" id="role" class=""></select>
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td align="right" bgcolor="#CCCCFF">代理人</td>
+                <td align="left">
+                    <input type="text" name="U_agent_num" id="U_agent_num" size="10" maxlength="10" class="box" value="" readonly="">
+                    <input type="text" name="U_agent_name" id="U_agent_name" size="10" maxlength="10" class="box" value="" readonly="">
+                    <input type="button" value="..." name="_select_user_one" onclick="openUserOne('agent')">
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td align="right" bgcolor="#CCCCFF">(一)直屬主管</td>
+                <td align="left">
+                    <input type="text" name="U_leader_1_num" id="U_leader_1_num" size="10" maxlength="10" class="box" value="" readonly="">
+                    <input type="text" name="U_leader_1_name" id="U_leader_1_name" size="10" maxlength="10" class="box" value="" readonly="">
+                    <input type="button" value="..." name="_select_user_one" onclick="openUserOne('leader1')">
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td align="right" bgcolor="#CCCCFF">(二)單位主管</td>
+                <td align="left">
+                    <input type="text" name="U_leader_2_num" id="U_leader_2_num" size="10" maxlength="10" class="box" value="" readonly="">
+                    <input type="text" name="U_leader_2_name" id="U_leader_2_name" size="10" maxlength="10" class="box" value="" readonly="">
+                    <input type="button" value="..." name="_select_user_one" onclick="openUserOne('leader2')">
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td align="right" bgcolor="#CCCCFF">可查看公司</td>
+                <td align="left">
+                    <input type="checkbox" name="U_Check_BC" value="BC0100"  style="background-color: #00FF00;"> 台北
+                    <input type="checkbox" name="U_Check_BC" value="BC0200"  style="background-color: #00FF00;"> 新北
+                    <input type="checkbox" name="U_Check_BC" value="BC0600"  style="background-color: #00FF00;"> 桃園
+                    <input type="checkbox" name="U_Check_BC" value="BC0300"  style="background-color: #00FF00;"> 台中
+                    <input type="checkbox" name="U_Check_BC" value="BC0500"  style="background-color: #00FF00;"> 台南
+                    <input type="checkbox" name="U_Check_BC" value="BC0400"  style="background-color: #00FF00;"> 高雄
+                    <input type="checkbox" name="U_Check_BC" value="BC0900"  style="background-color: #00FF00;"> 數位行銷部
+                    <input type="checkbox" name="U_Check_BC" value="BC0700" style="background-color: #00FF00;"> 湧立
+                    <input type="checkbox" name="U_Check_BC" value="BC0800"  style="background-color: #00FF00;"> 台北管理部
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td align="right" bgcolor="#CCCCFF">居住地址</td>
+                <td align="left">
+                    <input type="text" name="U_address_live" size="40" maxlength="50" class="box" value="">
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td align="right" bgcolor="#CCCCFF">到職日</td>
+                <td align="left">
+                    民國
+                    <input type="text" value="" name="str_U_arrive_date" class="datepickerTW" placeholder="年 /月 /日" style="width:80px;">
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td align="right" bgcolor="#CCCCFF">離職日</td>
+                <td align="left">
+                    民國
+                    <input type="text" value="" name="str_U_leave_date" class="datepickerTW" placeholder="年 /月 /日" style="width:80px;">
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#CCCCFF" height="30">
+                <td colspan="2" align="center">
+                    <input type="button" class="btn" value="確定修改" onclick="UpdateUser();">
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</body>
+</html>
+<script>
+    const params = new URLSearchParams(window.location.search);
+    const U_num = params.get('U_num');
+    let data = [];
+    loadBCDropdown();
+    loadRolmDropdown();
+    loadSchoolDropdown();
+    loadPtfDropdown();
+    dateTW();
+    fetchData();
+    function fetchData() {
+        const url = `${BASE_URL}/AE_HR/User_M_SQuery?U_num=${encodeURIComponent(U_num)}`;
+
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({}),
+            credentials: 'include'
+        })
+            .then(response => response.json())
+            .then(responseData => {
+                if (responseData.resultCode == "000") {
+                    data = JSON.parse(responseData.objResult);
+                    const user = data[0];
+                    document.querySelector('input[name="U_id"]').value = user.U_id;
+                    document.querySelector('input[name="U_num"]').value = user.U_num;
+                    document.querySelector('input[name="U_name"]').value = user.U_name;
+                    document.querySelector('input[name="U_Ename"]').value = user.U_Ename;
+                    document.querySelector('input[name="str_U_Birthday"]').value = convertToROCDate(user.U_Birthday);
+                    document.querySelector('input[name="U_sex"][value="' + user.U_sex + '"]').checked = true;
+                    document.querySelector('input[name="Marriage"][value="' + user.Marriage + '"]').checked = true;
+                    document.querySelector('input[name="Children"]').value = user.Children;
+                    document.querySelector('input[name="U_PID"]').value = user.U_PID;
+                    if (user.Military) {
+                        document.querySelector('input[name="Military"][value="' + user.Military + '"]').checked = true;
+                    }
+                    document.querySelector('input[name="Military_SY"]').value = user.Military_SDate.split("/")[0];
+                    document.querySelector('input[name="Military_SM"]').value = user.Military_SDate.split("/")[1];
+                    document.querySelector('input[name="Military_EY"]').value = user.Military_EDate.split("/")[0];
+                    document.querySelector('input[name="Military_EM"]').value = user.Military_EDate.split("/")[1];
+                    document.querySelector('input[name="Military_Exemption"]').value = user.Military_Exemption;
+                    document.querySelector('input[name="License_Car"]').checked = user.License_Car === "C";
+                    if (user.Self_Car) {
+                        document.querySelector('input[name="Self_Car"][value="' + user.Self_Car + '"]').checked = true;
+                    }                  
+                    document.querySelector('input[name="License_Motorcycle"]').checked = user.License_Motorcycle === "M";
+                    if (user.Self_Motorcycle) {
+                        document.querySelector('input[name="Self_Motorcycle"][value="' + user.Self_Motorcycle + '"]').checked = true; 
+                    }
+                    document.querySelector('input[name="U_Tel"]').value = user.U_Tel;
+                    document.querySelector('input[name="U_MTel"]').value = user.U_MTel;
+                    document.querySelector('input[name="U_Email"]').value = user.U_Email;
+                    document.querySelector('input[name="Emergency_contact"]').value = user.Emergency_contact;
+                    document.querySelector('input[name="Emergency_Tel"]').value = user.Emergency_Tel;
+                    document.querySelector('input[name="Emergency_MTel"]').value = user.Emergency_MTel;
+                    document.querySelector('select[name="School_Level"]').value = user.School_Level;
+                    document.querySelector('input[name="School_Name"]').value = user.School_Name;
+                    document.querySelector('input[name="School_SY"]').value = user.School_SDate.split("/")[0];
+                    document.querySelector('input[name="School_SM"]').value = user.School_SDate.split("/")[1];
+                    document.querySelector('input[name="School_EY"]').value = user.School_EDate.split("/")[0];
+                    document.querySelector('input[name="School_EM"]').value = user.School_EDate.split("/")[1];
+                    document.querySelector('input[name="School_Graduated"][value="' + user.School_Graduated + '"]').checked = true;
+                    if (user.School_D_N) {
+                        document.querySelector('input[name="School_D_N"][value="' + user.School_D_N + '"]').checked = true;
+                    }
+                    document.querySelector('input[name="School_Major"]').value = user.School_Major;
+                    document.querySelector('select[name="U_BC"]').value = user.U_BC;
+                    document.querySelector('select[name="U_PFT"]').value = user.U_PFT;
+                    document.querySelector('select[name="role"]').value = user.Role_num;
+                    document.querySelector('input[name="U_agent_num"]').value = user.U_agent_num;
+                    document.querySelector('input[name="U_leader_1_num"]').value = user.U_leader_1_num;
+                    document.querySelector('input[name="U_leader_2_num"]').value = user.U_leader_2_num;
+                    document.querySelector('input[name="U_agent_name"]').value = user.U_agent_name;
+                    document.querySelector('input[name="U_leader_1_name"]').value = user.U_leader_1_name;
+                    document.querySelector('input[name="U_leader_2_name"]').value = user.U_leader_2_name;
+                    document.querySelector('input[name="U_address_live"]').value = user.U_address_live;
+                    document.querySelector('input[name="str_U_arrive_date"]').value = convertToROCDate(user.U_arrive_date);
+                    if (user.U_leave_date) {
+                        document.querySelector('input[name="str_U_leave_date"]').value = convertToROCDate(user.U_leave_date);
+                    } else {
+                        document.querySelector('input[name="str_U_leave_date"]').value = '';
+                    }
+                    setCheckBoxes(user.U_Check_BC);
+                } else {
+                    console.error('API 回傳資料格式錯誤');
+                }
+            })
+            .catch(error => {
+                console.error('API 請求失敗:', error);
+            });
+    }
+    function setCheckBoxes(userCheckBC) {
+        if (!userCheckBC) {
+            let checkboxes = document.querySelectorAll('input[name="U_Check_BC"]');
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = false;
+            });
+            return;
+        }
+
+        let selectedCodes = userCheckBC.split('#'); 
+        let checkboxes = document.querySelectorAll('input[name="U_Check_BC"]');
+
+        checkboxes.forEach(checkbox => {
+            if (selectedCodes.includes(checkbox.value)) {
+                checkbox.checked = true;
+            } else {
+                checkbox.checked = false;
+            }
+        });
+    }
+    function UpdateUser() {
+        const U_id = document.querySelector('input[name="U_id"]').value;
+        const U_num = document.querySelector('input[name="U_num"]').value;
+        const U_name = document.querySelector('input[name="U_name"]').value;
+        const U_Ename = document.querySelector('input[name="U_Ename"]').value;
+        const str_U_Birthday = document.querySelector('input[name="str_U_Birthday"]').value;
+        const U_sex = document.querySelector('input[name="U_sex"]:checked').value;
+        const Marriage = document.querySelector('input[name="Marriage"]:checked').value;
+        const Children = document.querySelector('input[name="Children"]').value;
+        const U_PID = document.querySelector('input[name="U_PID"]').value;
+        const Military = document.querySelector('input[name="Military"]:checked').value;
+        const Military_SDate = document.querySelector('input[name="Military_SY"]').value + "/" + document.querySelector('input[name="Military_SM"]').value;
+        const Military_EDate = document.querySelector('input[name="Military_EY"]').value + "/" + document.querySelector('input[name="Military_EM"]').value;
+        const Military_Exemption = document.querySelector('input[name="Military_Exemption"]').value;
+        const License_Car = document.querySelector('input[name="License_Car"]:checked') ? "C" : "";
+        const Self_Car = document.querySelector('input[name="Self_Car"]:checked').value;
+        const License_Motorcycle = document.querySelector('input[name="License_Motorcycle"]:checked') ? "M" : "";
+        const Self_Motorcycle = document.querySelector('input[name="Self_Motorcycle"]:checked').value;
+        const U_Tel = document.querySelector('input[name="U_Tel"]').value;
+        const U_MTel = document.querySelector('input[name="U_MTel"]').value;
+        const U_Email = document.querySelector('input[name="U_Email"]').value;
+        const Emergency_contact = document.querySelector('input[name="Emergency_contact"]').value;
+        const Emergency_Tel = document.querySelector('input[name="Emergency_Tel"]').value;
+        const Emergency_MTel = document.querySelector('input[name="Emergency_MTel"]').value;
+        const School_Level = document.querySelector('select[name="School_Level"]').value;
+        const School_Name = document.querySelector('input[name="School_Name"]').value;
+        const School_SDate = document.querySelector('input[name="School_SY"]').value + "/" + document.querySelector('input[name="School_SM"]').value;
+        const School_EDate = document.querySelector('input[name="School_EY"]').value + "/" + document.querySelector('input[name="School_EM"]').value;
+        const School_Graduated = document.querySelector('input[name="School_Graduated"]:checked').value;
+        const School_D_N = document.querySelector('input[name="School_D_N"]:checked').value;
+        const School_Major = document.querySelector('input[name="School_Major"]').value;
+        const U_BC = document.querySelector('select[name="U_BC"]').value;
+        const U_PFT = document.querySelector('select[name="U_PFT"]').value;
+        const Role_num = document.querySelector('select[name="role"]').value;
+        const U_agent_num = document.querySelector('input[name="U_agent_num"]').value;
+        const U_leader_1_num = document.querySelector('input[name="U_leader_1_num"]').value;
+        const U_leader_2_num = document.querySelector('input[name="U_leader_2_num"]').value;
+        const U_address_live = document.querySelector('input[name="U_address_live"]').value;
+        const str_U_arrive_date = document.querySelector('input[name="str_U_arrive_date"]').value;
+        const str_U_leave_date = document.querySelector('input[name="str_U_leave_date"]').value;
+        const U_Check_BC = Array.from(document.querySelectorAll('input[name="U_Check_BC"]:checked'))
+            .map(checkbox => "#" + checkbox.value)
+            .join('');
+
+        const userData = {
+            U_id,
+            U_num,
+            U_name,
+            U_Ename,
+            str_U_Birthday,
+            U_sex,
+            Marriage,
+            Children: parseInt(Children),
+            U_PID,
+            Military,
+            Military_SDate,
+            Military_EDate,
+            Military_Exemption,
+            License_Car,
+            Self_Car,
+            License_Motorcycle,
+            Self_Motorcycle,
+            U_Tel,
+            U_MTel,
+            U_Email,
+            Emergency_contact,
+            Emergency_Tel,
+            Emergency_MTel,
+            School_Level,
+            School_Name,
+            School_SDate,
+            School_EDate,
+            School_Graduated,
+            School_D_N,
+            School_Major,
+            U_BC,
+            U_PFT,
+            Role_num,
+            U_agent_num,
+            U_leader_1_num,
+            U_leader_2_num,
+            U_address_live,
+            str_U_arrive_date,
+            str_U_leave_date,
+            U_Check_BC
+        };
+        const url = `${BASE_URL}/AE_HR/User_M_SUpd`;
+
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include',
+            body: JSON.stringify(userData)
+        })
+            .then(response => response.json())
+            .then(response => {
+                if (response.resultCode == "000") {
+                    alert('資料修改成功');
+                    window.close();
+                } else {
+                    alert('資料修改失敗');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('請求失敗');
+            });
+
+    }
+</script>

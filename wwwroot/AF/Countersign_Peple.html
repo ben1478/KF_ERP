@@ -1,0 +1,157 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="../Base.js"></script>
+    <title>作業平台</title>
+</head>
+<body>
+    <div>
+        <label>公司別</label>
+        <select name="U_BC" id="U_BC" class=""></select>
+        <input type="button" value="查詢" name="query" />&nbsp;&nbsp;&nbsp;&nbsp;
+        <input type="button" value="確定會簽人員" onclick="countersignSave();"/>
+    </div>
+    <table width="400" border="0" cellspacing="0" cellpadding="0">
+        <tbody>
+            <tr>
+                <td valign="top">　</td>
+                <td align="center" valign="top">
+                    <table id="MainTable" width="500" border="0" cellpadding="4" cellspacing="1" bgcolor="#666666">
+                        <thead>
+                            <tr align="center" bgcolor="#CCCCFF" class="c12-k">
+                                <td width="35"></td>
+                                <td width="50">序號</td>
+                                <td width="100">公司別</td>
+                                <td width="60">員編</td>
+                                <td width="100">姓名</td>
+                                <td width="150">職稱</td>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                    <div id="pagination"></div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</body>
+</html>
+<script>
+    let Params = new URLSearchParams(window.location.search);
+    let encodedFormID = Params.get("FormID"); 
+    let encodedStep = Params.get("FM_Step"); 
+    let encodedAFID = Params.get("AF_ID"); 
+    let encodedUser = Params.get("User"); 
+
+    const itemsPerPage = 500;
+    let currentPage = 1;
+    let data = [];  
+
+    loadBCDropdown();
+    fetchData();
+
+    document.querySelector('input[name="query"]').addEventListener('click', function () {
+        const U_BC = document.querySelector('#U_BC').value;
+        fetchData(U_BC);
+    });
+
+    function fetchData(U_BC = '') {
+        const url = `${BASE_URL}/AE_HR/GetUserMenuList?U_BC=${encodeURIComponent(U_BC)}`;
+        fetch(url)
+            .then(response => response.json())
+            .then(responseData => {
+                if (responseData.resultCode == "000") {
+                    data = JSON.parse(responseData.objResult);  // 儲存資料
+                    showPage(currentPage);  // 顯示初始頁面
+                    createPagination();  // 創建分頁
+                } else {
+                    console.error('API 回傳資料格式錯誤');
+                }
+            })
+            .catch(error => {
+                console.error('API 請求失敗:', error);
+            });
+    }
+
+    function showPage(page) {
+        const tbody = document.querySelector('#MainTable tbody');
+        tbody.innerHTML = '';
+
+        const startIndex = (page - 1) * itemsPerPage;
+        const endIndex = Math.min(startIndex + itemsPerPage, data.length);
+        const pageData = data.slice(startIndex, endIndex);  
+
+        pageData.forEach((item, index) => {
+            const row = document.createElement('tr');
+            row.setAttribute('align', 'center');
+            row.setAttribute('class', 'c12-k');
+            row.setAttribute('bgcolor', '#FFFFFF');
+            row.setAttribute('onmouseover', "this.style.background='#FCFCC0';");
+            row.setAttribute('onmouseout', "this.style.background='#FFFFFF';");
+
+            const checkboxCell = document.createElement('td');
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.name = 'option';
+            checkbox.value = item.U_num;  
+            checkbox.setAttribute('data-index', startIndex + index); 
+            checkboxCell.appendChild(checkbox);
+            row.appendChild(checkboxCell);
+
+            const serialCell = document.createElement('td');
+            serialCell.textContent = startIndex + index + 1;
+            row.appendChild(serialCell);
+
+            const keys = Object.keys(item);
+            keys.forEach(key => {
+                const cell = document.createElement('td');
+                cell.textContent = item[key];
+                row.appendChild(cell);
+            });
+
+            tbody.appendChild(row);
+        });
+    }
+
+    function countersignSave() {
+        const selectedValues = [];
+        const checkboxes = document.querySelectorAll('input[name="option"]:checked');
+        checkboxes.forEach(checkbox => {
+            selectedValues.push(checkbox.value);
+        });
+
+        const formData = {
+            arr_Unm: selectedValues,
+            AF_ID: decryptParameter(encodedAFID),
+            FM_Step: decryptParameter(encodedStep),
+            FM_Source_ID: decryptParameter(encodedFormID),
+            User: decryptParameter(encodedUser)
+        };
+
+        console.log(selectedValues);
+
+        const url = `${BASE_URL}/AE_AF/Counter_Ins`;
+
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(formData)
+        })
+            .then(response => response.json())
+            .then(responseData => {
+                if (responseData.resultCode === '000') {
+                    alert('新增成功');
+                    if (window.opener) {
+                        window.opener.location.reload();
+                    }
+                    window.close();
+                }
+            }).catch(error => {
+                alert('請求失敗，請稍後再試。');
+            });
+    }
+</script>

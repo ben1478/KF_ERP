@@ -1,0 +1,885 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script src="../Base.js"></script>
+    <title>作業平台</title>
+</head>
+<body>
+    <table width="1040" border="0" cellspacing="1" cellpadding="2" bgcolor="#999999">
+        <tbody>
+            <tr class="c12-k" bgcolor="#CCCCFF" height="30">
+                <td colspan="2" align="center">
+                    <span class="c14k">請款(預支單)</span>
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td width="150" align="right" bgcolor="#CCCCFF">申請部門</td>
+                <td width="440" align="left">
+                    <select name="VP_BC" id="VP_BC" class=""></select>
+                    <input type="checkbox" name="VP_type" value="PO" id="VP_type_PO" />有請採購單
+                    <input type="checkbox" name="VP_type" value="PP" id="VP_type_PP" />預支款
+                    <input type="checkbox" name="VP_type" value="PS" id="VP_type_PS" />沖銷預支款
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td align="right" bgcolor="#CCCCFF">給付方式</td>
+                <td align="left">
+                    <input type="radio" name="VP_Pay_Type" value="MT" />匯款
+                    <input type="radio" name="VP_Pay_Type" value="GC" />領現
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td align="right" bgcolor="#CCCCFF">總金額</td>
+                <td align="left">
+                    <span name="VP_Total_Money"></span>
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td align="right" bgcolor="#CCCCFF">銀行資料</td>
+                <td align="left">
+                    代碼:
+                    <input type="text" name="bank_code" size="10" maxlength="10" class="box" value="">
+                    名稱:
+                    <input type="text" name="bank_name" size="10" maxlength="10" class="box" value="">
+                    分行:
+                    <input type="text" name="branch_name" size="10" maxlength="10" class="box" value="">
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td align="right" bgcolor="#CCCCFF">銀行帳號</td>
+                <td align="left">
+                    <input type="text" name="bank_account" size="12" maxlength="20" class="box" value="">
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td align="right" bgcolor="#CCCCFF" style="color:red">收款名稱</td>
+                <td align="left">
+                    <input type="text" required name="payee_name" id="payee_name" size="18" maxlength="18" class="box" value="" onkeyup="getCompanySuggestions();" onblur="setTimeout(function(){ validateInput(); }, 200);">
+                    <div id="suggestions"></div>
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td align="right" bgcolor="#CCCCFF">總摘要</td>
+                <td align="left">
+                    <input type="text" name="VP_Summary" size="15" maxlength="15" class="box" value="" style="background-color: #f0f0f0" readonly>
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td align="right" bgcolor="#CCCCFF" style="color:red">傳票日期</td>
+                <td align="left">
+                    <input type="text" name="VP_MFG_Date" size="15" maxlength="15" class="box" value="" style="background-color: #f0f0f0" readonly>
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td align="right" bgcolor="#CCCCFF">貸方摘要</td>
+                <td align="left">
+                    <input type="text" name="VP_Nsummary" size="15" maxlength="15" class="box" value="" style="background-color: #f0f0f0" readonly>
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#CCCCFF" height="30">
+                <td colspan="2" align="center">
+                    <input type="button" value="新增明細" id="btnNew" onclick="OpenNew();" />
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table id="detailsList" border="0" cellpadding="4" cellspacing="1" bgcolor="#666666" width="1040">
+        <thead>
+            <tr align="center" bgcolor="#CCCCFF" class="c12-k" id="tableRow">
+                <td width="20">NO</td>
+                <td width="50">單號</td>
+                <td width="40">部門</td>
+                <td width="150">費用摘要</td>
+                <td width="50">金額</td>
+                <td width="50">是否應稅</td>
+                <td width="40"></td>
+            </tr>
+        </thead>
+        <tbody>
+        </tbody>
+        <tr class="c12-k" bgcolor="#CCCCFF" height="30" data-ignore="true">
+            <td colspan="7" align="center" id="saveButtonCell">
+                <input type="button" value="儲存" name="save" onclick="saveData();" />
+            </td>
+        </tr>
+    </table>
+</body>
+</html>
+<script>
+    let Params = new URLSearchParams(window.location.search);
+    let VP_ID = decryptParameter(Params.get('VP_ID'));
+    let WebUser = decryptParameter(Params.get('User'));
+    let WebBC = decryptParameter(Params.get('U_BC'));
+    let Read = decryptParameter(Params.get('Read'));
+
+    let indexNumber = 0;
+    let ChkRole;
+    let bcOptions = [];
+
+    loadBCName();
+    ChkUserRole();
+
+    function loadBCName() {
+        const url = `${BASE_URL}/AE/GetBCList`;
+        fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                if (data.resultCode === "000") {
+                    const selectElement = document.getElementById('VP_BC');
+                    bcOptions = JSON.parse(data.objResult);
+                    selectElement.innerHTML = '<option value="" selected>不限</option>';
+
+                    bcOptions.forEach(option => {
+                        const optionElement = document.createElement('option');
+                        optionElement.value = option.item_D_code;
+                        optionElement.textContent = option.item_D_name;
+                        selectElement.appendChild(optionElement);
+                    });
+
+                    selectElement.value = WebBC;
+                    selectElement.setAttribute('readonly', true);
+                    selectElement.style.pointerEvents = 'none';
+                } else {
+                    console.log('錯誤: ' + (data.resultMsg || '未知錯誤'));
+                }
+            })
+            .catch(error => {
+                console.error('載入選項時出錯:', error);
+            });
+    }
+
+    function OpenNew() {
+        const tbody = document.querySelector('#detailsList tbody');
+
+        const row = document.createElement('tr');
+        row.setAttribute('align', 'center');
+        row.setAttribute('class', 'c12-k');
+        row.setAttribute('bgcolor', '#FFFFFF');
+
+        const noCell = document.createElement('td');
+        noCell.textContent = indexNumber + 1;
+        row.appendChild(noCell);
+
+        const hiddenInput = document.createElement('input');
+        hiddenInput.type = 'hidden';
+        hiddenInput.name = 'VD_ID';
+        hiddenInput.value = '';
+        row.appendChild(hiddenInput);
+
+        const formIDCell = document.createElement('td');
+        formIDCell.textContent = '';
+        row.appendChild(formIDCell);
+
+        //VD_BC
+        const vBCCell = document.createElement('td');
+        const selectElement = document.createElement('select');
+        selectElement.name = `VD_BC_${indexNumber}`; 
+        bcOptions.forEach(option => {
+            const optionElement = document.createElement('option');
+            optionElement.value = option.item_D_code;
+            optionElement.textContent = option.item_D_name;
+            selectElement.appendChild(optionElement);
+        });
+        selectElement.value = WebBC;
+        vBCCell.appendChild(selectElement);
+        row.appendChild(vBCCell);
+
+        const captionCell = document.createElement('td');
+        const captionInput = document.createElement('input');
+        captionInput.type = 'text';
+        captionInput.name = 'FormCaption';
+        captionInput.size = '20';
+        captionCell.appendChild(captionInput);
+        row.appendChild(captionCell);
+
+        const moneyCell = document.createElement('td');
+        const moneyInput = document.createElement('input');
+        moneyInput.type = 'text';
+        moneyInput.name = 'FormMoney';
+        moneyInput.size = '20';
+        moneyInput.setAttribute('onchange', `SumVPAmt();`);
+        moneyCell.appendChild(moneyInput);
+        row.appendChild(moneyCell);
+
+        const vatCell = document.createElement('td');
+        const yesInput = document.createElement('input');
+        yesInput.type = 'radio';
+        yesInput.name = `VD_VAT_${indexNumber}`; 
+        yesInput.value = 'Y';
+        const noInput = document.createElement('input');
+        noInput.type = 'radio';
+        noInput.name = `VD_VAT_${indexNumber}`; 
+        noInput.value = 'N';
+        const yesLabel = document.createElement('label');
+        yesLabel.textContent = '是';
+        yesLabel.appendChild(yesInput);
+        const noLabel = document.createElement('label');
+        noLabel.textContent = '否';
+        noLabel.appendChild(noInput);
+        vatCell.appendChild(yesLabel);
+        vatCell.appendChild(noLabel);
+        row.appendChild(vatCell);
+
+        if (ChkRole === 'Y') {
+            const codeCell = document.createElement('td');
+            const codeInput = document.createElement('input');
+            codeInput.type = 'text';
+            codeInput.name = 'VD_Account_code';
+            codeInput.size = '20';
+            codeCell.appendChild(codeInput);
+            row.appendChild(codeCell);
+
+            const accountCell = document.createElement('td');
+            const accountInput = document.createElement('input');
+            accountInput.type = 'text';
+            accountInput.name = 'VD_Account';
+            accountInput.size = '20';
+            accountCell.appendChild(accountInput);
+            row.appendChild(accountCell);
+        }
+
+        const deleteCell = document.createElement('td');
+        const deleteButton = document.createElement('button');
+        deleteButton.textContent = '刪除';
+        deleteButton.onclick = function () {
+            tbody.removeChild(row);
+            SumVPAmt(); 
+        };
+        deleteCell.appendChild(deleteButton);
+        row.appendChild(deleteCell);
+
+        tbody.appendChild(row);
+
+        indexNumber++;
+    }
+
+    $('input[name="VP_type"]').on('change', function () {
+        const type = $(this).val();
+        if ($(this).prop('checked') && (type === 'PO' || type === 'PS')) {
+            document.getElementById("btnNew").removeAttribute('readonly');
+            document.getElementById("btnNew").removeAttribute('disabled');
+            window.open(`Find_form_list.html?User=${encryptParameter(WebUser)}&Type=${encryptParameter(type)}`,
+                'Detail',
+                'scrollbars=yes,resizable=yes,width=650,height=350,left=500,top=25');
+        }
+        if($(this).prop('checked') && type === 'PS' ){
+            document.getElementById("btnNew").setAttribute('readonly', true);
+            document.getElementById("btnNew").setAttribute('disabled', true);
+        }
+    });
+
+    function saveData() {
+
+        // C是表示來自於複製功能
+        if (Read === 'C') {
+            VP_ID = 'add';
+        }
+
+        var inputs = document.querySelectorAll('input[required]');
+        var isValid = true;
+        for (var i = 0; i < inputs.length; i++) {
+            var input = inputs[i];
+            if (!input.value.trim()) {
+                alert("必填請輸入");
+                isValid = false;
+                break;  
+            }
+        }
+
+        if (!isValid) {
+            return;
+        }
+
+        const detailsList = [];
+        let hasChanges = false;
+        const changedRows = [];
+
+        const rows = document.querySelectorAll('#detailsList tbody tr:not([data-ignore])');
+
+        rows.forEach((row, index) => {
+            const hiddenInput = row.querySelector('input[name="VD_ID"]');
+            const formIDInput = row.querySelector('input[name="FormID"]');
+            const vDbcInput = row.querySelector('select[name^="VD_BC_"]');
+            const captionInput = row.querySelector('input[name="FormCaption"]');
+            const moneyInput = row.querySelector('input[name="FormMoney"]');
+            const vatInput = row.querySelector('input[name^="VD_VAT_"]:checked');
+
+            const accCodeIDInput = row.querySelector('input[name="VD_Account_code"]');
+            const accIDInput = row.querySelector('input[name="VD_Account"]');
+
+
+            const VD_ID = hiddenInput ? hiddenInput.value : '';
+            const formID = formIDInput ? formIDInput.value : '';
+            const VD_BC = vDbcInput ? vDbcInput.value : WebBC;
+            const formCaption = captionInput ? captionInput.value : '';
+            const formMoney = moneyInput ? moneyInput.value : '';
+            const vatValue = vatInput && vatInput.value ? vatInput.value : 'Y';
+            
+
+            const accCode = accCodeIDInput ? accCodeIDInput.value : '';
+            const acc = accIDInput ? accIDInput.value : '';
+
+            if (formID) {
+                const originalFormID = formIDInput && formIDInput.dataset ? formIDInput.dataset.originalValue : '';
+                const originalFormCaption = captionInput && captionInput.dataset ? captionInput.dataset.originalValue : '';
+                const originalFormMoney = moneyInput && moneyInput.dataset ? moneyInput.dataset.originalValue : '';
+
+                if (formID !== originalFormID || formCaption !== originalFormCaption || formMoney !== originalFormMoney) {
+                    hasChanges = true;
+                    changedRows.push(index);
+                }
+
+                detailsList.push({
+                    VD_ID: VD_ID,
+                    FormID: formID,
+                    VD_BC:VD_BC,
+                    FormCaption: formCaption,
+                    FormMoney: formMoney,
+                    VD_VAT: vatValue,
+                    ChangeReason: '',
+                    VD_Account_code: accCode,
+                    VD_Account: acc
+                });
+            } else {
+                if (formCaption && formMoney) {
+                    detailsList.push({
+                        VD_ID: VD_ID,
+                        FormID: '',
+                        VD_BC: VD_BC,
+                        FormCaption: formCaption,
+                        FormMoney: formMoney,
+                        VD_VAT: vatValue,
+                        ChangeReason: '',
+                        VD_Account_code: accCode,
+                        VD_Account: acc
+                    });
+                }
+            }
+        });
+
+        if (hasChanges) {
+            const changeReason = prompt('請輸入異動原因：');
+            if (changeReason === null || changeReason.trim() === '') {
+                alert('異動原因是必填的!');
+                return;
+            }
+
+            detailsList.forEach((detail, index) => {
+                if (changedRows.includes(index)) {
+                    detail.ChangeReason = changeReason;
+                }
+            });
+        }
+
+        const formData = {
+            Ins_List: detailsList,
+            VP_ID: VP_ID,
+            VP_BC: document.querySelector('#VP_BC').value,
+            VP_type: Array.from(document.querySelectorAll('input[name="VP_type"]:checked')).map(input => input.value),
+            VP_Pay_Type: document.querySelector('input[name="VP_Pay_Type"]:checked') ? document.querySelector('input[name="VP_Pay_Type"]:checked').value : '',
+            VP_Total_Money: document.querySelector('span[name="VP_Total_Money"]').textContent,
+            bank_code: document.querySelector('input[name="bank_code"]').value,
+            bank_name: document.querySelector('input[name="bank_name"]').value,
+            branch_name: document.querySelector('input[name="branch_name"]').value,
+            bank_account: document.querySelector('input[name="bank_account"]').value,
+            payee_name: document.querySelector('input[name="payee_name"]').value,
+            VP_Summary: document.querySelector('input[name="VP_Summary"]').value,
+            VP_MFG_Date: document.querySelector('input[name="VP_MFG_Date"]').value,
+            VP_Nsummary: document.querySelector('input[name="VP_Nsummary"]').value,
+            User: WebUser
+        };
+
+        if (VP_ID === 'add') {
+            const url = `${BASE_URL}/AE_VP/InvPrepay_M_Ins`;
+
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(formData)
+            })
+                .then(response => response.json())
+                .then(responseData => {
+                    if (responseData.resultCode === '000') {
+                        alert('新增成功');
+                        if (window.opener) {
+                            window.opener.location.reload();
+                        }
+                        window.close();
+                    }
+                }).catch(error => {
+                    alert('請求失敗，請稍後再試。');
+                });
+
+        } else {
+            const url = `${BASE_URL}/AE_VP/InvPrepay_M_Upd`;
+
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(formData)
+            })
+                .then(response => response.json())
+                .then(responseData => {
+                    if (responseData.resultCode === '000') {
+                        alert('修改成功');
+                        if (window.opener) {
+                            window.opener.location.reload();
+                        }
+                        window.close();
+                    }
+                }).catch(error => {
+                    alert('請求失敗，請稍後再試。');
+                });
+        }
+    }
+
+    function fetchData() {
+        if (VP_ID !== 'add') {
+            const url = `${BASE_URL}/AE_VP/InvPrepay_M_SQuery?VP_ID=${VP_ID}`;
+            fetch(url, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+                .then(response => response.json())
+                .then(responseData => {
+                    if (responseData.resultCode === '000') {
+                        const data = JSON.parse(responseData.objResult);
+
+                        const vpType = data.VP_type[0];
+                        if (vpType === "PP") {
+                            document.getElementById("VP_type_PP").checked = true;
+                        } else if (vpType === "PS") {
+                            document.getElementById("VP_type_PS").checked = true;
+                        }
+                        data.Ins_List.forEach(item => {
+                            if (item.FormID) {
+                                const formIDPrefix = item.FormID.substring(0, 2);
+                                if (formIDPrefix === "PO") {
+                                    document.getElementById("VP_type_PO").checked = true;
+                                }
+                            }
+                        });
+                        if (data.VP_Pay_Type === 'MT') {
+                            $("input[name='VP_Pay_Type'][value='MT']").prop('checked', true);
+                        } else if (data.VP_Pay_Type === 'GC') {
+                            $("input[name='VP_Pay_Type'][value='GC']").prop('checked', true);
+                        }
+                        document.querySelector('span[name="VP_Total_Money"]').textContent = data.VP_Total_Money;
+                        $("input[name='bank_code']").val(data.bank_code);
+                        $("input[name='bank_name']").val(data.bank_name);
+                        $("input[name='branch_name']").val(data.branch_name);
+                        $("input[name='bank_account']").val(data.bank_account);
+                        $("input[name='payee_name']").val(data.payee_name);
+                        $("input[name='VP_Summary']").val(data.VP_Summary);
+                        $("input[name='VP_MFG_Date']").val(data.VP_MFG_Date);
+                        $("input[name='VP_Nsummary']").val(data.VP_Nsummary);
+                        receiveData(data.Ins_List);
+
+                        setReadOnlyMode(vpType);
+                    }
+                }).catch(error => {
+                    alert('請求失敗，請稍後再試。');
+                });
+        }
+    }
+
+    function receiveData(selectedGroups) {
+        
+        const tbody = document.querySelector('#detailsList tbody');
+        tbody.innerHTML = '';
+
+        selectedGroups.forEach((group, index) => {
+            const row = document.createElement('tr');
+            row.setAttribute('align', 'center');
+            row.setAttribute('class', 'c12-k');
+            row.setAttribute('bgcolor', '#FFFFFF');
+
+            const noCell = document.createElement('td');
+            let indexNumber = index + 1;
+            noCell.textContent = indexNumber;
+            row.appendChild(noCell);
+
+            // VD_ID
+            const hiddenInput = document.createElement('input');
+            hiddenInput.type = 'hidden';
+            hiddenInput.name = 'VD_ID';
+            hiddenInput.value = group.VD_ID || '';
+            row.appendChild(hiddenInput);
+
+            // FormID
+            const formIDCell = document.createElement('td');
+            const formIDInput = document.createElement('input');
+            formIDInput.type = 'text';
+            formIDInput.name = 'FormID';
+            formIDInput.value = group.FormID || '';
+            formIDInput.size = '10';
+            formIDInput.setAttribute('readonly', true);
+            formIDInput.dataset.originalValue = group.FormID || '';
+            formIDCell.appendChild(formIDInput);
+            row.appendChild(formIDCell);
+
+            //添加VD_BC
+            const vBCCell = document.createElement('td');
+            const selectElement = document.createElement('select');
+            selectElement.name = `VD_BC_${group.VD_ID || indexNumber}`;
+            bcOptions.forEach(option => {
+                const optionElement = document.createElement('option');
+                optionElement.value = option.item_D_code;
+                optionElement.textContent = option.item_D_name;
+                selectElement.appendChild(optionElement);
+            });
+            selectElement.value = group.VD_BC;
+            vBCCell.appendChild(selectElement);
+            row.appendChild(vBCCell);
+
+            // FormCaption
+            const captionCell = document.createElement('td');
+            const captionInput = document.createElement('input');
+            captionInput.type = 'text';
+            captionInput.name = 'FormCaption';
+            captionInput.value = group.FormCaption || '';
+            captionInput.dataset.originalValue = group.FormCaption || '';
+            captionCell.appendChild(captionInput);
+            row.appendChild(captionCell);
+
+            // FormMoney
+            const moneyCell = document.createElement('td');
+            const moneyInput = document.createElement('input');
+            moneyInput.type = 'text';
+            moneyInput.name = 'FormMoney';
+            moneyInput.value = group.FormMoney || '0';
+            moneyInput.dataset.originalValue = group.FormMoney || '0';
+            moneyInput.setAttribute('onchange', `SumVPAmt();`);
+            moneyCell.appendChild(moneyInput);
+            row.appendChild(moneyCell);
+
+            if (ChkRole === 'Y') {
+                // VD_VAT
+                const vatCell = document.createElement('td');
+                const yesInput = document.createElement('input');
+                yesInput.type = 'radio';
+                yesInput.name = `VD_VAT_${group.VD_ID || indexNumber}`; 
+                yesInput.value = 'Y';
+                yesInput.checked = group.VD_VAT === 'Y';
+                const noInput = document.createElement('input');
+                noInput.type = 'radio';
+                noInput.name = `VD_VAT_${group.VD_ID || indexNumber}`;  
+                noInput.value = 'N';
+                noInput.checked = group.VD_VAT === 'N';
+                yesInput.setAttribute('required', '');
+                noInput.setAttribute('required', '');
+                const yesLabel = document.createElement('label');
+                yesLabel.textContent = '是';
+                yesLabel.appendChild(yesInput);
+                const noLabel = document.createElement('label');
+                noLabel.textContent = '否';
+                noLabel.appendChild(noInput);
+                vatCell.appendChild(yesLabel);
+                vatCell.appendChild(noLabel);
+                row.appendChild(vatCell);
+
+                const codeCell = document.createElement('td');
+                const codeInput = document.createElement('input');
+                codeInput.type = 'text';
+                codeInput.name = 'VD_Account_code';
+                codeInput.value = group.VD_Account_code || '';
+                codeInput.size = '10';
+                codeInput.setAttribute('required', '');
+                codeCell.appendChild(codeInput);
+                row.appendChild(codeCell);
+
+                const accountCell = document.createElement('td');
+                const accountInput = document.createElement('input');
+                accountInput.type = 'text';
+                accountInput.name = 'VD_Account';
+                accountInput.value = group.VD_Account || '';
+                accountInput.setAttribute('required', '');
+                accountCell.appendChild(accountInput);
+                row.appendChild(accountCell);
+            } else {
+                // VD_VAT
+                const vatCell = document.createElement('td');
+                const yesInput = document.createElement('input');
+                yesInput.type = 'radio';
+                yesInput.name = `VD_VAT_${group.VD_ID || indexNumber}`; 
+                yesInput.value = 'Y';
+                yesInput.checked = group.VD_VAT === 'Y';
+                const noInput = document.createElement('input');
+                noInput.type = 'radio';
+                noInput.name = `VD_VAT_${group.VD_ID || indexNumber}`; 
+                noInput.value = 'N';
+                noInput.checked = group.VD_VAT === 'N'; 
+                const yesLabel = document.createElement('label');
+                yesLabel.textContent = '是';
+                yesLabel.appendChild(yesInput);
+                const noLabel = document.createElement('label');
+                noLabel.textContent = '否';
+                noLabel.appendChild(noInput);
+                vatCell.appendChild(yesLabel);
+                vatCell.appendChild(noLabel);
+                row.appendChild(vatCell);
+
+                const codeInput = document.createElement('input');
+                codeInput.type = 'hidden';
+                codeInput.name = 'VD_Account_code';
+                codeInput.value = group.VD_Account_code || '';
+                row.appendChild(codeInput);
+
+                const accountInput = document.createElement('input');
+                accountInput.type = 'hidden';
+                accountInput.name = 'VD_Account';
+                accountInput.value = group.VD_Account || '';
+                row.appendChild(accountInput);
+            }
+
+            // 刪除按鈕
+            const deleteCell = document.createElement('td');
+            const deleteButton = document.createElement('button');
+            deleteButton.textContent = '刪除';
+            deleteButton.onclick = function () {
+                tbody.removeChild(row);
+                SumVPAmt(); 
+                DeleteVD(group.VD_ID || '');
+            };
+            deleteCell.appendChild(deleteButton);
+            row.appendChild(deleteCell);
+
+            tbody.appendChild(row);
+        });
+    }
+
+    function setReadOnlyMode(vpType) {
+        if (Read === 'Y' || (Read === 'S' && ChkRole==='N')) {
+
+            const inputs = document.querySelectorAll('input');
+            inputs.forEach(input => {
+                input.setAttribute('readonly', true);
+                input.setAttribute('disabled', true);
+            });
+
+            const selects = document.querySelectorAll('select');
+            selects.forEach(select => {
+                select.setAttribute('disabled', true);
+            });
+
+            const buttons = document.querySelectorAll('button');
+            buttons.forEach(button => {
+                button.setAttribute('disabled', true);
+            });
+        }
+    }
+
+    function ChkUserRole() {
+        const url = `${BASE_URL}/AE_VP/ChkUserRole?User=${WebUser}`;
+        fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+            .then(response => response.json())
+            .then(responseData => {
+                if (responseData.resultCode === '000') {
+                    ChkRole = responseData.objResult;
+                    if (ChkRole === 'Y') {
+                        var tableRow = document.getElementById("tableRow");
+                        var amountCell = tableRow.getElementsByTagName("td")[5];
+                        amountCell.style.color = "red";
+
+                        var td1 = document.createElement("td");
+                        td1.setAttribute("width", "40");
+                        td1.style.color = "red";
+                        td1.innerHTML = "會計科目";
+                        tableRow.insertBefore(td1, amountCell.nextSibling);
+
+                        var td2 = document.createElement("td");
+                        td2.setAttribute("width", "40");
+                        td2.style.color = "red";
+                        td2.innerHTML = "會計項目";
+                        tableRow.insertBefore(td2, td1.nextSibling);
+
+                        var newColspan = tableRow.getElementsByTagName("td").length + 2;
+                        saveButtonCell.setAttribute("colspan", newColspan);
+
+                        document.querySelector('input[name="VP_Summary"]').removeAttribute('readonly');
+                        document.querySelector('input[name="VP_Summary"]').style.removeProperty('background-color');
+                        document.querySelector('input[name="VP_MFG_Date"]').removeAttribute('readonly');
+                        document.querySelector('input[name="VP_MFG_Date"]').style.removeProperty('background-color');
+                        document.querySelector('input[name="VP_MFG_Date"]').setAttribute('required', '');
+                        document.querySelector('input[name="VP_Nsummary"]').removeAttribute('readonly');
+                        document.querySelector('input[name="VP_Nsummary"]').style.removeProperty('background-color');
+                    }
+                    fetchData();
+                }
+            })
+            .catch(error => {
+                alert('角色辨別失敗，請稍後再試。');
+            })
+    }
+
+    function getCompanySuggestions() {
+        const input = document.getElementById('payee_name').value;
+        const suggestionsDiv = document.getElementById('suggestions');
+
+        if (input.length === 0) {
+            suggestionsDiv.style.display = 'none';
+            return;
+        }
+
+        const url = `${BASE_URL}/AE_PRO/GetManufaList?Name=${input}`;
+
+        fetch(url)
+            .then(response => response.json())
+            .then(responseData => {
+                if (responseData.resultCode === "000") {
+                    const suggestions = JSON.parse(responseData.objResult);
+                    displaySuggestions(suggestions);
+                }
+            }).catch(error => {
+                console.error('載入選項時出錯:', error);
+            });
+    }
+
+    function displaySuggestions(suggestions) {
+        const suggestionsDiv = document.getElementById('suggestions');
+        suggestionsDiv.innerHTML = '';
+        if (suggestions.length === 0) {
+            suggestionsDiv.style.display = 'none';
+            return;
+        }
+
+        suggestions.forEach(function (suggestion) {
+            const suggestionItem = document.createElement('div');
+            suggestionItem.textContent = suggestion.name;
+            suggestionItem.style.padding = '5px';
+            suggestionItem.style.cursor = 'pointer';
+            suggestionItem.onclick = function () {
+                document.getElementById('payee_name').value = suggestion.name;
+                suggestionsDiv.style.display = 'none';
+            };
+            suggestionsDiv.appendChild(suggestionItem);
+        });
+
+        suggestionsDiv.style.display = 'block';
+    }
+
+    function validateInput() {
+        const input = document.getElementById('payee_name').value;
+        const suggestionsDiv = document.getElementById('suggestions');
+        const suggestionItems = suggestionsDiv.querySelectorAll('div');
+
+        let isValid = false;
+        console.log(suggestionItems);
+        for (let i = 0; i < suggestionItems.length; i++) {
+            if (suggestionItems[i].textContent === input) {
+                isValid = true;
+                break;
+            }
+        }
+
+        if (!isValid) {
+            document.getElementById('payee_name').value = '';
+            alert('請選擇一個有效的公司名稱！');
+        }
+    }
+
+    function receiveDataFromChild(selectedGroups) {
+        const firstFormID = selectedGroups[0].FormID;
+        const isPP = firstFormID.startsWith('PP');
+        
+        if (isPP) {
+            const url = `${BASE_URL}/AE_VP/InvPrepay_M_SQuery?VP_ID=${firstFormID}`;
+            fetch(url, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+                .then(response => response.json())
+                .then(responseData => {
+                    if (responseData.resultCode === '000') {
+                        const data = JSON.parse(responseData.objResult);
+                        if (data.VP_Pay_Type === 'MT') {
+                            $("input[name='VP_Pay_Type'][value='MT']").prop('checked', true);
+                        } else if (data.VP_Pay_Type === 'GC') {
+                            $("input[name='VP_Pay_Type'][value='GC']").prop('checked', true);
+                        }
+                        $("input[name='VP_Total_Money']").val(data.VP_Total_Money);
+                        $("input[name='bank_code']").val(data.bank_code);
+                        $("input[name='bank_name']").val(data.bank_name);
+                        $("input[name='branch_name']").val(data.branch_name);
+                        $("input[name='bank_account']").val(data.bank_account);
+                        $("input[name='payee_name']").val(data.payee_name);
+                        $("input[name='VP_Summary']").val(data.VP_Summary);
+                        $("input[name='VP_MFG_Date']").val(data.VP_MFG_Date);
+                        $("input[name='VP_Nsummary']").val(data.VP_Nsummary);
+
+                        data.Ins_List.forEach(item => {
+                            item.FormID = firstFormID; 
+                        });
+
+                        receiveData(data.Ins_List);
+                        SumVPAmt();
+                    }
+                })
+                .catch(error => {
+                    alert('請求失敗，請稍後再試。');
+                });
+
+        } else {
+            receiveData(selectedGroups);
+            SumVPAmt();
+        }
+
+    }
+
+    function SumVPAmt() {
+        const amtInputs = document.querySelectorAll('input[name="FormMoney"]');
+        let total = 0;
+
+        amtInputs.forEach(input => {
+            let value = parseFloat(input.value);
+            if (!isNaN(value)) {  
+                total += value;
+            }
+        });
+
+        const totalSpan = document.querySelector('span[name="VP_Total_Money"]');
+        totalSpan.textContent = total.toFixed(0);
+    }
+
+    function DeleteVD(VD_ID) {
+        if (VD_ID !== '') {
+            const url = `${BASE_URL}/AE_VP/InvPrepay_D_Del?VD_ID=${VD_ID}`;
+            fetch(url, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+                .then(response => response.json())
+                .then(responseData => {
+                    console.log(responseData.resultCode);
+                    if (responseData.resultCode === '000') {
+                        alert('明細已刪除');
+                    } else {
+                        alert('刪除失敗，請洽資訊人員。');
+                    }
+                })
+                .catch(error => {
+                    alert('刪除失敗，請洽資訊人員。');
+                })
+        }
+    }
+</script>

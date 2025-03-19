@@ -1,0 +1,312 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script src="../Base.js"></script>
+    <title>作業平台</title>
+</head>
+<body>
+    <table border="0" width="100%">
+        <tbody>
+            <tr class="c12-k">
+                <td width="86%">
+                    部門區域：
+                    <select name="U_BC" id="U_BC" class=""></select>
+                    &nbsp;
+                    申請日期：
+                    <input type="text" name="RF_Date_S" size="10" maxlength="10" class="datepickerTW" value="">
+                    ~
+                    <input type="text" name="RF_Date_E" size="10" maxlength="10" class="datepickerTW" value="">
+                    &nbsp;
+                    申請人：
+                    <input type="hidden" name="U_num" id="U_num" size="10" maxlength="10" class="box" value="" readonly="">
+                    <input type="text" name="U_name" id="U_name" size="10" maxlength="10" class="box" value="" readonly="">
+                    <input type="button" value="..." name="_select_user_one" onclick="openUserOne('appUser')">
+                    <br />
+                    <input type="button" value="查詢" onclick="fetchData();" />
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table width="650" border="0" cellspacing="0" cellpadding="0">
+        <tbody>
+            <tr>
+                <td valign="top"> </td>
+                <td align="center" valign="top">
+                    <table id="MainTable" width="1100" border="0" cellpadding="4" cellspacing="1" bgcolor="#666666">
+                        <thead>
+                            <tr align="center" height="30" bgcolor="#CCCCFF" class="c12-k">
+                                <td width="40">序號</td>
+                                <td width="60">單號</td>
+                                <td width="100">類型</td>
+                                <td width="600">簽核流程</td>
+                                <td width="100">簽核結果</td>
+                                <td width="40">詳細</td>
+                                <td width="40">簽核</td>
+                                <td width="40">列印</td>
+                                <td width="120">附加檔案</td>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr align="center" class="c12-k" bgcolor="#FFFFFF" onmouseover="this.style.background='#FFFF66';" onmouseout="this.style.background='#FFFFFF'; " style="background: rgb(255, 255, 255);">
+                            </tr>
+
+                            <tr align="center" class="c12-k" bgcolor="#FFFFFF" onmouseover="this.style.background='#FFFF66';" onmouseout="this.style.background='#FFFFFF'; " style="background: rgb(255, 255, 255);">
+                            </tr>
+
+                            <tr align="center" height="30" bgcolor="#CCCCFF">
+                                <td class="c12-k" colspan="16">
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div id="pagination"></div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</body>
+</html>
+<script>
+    const Params = getQueryParams();
+    let WebUser = Params.WebUser;
+    let WebBC = Params.WebBC;
+
+    const itemsPerPage = 50;
+    let currentPage = 1;
+    let data = [];
+
+    window.onload = function () {
+        dateTW();
+        loadBCDropdown();
+        const currentDate = new Date();
+
+        const dateStart = new Date(currentDate);
+        dateStart.setMonth(currentDate.getMonth() - 3);
+
+        const dateEnd = new Date(currentDate);
+        dateEnd.setDate(currentDate.getDate() + 1);
+
+        const getRepublicDate = (date) =>
+            `${date.getFullYear() - 1911}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
+
+        document.querySelector('input[name="RF_Date_S"]').value = getRepublicDate(dateStart);
+        document.querySelector('input[name="RF_Date_E"]').value = getRepublicDate(dateEnd);
+
+        fetchData();
+    };
+
+    function fetchData() {
+        const url = `${BASE_URL}/AE_AF/RevFlow_LQuery`;
+        const RevFlow_Req = {
+            U_BC: document.querySelector('select[name="U_BC"]').value,
+            User: document.querySelector('input[name="U_num"]').value,
+            RF_Date_S: document.querySelector('input[name="RF_Date_S"]').value,
+            RF_Date_E: document.querySelector('input[name="RF_Date_E"]').value
+        };
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include',
+            body: JSON.stringify(RevFlow_Req)
+        })
+            .then(response => response.json())
+            .then(responseData => {
+                if (responseData.resultCode == "000") {
+                    data = JSON.parse(responseData.objResult);
+                    showPage(currentPage);
+                    createPagination();
+                } else {
+                    alert(response.resultMsg);
+                }
+            })
+            .catch(error => {
+                alert('API 請求失敗:', error);
+            });
+    }
+
+    function showPage(page) {
+        const groupedData = data.reduce((acc, item) => {
+            const groupKey = item.FM_Source_ID;
+            if (!acc[groupKey]) {
+                acc[groupKey] = [];
+            }
+            acc[groupKey].push(item);
+            return acc;
+        }, {});
+
+        const tbody = document.querySelector('#MainTable tbody');
+        tbody.innerHTML = '';
+
+        const groupedDataArray = Object.values(groupedData);
+        const startIndex = (page - 1) * itemsPerPage;
+        const endIndex = Math.min(startIndex + itemsPerPage, groupedDataArray.length);
+
+        const pageData = groupedDataArray.slice(startIndex, endIndex);
+
+        let serialNumber = startIndex + 1;
+
+        pageData.forEach(group => {
+            const firstItem = group[0];
+
+            const row = document.createElement('tr');
+            row.setAttribute('align', 'center');
+            row.setAttribute('class', 'c12-k');
+            row.setAttribute('bgcolor', '#FFFFFF');
+            row.setAttribute('onmouseover', "this.style.background='#FCFCC0';");
+            row.setAttribute('onmouseout', "this.style.background='#FFFFFF';");
+
+            const serialCell = document.createElement('td'); // 序號
+            serialCell.textContent = serialNumber++;
+            row.appendChild(serialCell);
+
+            const sourceIdCell = document.createElement('td'); // 單號
+            sourceIdCell.textContent = firstItem.FM_Source_ID || '';
+            row.appendChild(sourceIdCell);
+
+            const afIdCell = document.createElement('td'); // 類型
+            switch (firstItem.AF_ID) {
+                case 'PO':
+                    afIdCell.textContent = '請採購';
+                    break;
+                case 'PA':
+                    afIdCell.textContent = '請款';
+                    break;
+                case 'PP':
+                    afIdCell.textContent = '預支';
+                    break;
+                case 'PS':
+                    afIdCell.textContent = '沖銷預支';
+                    break;
+                default:
+                    afIdCell.textContent = '-';
+                    break;
+            }
+            row.appendChild(afIdCell);
+
+            const fdStepTableCell = document.createElement('td'); // 簽核流程
+            const stepTable = document.createElement('table');
+            stepTable.setAttribute('border', '0');
+            stepTable.setAttribute('cellpadding', '2');
+            stepTable.setAttribute('cellspacing', '1');
+            stepTable.style.backgroundColor = '#0000FF';
+            const stepTableBody = document.createElement('tbody');
+            const headerRow = document.createElement('tr');
+            headerRow.setAttribute('bgcolor', '#E2F1F7');
+            headerRow.setAttribute('height', '25');
+            headerRow.setAttribute('class', 'c12-k');
+            headerRow.setAttribute('align', 'center');
+            const uniqueStepData = [...new Set(group.map(item => item.FD_Step))]; // 使用 Set 去重，僅取每個唯一的 FD_Step
+            uniqueStepData.forEach(step => {
+                const stepTitle = group.find(item => item.FD_Step === step && item.FD_Step_title !== null).FD_Step_title; // 找到每個唯一 FD_Step 對應的 FD_Step_title
+                const cell = document.createElement('td');
+                cell.setAttribute('width', '120');
+                const backgroundColor = firstItem.FM_Step === step ? '#E2CCF7' : '';
+                cell.style.backgroundColor = backgroundColor;
+                cell.textContent = stepTitle || '';
+                headerRow.appendChild(cell);
+            });
+            stepTableBody.appendChild(headerRow);
+            stepTable.appendChild(stepTableBody);
+            fdStepTableCell.appendChild(stepTable);
+            row.appendChild(fdStepTableCell);
+
+            const signTypeCell = document.createElement('td'); // 簽核結果
+            signTypeCell.textContent = firstItem.FM_Step_SignType || '';
+            row.appendChild(signTypeCell);
+
+            const detailCell = document.createElement('td'); // 詳細
+            let encryptedRead = encryptParameter('Y');
+            let encrypted_ID = encryptParameter(firstItem.FM_Source_ID);
+            let encryptedWebUser = encryptParameter(WebUser);
+            let encryptedWebBC = encryptParameter(WebBC);
+            if (firstItem.AF_ID === 'PO') {
+                row.appendChild(createButtonCell(
+                    "../images/view.png",
+                    "詳細",
+                    function () {
+                        window.open(`../Proc/Proc_M_detail.html?PM_ID=${encrypted_ID}&Read=${encryptedRead}&User=${encryptedWebUser}&U_BC=${encryptedWebBC}`, '_blank', 'scrollbars=yes,resizable=yes,top=100,width=1100,height=500');
+                    }
+                ));
+            } else {
+                row.appendChild(createButtonCell(
+                    "../images/view.png",
+                    "詳細",
+                    function () {
+                        window.open(`../VP/InvPre_M_detail.html?VP_ID=${encrypted_ID}&Read=${encryptedRead}&User=${encryptedWebUser}&U_BC=${encryptedWebBC}`, '_blank', 'scrollbars=yes,resizable=yes,top=100,width=1100,height=500');
+                    }
+                ));
+            }
+
+            const signCell = document.createElement('td'); // 簽核
+            let canSign = false;
+            group.forEach(item => {
+                if (item.FD_Step === firstItem.FM_Step && item.FD_Step_num === WebUser && item.FD_Step_SignType === 'FSIGN001') {
+                    canSign = true;
+                }
+            });
+            if (canSign) {
+                if (firstItem.AF_ID === 'PO') {
+                    let encryptedReadX = encryptParameter('Y');
+                    var path = `/Proc/Proc_M_detail.html?PM_ID=${encrypted_ID}&Read=${encryptedReadX}&User=${encryptedWebUser}&U_BC=${encryptedWebBC}`;
+                    var encodedPath = encodeURIComponent(path);
+                    row.appendChild(createButtonCell(
+                        "../images/edit.png",
+                        "簽核",
+                        function () {
+                            window.open(`AF_Review_Detail.html?Form_ID=${encrypted_ID}&User=${encryptedWebUser}&path=${encodedPath}`, '_blank', 'scrollbars=yes,resizable=yes,top=100,width=1100,height=650');
+                        }
+                    ));
+                } else {
+                    let encryptedReadX = encryptParameter('S');
+                    var path = `/VP/InvPre_M_detail.html?VP_ID=${encrypted_ID}&Read=${encryptedReadX}&User=${encryptedWebUser}&U_BC=${encryptedWebBC}`;
+                    var encodedPath = encodeURIComponent(path);
+                    row.appendChild(createButtonCell(
+                        "../images/edit.png",
+                        "簽核",
+                        function () {
+                            window.open(`AF_Review_Detail.html?Form_ID=${encrypted_ID}&User=${encryptedWebUser}&path=${encodedPath}`, '_blank', 'scrollbars=yes,resizable=yes,top=100,width=1100,height=650');
+                        }
+                    ));
+                }
+            } else {
+                signCell.textContent = '-';
+                row.appendChild(signCell);
+            }
+
+            if (firstItem.FM_Step_SignType === '同意' && firstItem.AF_ID !== 'PO') {
+                row.appendChild(createButtonCell(
+                    "../images/view.png",
+                    "列印",
+                    function () {
+                        window.open(`../VP/VP_FormPrint.html?VP_ID=${encrypted_ID}`, '_blank', 'scrollbars=yes,resizable=yes,top=30,width=1150,height=800');
+                    }
+                ));
+            } else {
+                let cell2 = document.createElement('td');
+                cell2.textContent = '-';
+                row.appendChild(cell2);
+            }
+
+            const fileCell = document.createElement('td'); // 附加檔案
+            const button = document.createElement('input');
+            button.type = 'button';
+            button.value = `附加檔案(${firstItem.cknum_count})`;
+            button.onclick = function () {
+                window.open(`../File/File_UpLoad_List.html?cknum=${firstItem.cknum}&user=${encryptedWebUser}`, '_blank', 'scrollbars=yes,resizable=yes,top=100,width=800,height=500');
+            };
+            fileCell.style.textAlign = 'center';
+            fileCell.style.verticalAlign = 'middle';
+            fileCell.appendChild(button);
+            row.appendChild(fileCell);
+
+            tbody.appendChild(row);
+        });
+    }
+</script>

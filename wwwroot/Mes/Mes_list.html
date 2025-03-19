@@ -1,0 +1,307 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script src="../Base.js"></script>
+    <title>作業平台</title>
+</head>
+<body>
+    <table width="600" border="0" cellpadding="0" cellspacing="0" bgcolor="#FFFFFF" align="left">
+        <tbody>
+            <tr bgcolor="#FFFFFF">
+                <td width="600" valign="top">
+                    <table width="1000" border="0" cellpadding="4" cellspacing="1" bgcolor="#FFFFFF" align="left">
+                        <tbody>
+                            <tr class="c12-k" bgcolor="#FFFFFF">
+                                <td width="120">
+                                    <font color="blue"><b>個人訊息管理</b></font>
+                                </td>
+                                <td width="750" align="left">
+                                    <label>訊息角色：</label>
+                                    <input type="radio" name="Msg_find" value="kind_all">不限
+                                    <input type="radio" name="Msg_find" value="kind_get" checked="">訊息對象
+                                    <input type="radio" name="Msg_find" value="kind_add">新增人員
+                                    <br>
+                                    <label>標記讀取：</label>
+                                    <input type="radio" name="Msg_read_type" value="X">不限
+                                    <input type="radio" name="Msg_read_type" value="N" checked="">未讀
+                                    <input type="radio" name="Msg_read_type" value="Y">已讀
+                                    <br>
+                                    <label name="meskind" id="meskind">訊息類別：</label>
+                                    <input type="button" value="查詢" onclick="fetchData();">
+                                    &nbsp;<font color="#FF0000">只查詢 [3個月前] 到 [往後30分鐘] 的通知時間</font>
+                                </td>
+                                <td width="150" align="right">
+                                    <!--<input type="button" name="add" value="新增訊息" onclick="javascript: void  window.open('Msg_add.asp','_add_Msg','scrollbars=yes,resizable=yes,width=520,height=400,left=300,top=180');">-->
+                                    <input type="button" name="add" value="全部讀取" onclick="MessageUpd_ALL();">
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table id="MainTable" width="1200" border="0" cellpadding="4" cellspacing="1" bgcolor="#666666">
+        <thead>
+            <tr align="center" bgcolor="#CCCCFF" class="c12-k">
+                <td width="40">序號</td>
+                <td width="80">訊息來源</td>
+                <td width="100">訊息類別</td>
+                <td width="80">訊息對象</td>
+                <td width="200">通知時間</td>
+                <td width="400">訊息標題</td>
+                <td width="300">內容</td>
+                <td width="80">新增人員</td>
+                <td width="60">標記讀取</td>
+            </tr>
+        </thead>
+        <tbody>
+            <tr align="center" class="c12-k" bgcolor="#FFFFFF" onmouseover="this.style.background='#FFFF66';" onmouseout="this.style.background='#FFFFFF'; " style="background: rgb(255, 255, 255);">
+            </tr>
+
+            <tr align="center" class="c12-k" bgcolor="#FFFFFF" onmouseover="this.style.background='#FFFF66';" onmouseout="this.style.background='#FFFFFF'; " style="background: rgb(255, 255, 255);">
+            </tr>
+
+            <tr align="center" height="30" bgcolor="#CCCCFF">
+                <td class="c12-k" colspan="16">
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <div id="pagination"></div>
+</body>
+</html>
+<script>
+    const Params = new URLSearchParams(window.parent.location.search);
+    let WebUser = decryptParameter(Params.get('PM_U_num'));
+    let Msgkind = decryptParameter(Params.get('Msg_kind'));
+
+    const itemsPerPage = 50;  
+    let currentPage = 1;  
+    let data = [];  
+
+    const currentDate = new Date();
+    const startDate = new Date(currentDate);
+    startDate.setMonth(currentDate.getMonth() - 2);
+    startDate.setHours(0, 0, 0, 0);
+    const endDate = new Date(currentDate);
+    endDate.setMinutes(currentDate.getMinutes() + 30);
+    const formatDate = (date) => date.toISOString().slice(0, 19).replace('T', ' ');
+    const formattedStartDate = formatDate(startDate);
+    const formattedEndDate = formatDate(endDate);
+
+    main();
+
+    async function main() {
+        await meskind();
+        setTimeout(() => {
+            requestAnimationFrame(fetchData);  // 延遲一點再執行 fetchData
+        }, 100);  // 100 毫秒延遲
+    }
+
+    function meskind() {
+        const currentDate = new Date();
+
+        const startDate = new Date(currentDate);
+        startDate.setMonth(currentDate.getMonth() - 2);
+        startDate.setHours(0, 0, 0, 0);
+
+        const endDate = new Date(currentDate);
+        endDate.setMinutes(currentDate.getMinutes() + 30);
+
+        const formatDate = (date) => date.toISOString().slice(0, 19).replace('T', ' ');
+
+        const formattedStartDate = formatDate(startDate);
+        const formattedEndDate = formatDate(endDate);
+
+        const url = `${BASE_URL}/AE/GetMesListCount?User=${WebUser}&StartDate=${encodeURIComponent(formattedStartDate)}&EndDate=${encodeURIComponent(formattedEndDate)}`;
+
+        fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                if (data.resultCode === "000") {
+                    const container = document.getElementById('meskind');
+                    const options = JSON.parse(data.objResult);
+
+                    container.appendChild(document.createTextNode(" "));
+
+                    const unlimitedOption = document.createElement('input');
+                    unlimitedOption.type = 'radio';
+                    unlimitedOption.name = 'Msg_kind';
+                    unlimitedOption.value = '';
+                    container.appendChild(unlimitedOption);
+                    container.appendChild(document.createTextNode('不限 '));
+
+                    options.forEach(option => {
+                        const radioInput = document.createElement('input');
+                        radioInput.type = 'radio';
+                        radioInput.name = 'Msg_kind';
+                        radioInput.value = option.MsgID;
+
+                        if (Msgkind === option.MsgID) {
+                            radioInput.checked = true;
+                        }
+
+                        container.appendChild(radioInput);
+                        container.appendChild(document.createTextNode(option.Name + ' ')); 
+                    });
+                } else {
+                    alert('錯誤: ' + (data.resultMsg || '未知錯誤'));
+                }
+            })
+            .catch(error => {
+                alert('無法載入資料，請稍後再試。');
+            });
+    }
+
+    function fetchData() {
+        const url = `${BASE_URL}/AE/MesList_Query`;
+        const Message_Req = {
+            StartDate: formattedStartDate,
+            EndDate: formattedEndDate,
+            Mes_Kind: document.querySelector('input[name="Msg_kind"]:checked').value,
+            ReadType: document.querySelector('input[name="Msg_read_type"]:checked').value,
+            UserType: document.querySelector('input[name="Msg_find"]:checked').value,
+            User: WebUser
+        };
+        fetch(url, {
+            method: 'Post',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include',
+            body: JSON.stringify(Message_Req)
+        })
+            .then(response => response.json())
+            .then(responseData => {
+                if (responseData.resultCode == "000") {
+                    data = JSON.parse(responseData.objResult);
+                    showPage(currentPage);
+                    createPagination();
+                } else {
+                    alert(responseData.resultMsg);
+                }
+            })
+            .catch(error => {
+                alert('API 請求失敗:', error);
+            });
+    }
+
+    function showPage(page) {
+        const tbody = document.querySelector('#MainTable tbody');
+        tbody.innerHTML = '';
+
+        const startIndex = (page - 1) * itemsPerPage;
+        const endIndex = Math.min(startIndex + itemsPerPage, data.length);
+        const pageData = data.slice(startIndex, endIndex);
+
+        for (let item of pageData) {
+            const row = document.createElement('tr');
+            row.setAttribute('align', 'center');
+            row.setAttribute('class', 'c12-k');
+            row.setAttribute('bgcolor', '#FFFFFF');
+            row.setAttribute('onmouseover', "this.style.background='#FCFCC0';");
+            row.setAttribute('onmouseout', "this.style.background='#FFFFFF';");
+
+            const columnOrder = ['Msg_id','Msg_source', 'Msg_kind_Name', 'Msg_to_name', 'Msg_show_date', 'Msg_title', 'Msg_note', 'add_num_name','Msg_read_type'];
+
+            const serialCell = document.createElement('td');
+            serialCell.textContent = startIndex + pageData.indexOf(item) + 1;
+            row.appendChild(serialCell);
+            let Msg_id = "";
+            for (let key of columnOrder) {
+                const cell = document.createElement('td');
+                switch (key) {
+                    case 'Msg_id':
+                        Msg_id = item[key];
+                        break;
+                    case 'Msg_read_type':
+                        const readTypeCell = document.createElement('td');
+                        const span = document.createElement('span');
+
+                        if (item[key] === 'N') {
+                            span.textContent = '未讀';
+                            span.style.color = 'blue'; 
+                            span.style.textDecoration = 'underline'; 
+                            span.style.cursor = 'pointer'; 
+                        } else {
+                            span.textContent = '已讀';
+                            span.style.color = 'red'; 
+                            span.style.pointerEvents = 'none'; 
+                        }
+
+                        span.addEventListener('click', (event) => {
+                            if (item[key] === 'N') {  
+                                event.preventDefault();
+                                MessageUpd(Msg_id);
+                            }
+                        });
+
+                        readTypeCell.appendChild(span);
+                        row.appendChild(readTypeCell);
+                        break;
+                    default:
+                        cell.textContent = item[key] || '';
+                        row.appendChild(cell);
+                }
+            }
+            tbody.appendChild(row);
+        }
+    }
+
+    function MessageUpd_ALL() {
+        const url = `${BASE_URL}/AE/MessageALL_Read`;
+        const Message_Req = {
+            StartDate: formattedStartDate,
+            EndDate: formattedEndDate,
+            Mes_Kind: document.querySelector('input[name="Msg_kind"]:checked').value,
+            ReadType: document.querySelector('input[name="Msg_read_type"]:checked').value,
+            UserType: document.querySelector('input[name="Msg_find"]:checked').value,
+            User: WebUser
+        };
+        fetch(url, {
+            method: 'Post',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include',
+            body: JSON.stringify(Message_Req)
+        })
+            .then(response => response.json())
+            .then(responseData => {
+                if (responseData.resultCode == "000") {
+                    alert(responseData.resultMsg);
+                } else {
+                    alert(responseData.resultMsg);
+                }
+            })
+            .catch(error => {
+                alert('API 請求失敗:', error);
+            });
+    }
+
+    function MessageUpd(Msg_id) {
+        const url = `${BASE_URL}/AE/MesRead_Upd?Msg_id=${Msg_id}&User=${WebUser}`;
+        fetch(url, {
+            method: 'GET'
+        })
+            .then(response => response.json())
+            .then(responseData => {
+                if (responseData.resultCode == "000") {
+                    alert(responseData.resultMsg);
+                    fetchData();
+                } else {
+                    alert(responseData.resultMsg);
+                }
+            })
+            .catch(error => {
+                alert('API 請求失敗:', error);
+            });
+    }
+
+</script>

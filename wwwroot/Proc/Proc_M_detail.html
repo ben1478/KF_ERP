@@ -1,0 +1,624 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script src="../Base.js"></script>
+    <title>作業平台</title>
+</head>
+<body>
+    <table width="890" border="0" cellspacing="1" cellpadding="2" bgcolor="#999999">
+        <tbody>
+            <tr class="c12-k" bgcolor="#CCCCFF" height="30">
+                <td colspan="2" align="center">
+                    <span class="c14k">採購單資料</span>&nbsp;&nbsp;&nbsp;&nbsp;<span><input type="button" value="新增廠商" onclick="addManufacturer();" /></span>
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td width="150" align="right" bgcolor="#CCCCFF">申請部門</td>
+                <td width="440" align="left">
+                    <select name="PM_BC" id="PM_BC" class=""></select>
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td align="right" bgcolor="#CCCCFF">付款方式</td>
+                <td align="left">
+                    <input type="radio" name="PM_Pay_Type" value="MT" />匯款
+                    <input type="radio" name="PM_Pay_Type" value="GC" />領現
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td align="right" bgcolor="#CCCCFF">需求說明</td>
+                <td align="left">
+                    <textarea id="PM_Caption" name="PM_Caption" rows="4" cols="40" class="box"></textarea>
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td align="right" bgcolor="#CCCCFF">合計總價</td>
+                <td align="left">
+                    <span name="PM_Amt"></span>
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td align="right" bgcolor="#CCCCFF">營業稅</td>
+                <td align="left">
+                    <input type="text" name="PM_Busin_Tax" size="10" maxlength="10" class="box" value="">
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td align="right" bgcolor="#CCCCFF">含稅價格</td>
+                <td align="left">
+                    <input type="text" name="PM_Tax_Amt" size="10" maxlength="10" class="box" value="">
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td align="right" bgcolor="#CCCCFF">其他說明</td>
+                <td align="left">
+                    <textarea id="PM_Other" name="PM_Other" rows="4" cols="40" class="box"></textarea>
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#CCCCFF" height="30">
+                <td colspan="2" align="center">
+                    <input type="button" value="新增明細" onclick="OpenNew();" />
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <br />
+    <table id="detailsList" border="0" cellpadding="4" cellspacing="1" bgcolor="#666666" width="890">
+        <thead>
+            <tr align="center" bgcolor="#CCCCFF" class="c12-k">
+                <td width="50">品名</td>
+                <td width="30">單位</td>
+                <td width="35">數量</td>
+                <td width="50">需求日期</td>
+                <td width="70">最後決定廠商名稱</td>
+                <td width="40">單價</td>
+                <td width="50">總價</td>
+                <td width="30">預計節省成本</td>
+                <td width="20"></td>
+            </tr>
+        </thead>
+        <tbody>
+        </tbody>
+        <tr class="c12-k" bgcolor="#CCCCFF" height="30" data-ignore="true">
+            <td colspan="9" align="center">
+                <input type="button" value="儲存" name="save" onclick="saveData();" />
+            </td>
+        </tr>
+    </table>
+</body>
+</html>
+<script>
+    let Params = new URLSearchParams(window.location.search);
+    let WebUser = decryptParameter(Params.get('User'));
+    let WebBC = decryptParameter(Params.get('U_BC'));
+    let PM_ID = decryptParameter(Params.get('PM_ID'));
+    let Read = decryptParameter(Params.get('Read'));
+
+    loadBCName();
+    dateTW();
+    fetchData();
+
+    function loadBCName() {
+        const url = `${BASE_URL}/AE/GetBCList`;
+        fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                if (data.resultCode === "000") {
+                    const selectElement = document.getElementById('PM_BC');
+                    const options = JSON.parse(data.objResult);
+                    selectElement.innerHTML = '<option value="" selected>不限</option>';
+
+                    options.forEach(option => {
+                        const optionElement = document.createElement('option');
+                        optionElement.value = option.item_D_code;
+                        optionElement.textContent = option.item_D_name;
+                        selectElement.appendChild(optionElement);
+                    });
+
+                    selectElement.value = WebBC;
+                    selectElement.setAttribute('readonly', true);
+                    selectElement.style.pointerEvents = 'none';
+                } else {
+                    console.log('錯誤: ' + (data.resultMsg || '未知錯誤'));
+                }
+            })
+            .catch(error => {
+                console.error('載入選項時出錯:', error);
+            });
+    }
+
+    function OpenNew() {
+        const tbody = document.querySelector('#detailsList tbody');
+
+        const row = document.createElement('tr');
+        row.setAttribute('align', 'center');
+        row.setAttribute('class', 'c12-k');
+        row.setAttribute('bgcolor', '#FFFFFF');
+
+        //PD_Pro_name
+        const nameCell = document.createElement('td');
+        const nameInput = document.createElement('input');
+        nameInput.type = 'text';
+        nameInput.name = 'PD_Pro_name';
+        nameInput.size = '10';
+        nameCell.appendChild(nameInput);
+        row.appendChild(nameCell);
+
+        //PD_Unit
+        const unitCell = document.createElement('td');
+        const unitInput = document.createElement('input');
+        unitInput.type = 'text';
+        unitInput.name = 'PD_Unit';
+        unitInput.size = '4';
+        unitCell.appendChild(unitInput);
+        row.appendChild(unitCell);
+
+        //PD_Count
+        const countCell = document.createElement('td');
+        const countInput = document.createElement('input');
+        countInput.type = 'text';
+        countInput.name = 'PD_Count';
+        countInput.size = '4';
+        countCell.appendChild(countInput);
+        row.appendChild(countCell);
+
+        //PD_Date
+        const dateCell = document.createElement('td');
+        const dateInput = document.createElement('input');
+        dateInput.type = 'text';
+        dateInput.name = 'PD_Date';
+        dateInput.size = '8';
+        dateInput.classList.add('datepickerTW');
+        dateCell.appendChild(dateInput);
+        row.appendChild(dateCell);
+
+        // PD_Company_name with dynamic ID
+        const companyRow = document.createElement('tr');
+        companyRow.setAttribute('data-ignore', 'true');
+        const inputCell = document.createElement('td');
+        inputCell.setAttribute('align', 'left');
+        const companyInput = document.createElement('input');
+        const rowIndex = tbody.rows.length + 1;
+        companyInput.type = 'text';
+        companyInput.name = 'PD_Company_name';
+        companyInput.id = `PD_Company_name_${rowIndex}`;
+        companyInput.size = '13';
+        companyInput.maxLength = '13';
+        companyInput.value = '';
+        companyInput.setAttribute('onkeyup', `getCompanySuggestions(${rowIndex});`);
+        companyInput.addEventListener('blur', function () {
+            setTimeout(function () {  
+                validateInput(rowIndex);
+            }, 200);
+        });
+        const suggestionsDiv = document.createElement('div');
+        suggestionsDiv.id = `suggestions_${rowIndex}`;
+        suggestionsDiv.style = 'border: 1px solid #ccc; display: none; max-height: 150px; overflow-y: auto;';
+        inputCell.appendChild(companyInput);
+        inputCell.appendChild(suggestionsDiv);
+        companyRow.appendChild(inputCell);
+        row.appendChild(inputCell);
+
+        // PD_Univalent
+        const univalentCell = document.createElement('td');
+        const univalentInput = document.createElement('input');
+        univalentInput.type = 'text';
+        univalentInput.name = 'PD_Univalent';
+        univalentInput.size = '3';
+        univalentCell.appendChild(univalentInput);
+        row.appendChild(univalentCell);
+
+        // PD_Amt
+        const amtCell = document.createElement('td');
+        const amtInput = document.createElement('input');
+        amtInput.type = 'text';
+        amtInput.name = 'PD_Amt';
+        amtInput.size = '5';
+        amtInput.setAttribute('onchange', `SumPmAmt();`);
+        amtCell.appendChild(amtInput);
+        row.appendChild(amtCell);
+
+        // PD_Est_Cost
+        const costCell = document.createElement('td');
+        const costInput = document.createElement('input');
+        costInput.type = 'text';
+        costInput.name = 'PD_Est_Cost';
+        costInput.size = '4';
+        costCell.appendChild(costInput);
+        row.appendChild(costCell);
+
+        // 刪除
+        const deleteCell = document.createElement('td');
+        const deleteButton = document.createElement('button');
+        deleteButton.textContent = '刪除';
+        deleteButton.onclick = function () {
+            tbody.removeChild(row);
+            SumPmAmt();
+        };
+        deleteCell.appendChild(deleteButton);
+        row.appendChild(deleteCell);
+
+        tbody.appendChild(row);
+
+        const newDateInput = row.querySelector('.datepickerTW');
+        $(newDateInput).datepickerTW({
+            changeYear: true,
+            changeMonth: true,
+            dateFormat: 'yy-mm-dd'
+        });
+    }
+
+    function getCompanySuggestions(rowIndex) {
+        const input = document.getElementById(`PD_Company_name_${rowIndex}`).value;
+        const suggestionsDiv = document.getElementById(`suggestions_${rowIndex}`);
+
+        if (input.length === 0) {
+            suggestionsDiv.style.display = 'none';
+            return;
+        }
+
+        const url = `${BASE_URL}/AE_PRO/GetManufaList?Name=${input}`;
+
+        fetch(url)
+            .then(response => response.json())
+            .then(responseData => {
+                if (responseData.resultCode === "000") {
+                    const suggestions = JSON.parse(responseData.objResult);
+                    displaySuggestions(suggestions, rowIndex);
+                }
+            }).catch(error => {
+                console.error('載入選項時出錯:', error);
+            });
+    }
+
+    function displaySuggestions(suggestions, rowIndex) {
+        const suggestionsDiv = document.getElementById(`suggestions_${rowIndex}`);
+        suggestionsDiv.innerHTML = '';
+        if (suggestions.length === 0) {
+            suggestionsDiv.style.display = 'none';
+            return;
+        }
+
+        suggestions.forEach(function (suggestion) {
+            const suggestionItem = document.createElement('div');
+            suggestionItem.textContent = suggestion.name;
+            suggestionItem.style.padding = '5px';
+            suggestionItem.style.cursor = 'pointer';
+            suggestionItem.onclick = function () {
+                document.getElementById(`PD_Company_name_${rowIndex}`).value = suggestion.name;  
+                suggestionsDiv.style.display = 'none';
+            };
+            suggestionsDiv.appendChild(suggestionItem);
+        });
+
+        suggestionsDiv.style.display = 'block';
+    }
+
+    function validateInput(rowIndex) {
+        const input = document.getElementById(`PD_Company_name_${rowIndex}`).value;
+        const suggestionsDiv = document.getElementById(`suggestions_${rowIndex}`);
+        const suggestionItems = suggestionsDiv.getElementsByTagName('div'); 
+
+        let isValid = false;
+
+        for (let i = 0; i < suggestionItems.length; i++) {
+            if (suggestionItems[i].textContent === input) {
+                isValid = true;
+                break;
+            }
+        }
+
+        if (!isValid) {
+            document.getElementById(`PD_Company_name_${rowIndex}`).value = ''; 
+            alert('請選擇一個有效的公司名稱！'); 
+        }
+    }
+
+    function addManufacturer() {
+        const ID = 'add';
+        let encryptedMF_Number = encryptParameter(ID);
+        let encryptedWebUser = encryptParameter(WebUser);
+        window.open(`../Mafa/Mafa_Detail.html?ID=${encryptedMF_Number}&User=${encryptedWebUser}`, '_blank', 'scrollbars=yes,resizable=yes,top=100,width=800,height=500');
+    }
+
+    function saveData() {
+        const detailsList = [];
+        const rows = document.querySelectorAll('#detailsList tbody tr:not([data-ignore])');
+       
+        for (let index = 0; index < rows.length; index++) {
+            const row = rows[index];
+            const PD_Pro_name_input = row.querySelector('input[name="PD_Pro_name"]');
+            const PD_Unit_input = row.querySelector('input[name="PD_Unit"]');
+            const PD_Count_input = row.querySelector('input[name="PD_Count"]');
+            const PD_Date_input = row.querySelector('input[name="PD_Date"]');
+            const PD_Company_name_input = row.querySelector('input[name="PD_Company_name"]');
+            const PD_Univalent_input = row.querySelector('input[name="PD_Univalent"]');
+            const PD_Amt_input = row.querySelector('input[name="PD_Amt"]');
+            const PD_Est_Cost_input = row.querySelector('input[name="PD_Est_Cost"]');
+
+            if (!PD_Pro_name_input.value || !PD_Unit_input.value || !PD_Count_input.value || !PD_Date_input.value || !PD_Company_name_input.value
+                || !PD_Univalent_input.value || !PD_Amt_input.value) {
+                alert('請填寫相關明細資料！');
+                return;
+            }
+
+            detailsList.push({
+                PD_Pro_name: PD_Pro_name_input.value,
+                PD_Unit: PD_Unit_input.value,
+                PD_Count: PD_Count_input.value,
+                PD_Date: PD_Date_input.value,
+                PD_Company_name: PD_Company_name_input.value,
+                PD_Univalent: PD_Univalent_input.value,
+                PD_Amt: PD_Amt_input.value,
+                PD_Est_Cost: PD_Est_Cost_input ? PD_Est_Cost_input.value : ''
+            });
+        }
+        
+
+        const formData = {
+            PD_Ins_List: detailsList,
+            PM_ID:PM_ID,
+            PM_BC: document.querySelector('select[name="PM_BC"]').value,
+            PM_U_num: WebUser,
+            PM_Pay_Type: document.querySelector('input[name="PM_Pay_Type"]').value,
+            PM_Caption: document.querySelector('textarea[name="PM_Caption"]').value,
+            PM_Amt: parseFloat(document.querySelector('span[name="PM_Amt"]').textContent) || 0,
+            PM_Busin_Tax: parseFloat(document.querySelector('input[name="PM_Busin_Tax"]').value) || 0,
+            PM_Tax_Amt: parseFloat(document.querySelector('input[name="PM_Tax_Amt"]').value) || 0,
+            PM_Other: document.querySelector('textarea[name="PM_Other"]').value
+        };
+
+        if (PM_ID === 'add') {
+            const url = `${BASE_URL}/AE_PRO/Procurement_M_Ins`;
+
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(formData)
+            })
+                .then(response => response.json())
+                .then(responseData => {
+                    if (responseData.resultCode === '000') {
+                        alert('新增成功');
+                        if (window.opener) {  
+                            window.opener.location.reload(); 
+                        }
+                        window.close();
+                    }
+                }).catch(error => {
+                    alert('請求失敗，請稍後再試。');
+                });
+        } else {
+            const url = `${BASE_URL}/AE_PRO/Procurement_M_Upd`;
+
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(formData)
+            })
+                .then(response => response.json())
+                .then(responseData => {
+                    if (responseData.resultCode === '000') {
+                        alert('修改成功');
+                        if (window.opener) {
+                            window.opener.location.reload();
+                        }
+                        window.close();
+                    }
+                }).catch(error => {
+                    alert('請求失敗，請稍後再試。');
+                });
+        }
+    }
+
+    function fetchData() {
+        if (PM_ID !== 'add') {
+            const url = `${BASE_URL}/AE_PRO/Procurement_M_SQuery?PM_ID=${PM_ID}`;
+            fetch(url, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+                .then(response => response.json())
+                .then(responseData => {
+                    if (responseData.resultCode === '000') {
+                        const data = JSON.parse(responseData.objResult);
+
+                        $("select[name='PM_BC']").val(data.PM_BC);
+                        $("select[name='PM_BC']").prop("disabled", true);
+                        if (data.PM_Pay_Type === 'MT') {
+                            $("input[name='PM_Pay_Type'][value='MT']").prop('checked', true);
+                        } else if (data.PM_Pay_Type === 'GC') {
+                            $("input[name='PM_Pay_Type'][value='GC']").prop('checked', true);
+                        }
+                        document.querySelector('span[name="PM_Amt"]').textContent = data.PM_Amt;
+                        $("input[name='PM_Busin_Tax']").val(data.PM_Busin_Tax);
+                        $("input[name='PM_Tax_Amt']").val(data.PM_Tax_Amt);
+                        $("textarea[name='PM_Caption']").val(data.PM_Caption);
+                        $("textarea[name='PM_Other']").val(data.PM_Other);
+
+                        receiveDataFromChild(data.Procurement_D); 
+                        setReadOnlyMode();
+                    }
+                }).catch(error => {
+                    alert('請求失敗，請稍後再試。');
+                });
+        }
+    }
+
+    function receiveDataFromChild(selectedGroups) {
+        const tbody = document.querySelector('#detailsList tbody');
+        tbody.innerHTML = '';
+
+        selectedGroups.forEach((group, index) => {
+            const row = document.createElement('tr');
+            row.setAttribute('align', 'center');
+            row.setAttribute('class', 'c12-k');
+            row.setAttribute('bgcolor', '#FFFFFF');
+
+            //PD_Pro_name
+            const nameCell = document.createElement('td');
+            const nameInput = document.createElement('input');
+            nameInput.type = 'text';
+            nameInput.name = 'PD_Pro_name';
+            nameInput.value = group.PD_Pro_name || '';
+            nameInput.size = '10';
+            nameCell.appendChild(nameInput);
+            row.appendChild(nameCell);
+
+            //PD_Unit
+            const unitCell = document.createElement('td');
+            const unitInput = document.createElement('input');
+            unitInput.type = 'text';
+            unitInput.name = 'PD_Unit';
+            unitInput.value = group.PD_Unit || '';
+            unitInput.size = '4';
+            unitCell.appendChild(unitInput);
+            row.appendChild(unitCell);
+
+            //PD_Count
+            const countCell = document.createElement('td');
+            const countInput = document.createElement('input');
+            countInput.type = 'text';
+            countInput.name = 'PD_Count';
+            countInput.value = group.PD_Count || '';
+            countInput.size = '4';
+            countCell.appendChild(countInput);
+            row.appendChild(countCell);
+
+            //PD_Date
+            const dateCell = document.createElement('td');
+            const dateInput = document.createElement('input');
+            dateInput.type = 'text';
+            dateInput.name = 'PD_Date';
+            dateInput.value = group.PD_Date || '';
+            dateInput.size = '8';
+            dateInput.classList.add('datepickerTW');
+            dateCell.appendChild(dateInput);
+            row.appendChild(dateCell);
+
+            // PD_Company_name with dynamic ID
+            const companyRow = document.createElement('tr');
+            companyRow.setAttribute('data-ignore', 'true');
+            const inputCell = document.createElement('td');
+            inputCell.setAttribute('align', 'left');
+            const companyInput = document.createElement('input');
+            const rowIndex = tbody.rows.length + 1;
+            companyInput.type = 'text';
+            companyInput.name = 'PD_Company_name';
+            companyInput.id = `PD_Company_name_${rowIndex}`;
+            companyInput.value = group.PD_Company_name || '';
+            companyInput.size = '13';
+            companyInput.maxLength = '13';
+            companyInput.setAttribute('onkeyup', `getCompanySuggestions(${rowIndex});`);
+            companyInput.addEventListener('blur', function () {
+                setTimeout(function () {
+                    validateInput(rowIndex);
+                }, 200);
+            });
+            const suggestionsDiv = document.createElement('div');
+            suggestionsDiv.id = `suggestions_${rowIndex}`;
+            suggestionsDiv.style = 'border: 1px solid #ccc; display: none; max-height: 150px; overflow-y: auto;';
+            inputCell.appendChild(companyInput);
+            inputCell.appendChild(suggestionsDiv);
+            companyRow.appendChild(inputCell);
+            row.appendChild(inputCell);
+
+            // PD_Univalent
+            const univalentCell = document.createElement('td');
+            const univalentInput = document.createElement('input');
+            univalentInput.type = 'text';
+            univalentInput.name = 'PD_Univalent';
+            univalentInput.value = group.PD_Univalent || 0;
+            univalentInput.size = '3';
+            univalentCell.appendChild(univalentInput);
+            row.appendChild(univalentCell);
+
+            // PD_Amt
+            const amtCell = document.createElement('td');
+            const amtInput = document.createElement('input');
+            amtInput.type = 'text';
+            amtInput.name = 'PD_Amt';
+            amtInput.value = group.PD_Amt || 0;
+            amtInput.size = '5';
+            amtInput.setAttribute('onchange', `SumPmAmt();`);
+            amtCell.appendChild(amtInput);
+            row.appendChild(amtCell);
+
+            // PD_Est_Cost
+            const costCell = document.createElement('td');
+            const costInput = document.createElement('input');
+            costInput.type = 'text';
+            costInput.name = 'PD_Est_Cost';
+            costInput.value = group.PD_Est_Cost || 0;
+            costInput.size = '4';
+            costCell.appendChild(costInput);
+            row.appendChild(costCell);
+
+            // 刪除按鈕
+            const deleteCell = document.createElement('td');
+            const deleteButton = document.createElement('button');
+            deleteButton.textContent = '刪除';
+            deleteButton.onclick = function () {
+                tbody.removeChild(row);
+                SumPmAmt();
+            };
+            deleteCell.appendChild(deleteButton);
+            row.appendChild(deleteCell);
+
+            tbody.appendChild(row);
+
+            const newDateInput = row.querySelector('.datepickerTW');
+            $(newDateInput).datepickerTW({
+                changeYear: true,
+                changeMonth: true,
+                dateFormat: 'yy-mm-dd'
+            });
+        });
+    }
+
+    function setReadOnlyMode() {
+        if (Read === 'Y') {
+            const inputs = document.querySelectorAll('input');
+            inputs.forEach(input => {
+                input.setAttribute('readonly', true);
+                input.setAttribute('disabled', true);
+            });
+
+            const selects = document.querySelectorAll('select');
+            selects.forEach(select => {
+                select.setAttribute('disabled', true);
+            });
+
+            const buttons = document.querySelectorAll('button');
+            buttons.forEach(button => {
+                button.setAttribute('disabled', true);
+            });
+        }
+    }
+
+    function SumPmAmt() {
+        const amtInputs = document.querySelectorAll('input[name="PD_Amt"]');
+        let total = 0;
+
+        amtInputs.forEach(input => {
+            let value = parseFloat(input.value);
+            if (!isNaN(value)) { 
+                total += value;
+            }
+        });
+
+        const totalSpan = document.querySelector('span[name="PM_Amt"]');
+        totalSpan.textContent = total.toFixed(0);
+    }
+</script>

@@ -1,0 +1,112 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="../Base.js"></script>
+    <title>作業平台</title>
+</head>
+<body margin-left="5" margin-top="5" onload="window.focus();">
+    <center>
+        <table width="100%" id="TOPage" border="0" cellpadding="1" cellspacing="1" bgcolor="#666666" align="left">
+            <tbody>
+                <tr height="42" bgcolor="#FFFFFF">
+                    <td width="180" white-space: nowrap class="c12-k" align="center">
+                        <span color="#0000FF" face="標楷體" size="5"><b>國峯業務系統</b></span>
+                    </td>
+                    <td></td>
+                </tr>
+                <tr bgcolor="#FFFFFF">
+                    <td id="tdMenu" valign="top">
+                        <table class="w12" valign="top" cellpadding="4" cellspacing="1" bgcolor="#999999">
+                            <tbody>
+                                <tr bgcolor="#CCCCFF">
+                                    <td align="left" width="200">
+                                        <b>◆ 尚未登入</b>
+                                    </td>
+                                </tr>
+                                <tr bgcolor="#CCCCFF" onmouseover="this.style.background='#FFFF00';" onmouseout="this.style.background='#CCCCFF';" style="cursor: pointer; background: rgb(204, 204, 255);" onclick="location.href='../login.asp';">
+                                    <td align="left" width="200">
+                                        <b>◆ 前往登入頁</b>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </td>
+                    <td valign="top" white-space: nowrap>
+                        <center>
+                            <br>
+                            <table border="0" width="360" cellspacing="1" cellpadding="4" bgcolor="#666666" class="12-k">
+                                <tbody>
+                                    <tr bgcolor="#E2F1F7" height="30">
+                                        <td colspan="2" align="center">
+                                            <b>員工登入</b>
+                                        </td>
+                                    </tr>
+                                    <tr bgcolor="#E2F1F7" height="30">
+                                        <td width="100" align="right">
+                                            <b>帳　號 : </b>
+                                        </td>
+                                        <td width="260">
+                                            <input type="text" class="text_box_1" style="background-color:#FFFFDD" name="M_num" size="20" maxlength="10" value="">
+                                        </td>
+                                    </tr>
+                                    <tr bgcolor="#E2F1F7" height="30">
+                                        <td align="right">
+                                            <b>密　碼 : </b>
+                                        </td>
+                                        <td>
+                                            <input type="Password" class="text_box_1" style="background-color:#FFFFDD" name="M_Password" size="20" maxlength="12">(6~12碼)
+                                        </td>
+                                    </tr>
+                                    <tr bgcolor="#E2F1F7" height="30">
+                                        <td colspan="2" align="center">
+                                            <input type="button" value="登　入" name="send" onclick="Login();">
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <br>
+                        </center>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </center>
+</body>
+</html>
+<script>
+    function Login() {
+        const username = document.querySelector('input[name="M_num"]').value;
+        const password = document.querySelector('input[name="M_Password"]').value;
+        if (username && password) {
+            loginUser(username, password);
+        } else {
+            alert('請填寫帳號和密碼');
+        }
+    }
+
+    function loginUser(user, password) {
+        const url = `${BASE_URL}/AE/Login?user=${encodeURIComponent(user)}&password=${encodeURIComponent(password)}`;
+
+        fetch(url, {
+            method: 'POST', credentials: 'include'
+        },)
+            .then(response => response.json())
+            .then(responseData => {
+                if (responseData.resultCode == "000") {
+                    const User_U_BC = responseData.objResult;
+                    alert('登入成功');
+                    window.location.href = `/Home/MenuList.html?WebUser=${encodeURIComponent(user)}&U_BC=${encodeURIComponent(User_U_BC)}`;
+                } else {
+                    alert('登入失敗：' + (responseData.resultMsg || '未知錯誤'));
+                }
+            })
+            .catch(error => {
+                // 發生錯誤時的處理
+                console.error('登入失敗:', error);
+                alert('無法連接到伺服器，請稍後再試。');
+            });
+    }
+
+</script>

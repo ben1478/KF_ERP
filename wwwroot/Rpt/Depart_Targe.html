@@ -1,0 +1,238 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script src="../Base.js"></script>
+    <title>作業平台</title>
+</head>
+<body>
+    <table border="0" width="100%">
+        <tbody>
+            <tr class="c12-k">
+                <td width="86%">
+                    年度：
+                    <select name="yyy" id="yyy" class=""></select>
+                    &nbsp;
+                    &nbsp;
+                    <input type="button" value="查詢" onclick="fetchData();" />
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table width="650" border="0" cellspacing="0" cellpadding="0">
+        <tbody>
+            <tr>
+                <td valign="top"> </td>
+                <td align="center" valign="top">
+                    <table id="MainTable" width="980" border="0" cellpadding="4" cellspacing="1" bgcolor="#666666">
+                        <thead>
+                            <tr align="center" height="30" bgcolor="#CCCCFF" class="c12-k">
+                                <td width="40">區</td>
+                                <td width="60">1月</td>
+                                <td width="60">2月</td>
+                                <td width="60">3月</td>
+                                <td width="60">4月</td>
+                                <td width="60">5月</td>
+                                <td width="60">6月</td>
+                                <td width="60">7月</td>
+                                <td width="60">8月</td>
+                                <td width="60">9月</td>
+                                <td width="60">10月</td>
+                                <td width="60">11月</td>
+                                <td width="60">12月</td>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr align="center" class="c12-k" bgcolor="#FFFFFF" onmouseover="this.style.background='#FFFF66';" onmouseout="this.style.background='#FFFFFF'; " style="background: rgb(255, 255, 255);">
+                            </tr>
+
+                            <tr align="center" class="c12-k" bgcolor="#FFFFFF" onmouseover="this.style.background='#FFFF66';" onmouseout="this.style.background='#FFFFFF'; " style="background: rgb(255, 255, 255);">
+                            </tr>
+
+                            <tr align="center" height="30" bgcolor="#CCCCFF">
+                                <td class="c12-k" colspan="16">
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div id="pagination"></div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <dialog id="editQuotaWindow">
+        <table width="350" border="0" cellpadding="4" cellspacing="1" bgcolor="#666666">
+            <thead>
+                <tr align="center" height="30" bgcolor="#CCCCFF" class="c12-k">
+                    <td><label id="regionName" name="regionName"></label></td>
+                </tr>
+            </thead>
+            <tbody>
+                <tr class="c12-k" bgcolor="#FFFFFF">
+                    <td>
+                        <span>目標額(萬):</span><input type="text" id="newQuota" name="newQuota" />
+                    </td>
+                </tr>
+                <tr class="c12-k" bgcolor="#FFFFFF">
+                    <td>
+                        <input type="button" value="提交" onclick="submitQuota();" />
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </dialog>
+</body>
+</html>
+<script>
+    const Params = getQueryParams();
+
+    loadYearDown();
+    fetchData();
+
+    function loadYearDown() {
+        let currentYear = new Date().getFullYear() - 1911;
+        let lastYear = currentYear - 1;
+
+        $('#yyy').append('<option value="' + currentYear + '">' + currentYear + '</option>');
+        $('#yyy').append('<option value="' + lastYear + '">' + lastYear + '</option>');
+
+        $('#yyy').val(currentYear);
+    }
+
+    function fetchData() {
+        var yyy = $('#yyy').val();
+        const url = `${BASE_URL}/AE_RPT/Depart_Target_Query?yyy=${yyy}`;
+
+        fetch(url, {
+            method: 'Get',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include'
+        })
+            .then(response => response.json())
+            .then(responseData => {
+                if (responseData.resultCode == "000") {
+                    data = JSON.parse(responseData.objResult);
+                    populateTable(data);
+                } else {
+                    alert(response.resultMsg);
+                }
+            })
+            .catch(error => {
+                alert('API 請求失敗:', error);
+            });
+    }
+
+    function populateTable(data) {
+        let tableBody = $('#MainTable tbody');
+        tableBody.empty(); 
+
+        const regions = {
+            "BC0100-1": "台北1",
+            "BC0100-2": "台北2",
+            "BC0200": "新北",
+            "BC0600": "桃園",
+            "BC0300": "台中",
+            "BC0500": "台南",
+            "BC0400": "高雄"
+        };
+
+        let monthlyQuota = Array(12).fill(0); 
+
+        let regionData = {};
+
+        data.forEach(item => {
+            const region = item.depart_bc;
+            const month = parseInt(item.target_ym.substring(5, 7)) - 1; 
+            if (!regionData[region]) {
+                regionData[region] = Array(12).fill(0); 
+            }
+            regionData[region][month] = item.target_quota;
+        });
+
+        for (let regionCode in regions) {
+            let regionName = regions[regionCode];
+            let quotas = regionData[regionCode] || Array(12).fill(0);
+            var yyy = $('#yyy').val();
+            let row = `<tr align="center" class="c12-k" bgcolor="#FFFFFF" onmouseover="this.style.background='#FFFF66';" onmouseout="this.style.background='#FFFFFF'; " style="background: rgb(255, 255, 255);">`;
+            row += `<td>${regionName}</td>`;
+
+            row += quotas.map((monthQuota, monthIndex) =>
+                `<td onclick="openEditWindow('${regionCode}', '${regionName}', ${monthIndex + 1}, ${monthQuota},${yyy})">${monthQuota} 萬</td>`
+            ).join('');
+            row += `</tr>`;
+
+            tableBody.append(row);
+        }
+    }
+
+    function openEditWindow(regionCode, regionName, month, currentQuota, yyy) {
+        const editDialog = $('#editQuotaWindow')[0];
+
+        const yyyy = parseInt(yyy) + 1911;
+        const formattedMonth = month < 10 ? '0' + month : month;
+        const YYYYMM = `${yyyy}-${formattedMonth}`;
+       
+        $('#regionName').text(regionName + ' ' + yyyy + '-' + month + ' - ' + '目標設定');
+        $('#newQuota').val(currentQuota);
+
+        window.modalParams = {
+            regionCode: regionCode,
+            yyyymm: YYYYMM
+        };
+
+        editDialog.showModal();
+    }
+
+    function submitQuota() {
+
+        const newQuota = $('#newQuota').val();
+        const { regionCode, yyyymm } = window.modalParams;
+
+        if (newQuota !== '0') {
+            const url = `${BASE_URL}/AE_RPT/Depart_Target_Upd?BC=${regionCode}&YYYYMM=${yyyymm}&Target=${newQuota}&User=${Params.WebUser}`;
+
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                credentials: 'include'
+            })
+                .then(response => response.json())
+                .then(responseData => {
+                    if (responseData.resultCode == "000") {
+                        alert(responseData.resultMsg);
+                        fetchData();
+                        closeEditWindow();
+                    } else {
+                        alert(responseData.resultMsg);
+                    }
+                })
+                .catch(error => {
+                    alert('API 請求失敗:', error);
+                });
+        }
+
+        
+    }
+
+    function closeEditWindow() {
+        const editDialog = $('#editQuotaWindow')[0];
+        editDialog.close();
+    }
+
+    window.addEventListener('click', function (event) {
+        const editDialog = $('#editQuotaWindow')[0];
+       
+        if (event.target === editDialog) {
+            const editDialog = $('#editQuotaWindow')[0];
+            editDialog.close();
+        }
+    })
+</script>

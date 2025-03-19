@@ -1,0 +1,182 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script src="../Base.js"></script>
+    <title>作業平台</title>
+</head>
+<body>
+    <!--MenuList.html-->
+    <table width="100%" xwidth="1400" id="TOPage" border="0" cellpadding="1" cellspacing="1" bgcolor="#666666" align="left">
+        <tbody>
+            <tr height="42" bgcolor="#FFFFFF">
+                <td width="180" nowrap="" class="c12-k" align="center">
+                    <font color="#0000FF" face="標楷體" size="5"><b>國峯業務系統</b></font>
+                </td>
+                <td class="c12-k" align="left" valign="top">
+                    <!--<iframe name="_Top_info" src="../_include/_Top_info.asp" width="100%" xwidth="1195" height="42" marginwidth="0" frameborder="0" scrolling="yes"></iframe>-->
+                    <iframe src="/Top_info.html" width="100%" height="42" style="padding-top: 10px; border: none;"></iframe>
+
+                </td>
+            </tr>
+            <tr bgcolor="#FFFFFF">
+                <td valign="top">
+                    <!--左側登入者資訊-->
+                    <table class="w12" valign="top" cellpadding="4" cellspacing="1" bgcolor="#999999">
+                        <tbody>
+                            <tr bgcolor="#CCCCFF">
+                                <td align="left" width="230">
+                                    <b name="WebUser"></b>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <!--左側功能列表-->
+                    <div id="DivMenu" style="height: 625.5px; width: 255px; overflow: auto;">
+                        <table style="height:auto;width:240px" id="TbMenu" class="w12" valign="top" cellpadding="4" cellspacing="1" bgcolor="#999999">
+                        </table>
+                        <script>
+                            var windowHeight = window.innerHeight;
+
+                            var table = document.getElementById("DivMenu");
+                            table.style.height = (windowHeight * 0.9) + "px";
+                        </script>
+                    </div>
+                </td>
+                <td valign="top" nowrap="">
+                    <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                        <tbody>
+                            <tr>
+                                <td width="100%" align="center" colspan="3">
+                                    <span class="c14k"><strong>功能列表</strong></span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td width="13%" align="center">
+                                    <input type="button" name="add" value="請採購單申請" onclick="openProcurement();">
+                                </td>
+                                <td width="13%" align="center">
+                                    <input type="button" name="add" value="請款(預支)單申請" onclick="openInvPrepay();">
+                                </td>
+                                <td width="13%" align="center"></td>
+                            </tr>
+                            <tr>
+                                <td width="13%" align="center">
+                                    <input type="button" name="add" value="財務表單審核" onclick="openPTFlow();">
+                                </td>
+                                <td width="13%" align="center">
+                                    <input type="button" name="add" value="" onclick="">
+                                </td>
+                                <td width="13%" align="center"></td>
+                            </tr>
+                            <tr>
+                                <td width="13%" align="center">
+                                    <input type="button" name="add" value="審核流程設定" onclick="openAuditFlow();">
+                                </td>
+                                <td width="13%" align="center">
+                                    <input type="button" name="add" value="審核主檔列表" onclick="openAuditFlowM();">
+                                </td>
+                                <td width="13%" align="center"></td>
+                            </tr>
+                            <tr>
+                                <td width="13%" align="center">
+                                    <input type="button" name="add" value="財務表單報表" onclick="openPTReport();">
+                                </td>
+                                <td width="13%" align="center"></td>
+                                <td width="13%" align="center"></td>
+                            </tr>
+                            <tr>
+                                <td width="13%" align="center">
+                                    <input type="button" name="add" value="部門每月目標維護表" onclick="openDepartTarget();">
+                                </td>
+                                <td width="13%" align="center">
+                                    <input type="button" name="add" value="部門每月業績進度表" onclick="openMonthPerfProgRpt();">
+                                </td>
+                                <td width="13%" align="center"></td>
+                            </tr>
+                            <tr>
+                                <td width="13%" align="center">
+                                    <input type="button" name="add" value="個人訊息管理" onclick="openMseeage();">
+                                </td>
+                                <td width="13%" align="center"></td>
+                                <td width="13%" align="center"></td>
+                            </tr>
+                            <tr>
+                                <td width="13%" align="center">
+                                    <input type="button" name="add" value="廠商主檔資料列表" onclick="openManufacturer();">
+                                </td>
+                                <td width="13%" align="center"></td>
+                                <td width="13%" align="center"></td>
+                            </tr>
+                            <tr>
+                                <td width="13%" align="center">
+                                    <input type="button" name="add" value="登出" onclick="openLogout();">
+                                </td>
+                                <td width="13%" align="center"></td>
+                                <td width="13%" align="center"></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </td>
+            </tr>
+            
+        </tbody>
+    </table>
+</body>
+</html>
+<script>
+    const params = new URLSearchParams(window.location.search);
+    const WebUser = params.get('WebUser');
+    const WebBC = params.get('U_BC');
+
+    fetchWebUser(WebUser);
+    fetchWebFun(WebUser);
+
+    function openProcurement() {
+        window.open(`/Proc/Proc_M_list.html?User=${WebUser}&U_BC=${WebBC}`, 'list', 'scrollbars=yes,resizable=yes,width=1100,height=500,left=250,top=100')
+    }
+
+    function openPTFlow() {
+        window.open(`/AF/Find_AF_List.html?User=${WebUser}&U_BC=${WebBC}`, 'list', 'scrollbars=yes,resizable=yes,width=1200,height=500,left=250,top=100')
+    }
+
+    function openAuditFlow() {
+        window.open(`/AF/AuditFlow_list.html?PM_U_num=${WebUser}&U_BC=${WebBC}`, 'list', 'scrollbars=yes,resizable=yes,width=1000,height=500,left=250,top=100')
+    }
+
+    function openAuditFlowM() {
+        window.open(`/AF/AuditFlow_M_list.html?PM_U_num=${WebUser}&U_BC=${WebBC}`, 'list', 'scrollbars=yes,resizable=yes,width=1000,height=500,left=250,top=100')
+    }
+
+    function openPTReport() {
+        window.open(`/Proc/Proc_Report.html?PM_U_num=${WebUser}&U_BC=${WebBC}`, 'list', 'scrollbars=yes,resizable=yes,width=1000,height=500,left=250,top=100')
+    }
+
+    function openDepartTarget() {
+        window.open(`/Rpt/Depart_Targe.html?PM_U_num=${WebUser}&U_BC=${WebBC}`, 'list', 'scrollbars=yes,resizable=yes,width=1000,height=500,left=250,top=100')
+    }
+
+    function openMonthPerfProgRpt() {
+        window.open(`/Rpt/Month_Perf_Prog.html?PM_U_num=${WebUser}&U_BC=${WebBC}`, 'list', 'scrollbars=yes,resizable=yes,width=1300,height=500,left=250,top=100')
+    }
+
+    function openMseeage() {
+        window.open(`/Mes/Mes_list.html?PM_U_num=${WebUser}&U_BC=${WebBC}`, 'list', 'scrollbars=yes,resizable=yes,width=1300,height=500,left=250,top=100')
+    }
+
+    function openManufacturer() {
+        window.open(`/Mafa/Mafa_list.html?User=${WebUser}&U_BC=${WebBC}`, 'list', 'scrollbars=yes,resizable=yes,width=1300,height=500,left=250,top=100')
+    }
+
+    function openInvPrepay() {
+        window.open(`/VP/InvPre_M_list.html?User=${WebUser}&U_BC=${WebBC}`, 'list', 'scrollbars=yes,resizable=yes,width=1300,height=500,left=250,top=100')
+    }
+
+    function openLogout() {
+        window.location.href = '/Login.html';
+    }
+</script>

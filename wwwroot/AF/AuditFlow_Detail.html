@@ -1,0 +1,163 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script src="../Base.js"></script>
+    <title>作業平台</title>
+</head>
+<body>
+    <table width="790" border="0" cellspacing="1" cellpadding="2" bgcolor="#999999">
+        <tbody>
+            <tr class="c12-k" bgcolor="#CCCCFF" height="30">
+                <td colspan="2" align="center">
+                    <span class="c14k">審核主流程設定</span>
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td width="220" align="right" bgcolor="#CCCCFF">流程編號</td>
+                <td width="580" align="left">
+                    <input type="text" name="AF_ID" size="10" maxlength="10" class="box" value="">
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td align="right" bgcolor="#CCCCFF">流程名稱</td>
+                <td align="left">
+                    <input type="text" name="AF_Name" size="25" maxlength="100" class="box" value="">
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td align="right" bgcolor="#CCCCFF">流程描述</td>
+                <td align="left">
+                    <textarea id="AF_Caption" name="AF_Caption" rows="4" cols="40" class="box"></textarea>
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td align="right" bgcolor="#CCCCFF">流程步驟<br />(如:1-6關 則寫6)</td>
+                <td align="left">
+                    <input type="text" name="AF_Step" size="10" maxlength="10" class="box" value="">
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td align="right" bgcolor="#CCCCFF">流程步驟說明<br />(如:部門主管,會計,財務,…請用","串接)</td>
+                <td align="left">
+                    <textarea id="AF_Step_Caption" name="AF_Step_Caption" rows="4" cols="40" class="box"></textarea>
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td align="right" bgcolor="#CCCCFF">流程人員設定<br />(如:員編用","串接 額外定義U0000:副總 U0001:單位主管)</td>
+                <td align="left">
+                    <textarea id="AF_Step_Person" name="AF_Step_Person" rows="4" cols="40" class="box"></textarea>
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#CCCCFF" height="30">
+                <td colspan="2" align="center">
+                    <input type="button" value="儲存" onclick="saveData()" />
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</body>
+</html>
+<script>
+    let Params = new URLSearchParams(window.location.search);
+    let AF_ID = decryptParameter(Params.get('AF_ID'));
+    let PM_U_num = decryptParameter(Params.get('PM_U_num'));
+
+    fetchData();
+
+    function fetchData() {
+        if (AF_ID !== 'add') {
+            const url = `${BASE_URL}/AE_AF/AuditFlow_SQuery?AF_ID=${AF_ID}`;
+            fetch(url, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+                .then(response => response.json())
+                .then(response => {
+                    if (response.resultCode === '000') {
+                        const data = JSON.parse(response.objResult)[0];
+                        $("input[name='AF_ID']").val(data.AF_ID);
+                        $("input[name='AF_Name']").val(data.AF_Name);
+                        $("textarea[name='AF_Caption']").val(data.AF_Caption);
+                        $("input[name='AF_Step']").val(data.AF_Step);
+                        $("textarea[name='AF_Step_Caption']").val(data.AF_Step_Caption);
+                        $("textarea[name='AF_Step_Person']").val(data.AF_Step_Person);
+                    } else {
+                        alert(response.resultMsg);
+                    }
+                })
+                .catch(error => {
+                    alert('API 請求失敗:', error);
+                });
+        }
+    }
+
+    function saveData() {
+        const AuditFlowMIns = {
+            AF_ID: document.querySelector('input[name="AF_ID"]').value,
+            AF_Name: document.querySelector('input[name="AF_Name"]').value,
+            AF_Caption: document.querySelector('textarea[name="AF_Caption"]').value,
+            AF_Step: document.querySelector('input[name="AF_Step"]').value,
+            AF_Step_Caption: document.querySelector('textarea[name="AF_Step_Caption"]').value,
+            AF_Step_Person: document.querySelector('textarea[name="AF_Step_Person"]').value,
+            add_num: PM_U_num,
+            edit_num: PM_U_num
+        };
+
+        if (AF_ID !== 'add') {
+            const url = `${BASE_URL}/AE_AF/AuditFlow_Upd`;
+
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(AuditFlowMIns)
+            })
+                .then(response => response.json())
+                .then(response => {
+                    if (response.resultCode === '000') {
+                        alert('修改成功');
+                        window.close();
+                        window.opener.location.reload();
+                    } else {
+                        alert(data.resultMsg);
+                    }
+                })
+                .catch(error => {
+                    alert('請求失败，請稍後再試。');
+                });
+        } else {
+            const url = `${BASE_URL}/AE_AF/AuditFlow_Ins`;
+
+            
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(AuditFlowMIns)
+            })
+                .then(response => response.json())
+                .then(response => {
+                    if (response.resultCode === '000') {
+                        alert('新增成功');
+                        window.close();
+                        window.opener.location.reload();
+                    } else {
+                        alert(data.resultMsg);
+                    }
+                })
+                .catch(error => {
+                    alert('請求失败，請稍後再試。');
+                });
+        }
+    }
+
+</script>

@@ -1,0 +1,87 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script src="../Base.js"></script>
+    <title>作業平台</title>
+</head>
+<body>
+    <div style="float:left" id="info"></div>
+</body>
+</html>
+<script>
+    const Params = new URLSearchParams(window.parent.location.search);
+    const WebUser = Params.get('WebUser');
+    const WebBC = Params.get('U_BC');
+
+    fetchData();
+
+    function fetchData() {
+        const currentDate = new Date();
+
+        const startDate = new Date(currentDate);
+        startDate.setMonth(currentDate.getMonth() - 2);
+        startDate.setHours(0, 0, 0, 0);
+
+        const endDate = new Date(currentDate);
+        endDate.setMinutes(currentDate.getMinutes() + 30);
+
+        const formatDate = (date) => date.toISOString().slice(0, 19).replace('T', ' ');
+
+        const formattedStartDate = formatDate(startDate);
+        const formattedEndDate = formatDate(endDate);
+
+        const url = `${BASE_URL}/AE/GetMesListCount?User=${WebUser}&StartDate=${encodeURIComponent(formattedStartDate)}&EndDate=${encodeURIComponent(formattedEndDate)}`;
+
+        fetch(url, {
+            method: 'Get',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include'
+        })
+            .then(response => response.json())
+            .then(responseData => {
+                if (responseData.resultCode == "000") {
+                    data = JSON.parse(responseData.objResult);
+                    const infoDiv = document.getElementById("info");
+                    infoDiv.innerHTML = "訊息通知：";
+
+                    data.forEach(item => {
+                        const label = document.createElement("label");
+                        label.textContent = item.Name;
+
+                        const font = document.createElement("span");
+                        font.style.color = "#FF0000";
+
+                        const link = document.createElement("a");
+                        link.style.cursor = "pointer";
+
+                        let encryptedKind = encryptParameter(item.MsgID);
+                        let encryptedWebUser = encryptParameter(WebUser);
+
+                        link.onclick = function () {
+                            window.open(`/Mes/Mes_list.html?PM_U_num=${encryptedWebUser}&Msg_kind=${encryptedKind}`, 'list', 'scrollbars=yes,resizable=yes,width=1300,height=500,left=250,top=100');
+                        };
+                        link.textContent = `(${item.Count})`;
+
+                        font.appendChild(link);
+
+                        infoDiv.appendChild(label);
+                        infoDiv.appendChild(font);
+                        infoDiv.appendChild(document.createTextNode("\u00A0\u00A0"));
+                    });
+
+                } else {
+                    alert(response.resultMsg);
+                }
+            })
+            .catch(error => {
+                alert('API 請求失敗:', error);
+            });
+    }
+</script>

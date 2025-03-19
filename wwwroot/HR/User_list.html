@@ -1,0 +1,261 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script src="../Base.js"></script>
+    <title>作業平台</title>
+</head>
+<body>
+    <table width="100%" xwidth="1400" id="TOPage" border="0" cellpadding="1" cellspacing="1" bgcolor="#666666" align="left">
+        <tbody>
+            <tr height="42" bgcolor="#FFFFFF">
+                <td width="180" nowrap="" class="c12-k" align="center">
+                    <font color="#0000FF" face="標楷體" size="5"><b>國峯業務系統</b></font>
+                </td>
+                <td class="c12-k" align="left" valign="top">
+                    <iframe name="_Top_info" src="../_include/_Top_info.asp" width="100%" xwidth="1195" height="42" marginwidth="0" frameborder="0" scrolling="yes"></iframe>
+                </td>
+            </tr>
+            <tr bgcolor="#FFFFFF">
+                <td valign="top">
+                    <!--左側登入者資訊-->
+                    <table class="w12" valign="top" cellpadding="4" cellspacing="1" bgcolor="#999999">
+                        <tbody>
+                            <tr bgcolor="#CCCCFF">
+                                <td align="left" width="230">
+                                    <b name="WebUser"></b>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <!--左側功能列表-->
+                    <div id="DivMenu" style="height: 625.5px; width: 255px; overflow: auto;">
+                        <table style="height:auto;width:240px" id="TbMenu" class="w12" valign="top" cellpadding="4" cellspacing="1" bgcolor="#999999">
+                        </table>
+                        <script>
+                            var windowHeight = window.innerHeight;
+
+                            var table = document.getElementById("DivMenu");
+                            table.style.height = (windowHeight * 0.9) + "px";
+                        </script>
+                    </div>
+                </td>
+                <td valign="top" nowrap="">
+                    <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                        <tbody>
+                            <tr>
+                                <td width="20">　</td>
+                                <td width="230" height="24" background="../../image/title-bk.gif">
+                                    <span class="c14k"><strong>使用者管理</strong></span>
+                                </td>
+                                <td width="770"></td>
+                            </tr>
+                            <tr>
+                                <td></td>
+                                <td colspan="2">
+                                    <table border="0" width="100%" id="table1">
+                                        <tbody>
+                                            <tr class="c12-k">
+                                                <td width="86%">
+                                                    員編／姓名：
+                                                    <input type="text" name="queryword" size="10" value="" class="c12-k">(模糊比對)
+                                                    公司別：
+                                                    <select name="U_BC" id="U_BC" class=""></select>
+                                                    &nbsp;&nbsp;
+                                                    在職狀態：
+                                                    <select name="job_status" id="job_status" style="width:80px">
+                                                        <option value="">請選擇</option>
+                                                        <option value="Y">在職</option>
+                                                        <option value="N">離職</option>
+                                                    </select>
+                                                    &nbsp;&nbsp;
+                                                    角色名稱：
+                                                    <select name="role" id="role" style="width:80px"></select>
+                                                    <input type="button" name="query" class="" value="查詢" onclick="fetchData();">
+                                                </td>
+                                                <td width="13%" align="center">
+                                                    <input type="button" name="add" value="新增使用者" onclick="javascript: void window.open('User_add.html','add','scrollbars=yes,resizable=yes,width=800,height=500,left=250,top=100');">
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <table width="650" border="0" cellspacing="0" cellpadding="0">
+                        <tbody>
+                            <tr>
+                                <td valign="top">　</td>
+                                <td align="center" valign="top">
+                                    <table id="MainTable" width="1200" border="0" cellpadding="4" cellspacing="1" bgcolor="#666666">
+                                        <thead>
+                                            <tr align="center" bgcolor="#CCCCFF" class="c12-k">
+                                                <td width="50">序號</td>
+                                                <td width="60">公司別</td>
+                                                <td width="60">職稱</td>
+                                                <td width="60">角色</td>
+                                                <td width="60">員編</td>
+                                                <td width="100">姓名</td>
+                                                <td width="60">代理人</td>
+                                                <td width="60">直屬主管</td>
+                                                <td width="60">單位主管</td>
+                                                <td width="60">是否在職</td>
+                                                <td width="60">夾檔管理</td>
+                                                <td width="30">修改</td>
+                                                <td width="30">
+                                                    密碼
+                                                    <br>變更
+                                                </td>
+                                                <td width="30">
+                                                    年假
+                                                    <br>管理
+                                                </td>
+                                                <td width="30">
+                                                    人事
+                                                    <br>異動
+                                                </td>
+                                                <td width="300">可查看公司</td>
+                                            </tr>
+                                        </thead>
+                                        <tbody></tbody>
+                                    </table>
+                                    <div id="pagination"></div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</body>
+
+</html>
+<script>
+    const params = new URLSearchParams(window.location.search);
+    const WebUser = params.get('WebUser');
+    const WebBC = params.get('U_BC');
+
+    const itemsPerPage = 20;  
+    let currentPage = 1;  
+    let data = [];  
+
+    fetchWebUser(WebUser);
+    fetchWebFun(WebUser);
+
+    loadBCDropdown();
+    loadRolmDropdown();
+    fetchData();
+
+    function fetchData() {
+        const url = `${BASE_URL}/AE_HR/User_M_LQuery`;
+        const queryword = document.querySelector('input[name="queryword"]').value;  // 員編／姓名
+        const U_BC = document.querySelector('select[name="U_BC"]').value;  // 公司別
+        const Job_Status = document.querySelector('select[name="job_status"]').value;  // 在職狀態
+        const U_Role = document.querySelector('select[name="role"]').value;  // 角色名稱
+
+        const requestData = {
+            U_Num_Name: queryword,
+            U_BC: U_BC,
+            Job_Status: Job_Status,
+            U_Role: U_Role
+        };
+
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestData),
+            credentials: 'include'
+        })
+            .then(response => response.json())
+            .then(responseData => {
+                if (responseData.resultCode == "000") {
+                    data = JSON.parse(responseData.objResult);  // 儲存資料
+                    showPage(currentPage);  // 顯示初始頁面
+                    createPagination();  // 創建分頁
+                } else {
+                    console.error('API 回傳資料格式錯誤');
+                }
+            })
+            .catch(error => {
+                console.error('API 請求失敗:', error);
+            });
+    }
+
+    function showPage(page) {
+        const tbody = document.querySelector('#MainTable tbody');
+        tbody.innerHTML = '';
+
+        const startIndex = (page - 1) * itemsPerPage;
+        const endIndex = Math.min(startIndex + itemsPerPage, data.length);
+        const pageData = data.slice(startIndex, endIndex);  // 當前頁面的資料
+
+        pageData.forEach((item, index) => {
+            const row = document.createElement('tr');
+            row.setAttribute('align', 'center');
+            row.setAttribute('class', 'c12-k');
+            row.setAttribute('bgcolor', '#FFFFFF');
+            row.setAttribute('onmouseover', "this.style.background='#FCFCC0';");
+            row.setAttribute('onmouseout', "this.style.background='#FFFFFF';");
+
+            const serialCell = document.createElement('td');
+            serialCell.textContent = startIndex + index + 1;  // 序號
+            row.appendChild(serialCell);
+
+            const keys = Object.keys(item);
+            keys.forEach(key => {
+                const cell = document.createElement('td');
+                cell.textContent = item[key];
+                if (key === 'cknum') {
+                    row.appendChild(createButtonCell(
+                        "../images/edit.png",
+                        "夾檔管理",
+                        function () {
+                            window.open(`/File/File_UpLoad_List.html?cknum=${item.cknum}`, '_blank', 'scrollbars=yes,resizable=yes,top=100,width=800,height=500');
+                        }
+                    ));
+                    row.appendChild(createButtonCell(
+                        "../images/edit.png",
+                        "修改",
+                        function () {
+                            window.open(`/HR/User_edit.html?U_num=${item.U_num}`, '_blank', 'scrollbars=yes,resizable=yes,top=100,width=800,height=500');
+                        }
+                    ));
+                    row.appendChild(createButtonCell(
+                        "../images/edit.png",
+                        "密碼變更",
+                        function () {
+                            window.open(`/HR/EditPsw.html?U_num=${item.U_num}`, '_blank', 'scrollbars=yes,resizable=yes,top=100,width=500,height=300');
+                        }
+                    ));
+                    row.appendChild(createButtonCell(
+                        "../images/edit.png",
+                        "年假異動",
+                        function () {
+                            window.open(`/HR/Hday.html?U_num=${item.U_num}`, '_blank', 'scrollbars=yes,resizable=yes,top=50,width=1200,height=500');
+                        }
+                    ));
+                    row.appendChild(createButtonCell(
+                        "../images/edit.png",
+                        "人事異動",
+                        function () {
+                            window.open(`/HR/UserAppForm.html?U_num=${item.U_num}`, '_blank', 'scrollbars=yes,resizable=yes,top=50,width=900,height=600');
+                        }
+                    ));
+                } else {
+                    row.appendChild(cell);
+                }
+            });
+            tbody.appendChild(row);
+        });
+    }
+
+</script>

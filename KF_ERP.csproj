@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="images\**" />
+    <Compile Remove="wwwroot\NewFolder1\**" />
+    <Content Remove="images\**" />
+    <Content Remove="wwwroot\NewFolder1\**" />
+    <EmbeddedResource Remove="images\**" />
+    <EmbeddedResource Remove="wwwroot\NewFolder1\**" />
+    <None Remove="images\**" />
+    <None Remove="wwwroot\NewFolder1\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="wwwroot\Base.js" />
+    <None Include="wwwroot\ACC\Debt_certificate_list.html" />
+    <None Include="wwwroot\Home\Example.html" />
+  </ItemGroup>
+
+</Project>

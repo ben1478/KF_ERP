@@ -1,0 +1,175 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script src="../Base.js"></script>
+    <title>作業平台</title>
+</head>
+<body>
+    <table border="0" width="100%">
+        <tbody>
+            <tr class="c12-k">
+                <td width="86%">
+                    部門區域：
+                    <select name="U_BC" id="U_BC" class="">
+                        <option value="">不限</option>
+                        <option value="BC0100-1">台北1</option>
+                        <option value="BC0100-2">台北2</option>
+                        <option value="BC0200">新北</option>
+                        <option value="BC0600">桃園</option>
+                        <option value="BC0300">台中</option>
+                        <option value="BC0500">台南</option>
+                        <option value="BC0400">高雄</option>
+                        <option value="BC0900">數位行銷</option>
+                    </select>
+                    &nbsp;
+                    基準日：
+                    <input type="text" name="yyymmdd" size="10" maxlength="10" class="datepickerTW" value="">
+                    &nbsp;
+                    <input type="button" value="查詢" onclick="fetchData();" />
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table width="800" border="0" cellspacing="0" cellpadding="0">
+        <tbody>
+            <tr>
+                <td valign="top"> </td>
+                <td align="center" valign="top">
+                    <table id="MainTable" width="1200" border="0" cellpadding="4" cellspacing="1" bgcolor="#666666">
+                        <thead>
+                            <tr align="center" height="30" bgcolor="#CCCCFF" class="c12-k">
+                                <td width="100">區域</td>
+                                <td width="60">本月目標</td>
+                                <td width="40">法催比</td>
+                                <td width="70">當月業績</td>
+                                <td width="70">前月業績</td>
+                                <td width="60">上期環比</td>
+                                <td width="60">目前目標</td>
+                                <td width="60">目前目標達成率</td>
+                                <td width="60">估價數</td>
+                                <td width="60">進件數</td>
+                                <td width="60">核准數</td>
+                                <td width="60">撥款數</td>
+                                <td width="60">轉換率</td>
+                                <td width="60">撥款率</td>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr align="center" class="c12-k" bgcolor="#FFFFFF" onmouseover="this.style.background='#FFFF66';" onmouseout="this.style.background='#FFFFFF'; " style="background: rgb(255, 255, 255);">
+                            </tr>
+
+                            <tr align="center" class="c12-k" bgcolor="#FFFFFF" onmouseover="this.style.background='#FFFF66';" onmouseout="this.style.background='#FFFFFF'; " style="background: rgb(255, 255, 255);">
+                            </tr>
+
+                            <tr align="center" height="30" bgcolor="#CCCCFF">
+                                <td class="c12-k" colspan="16">
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div id="pagination"></div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</body>
+</html>
+<script>
+    const itemsPerPage = 20;  
+    let currentPage = 1;  
+    let data = [];  
+
+    window.onload = function () {
+        dateTW();
+        convertToTaiwanDate();
+        fetchData();
+    }
+
+    function convertToTaiwanDate() {
+        var currentDate = new Date();
+        var westernYear = currentDate.getFullYear();
+        var taiwanYear = westernYear - 1911;
+        var month = currentDate.getMonth() + 1;
+        var day = currentDate.getDate();
+        var formattedDate = taiwanYear + '-' + (month < 10 ? '0' + month : month) + '-' + (day < 10 ? '0' + day : day);
+        document.querySelector('input[name="yyymmdd"]').value = formattedDate;
+    }
+
+    function fetchData() {
+        const U_BC = document.querySelector('select[name="U_BC"]').value;
+
+        const parts = document.querySelector('input[name="yyymmdd"]').value.split('-');
+        const taiwanYear = parseInt(parts[0]);  
+        const month = parseInt(parts[1]);  
+        const day = parseInt(parts[2]); 
+        const westernYear = taiwanYear + 1911;
+
+        const yyyymmdd = `${westernYear}-${month < 10 ? '0' + month : month}-${day < 10 ? '0' + day : day}`;
+
+        const url = `${BASE_URL}/AE_RPT/Month_Perf_Prog_Query?U_BC=${U_BC}&yyyymmdd=${yyyymmdd}`;
+
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include'
+        })
+            .then(response => response.json())
+            .then(responseData => {
+                if (responseData.resultCode == "000") {
+                    data = JSON.parse(responseData.objResult);
+                    showPage(currentPage);
+                } else {
+                    alert(responseData.resultMsg);
+                }
+            })
+            .catch(error => {
+                alert('API 请求失败:', error);
+            });
+    }
+
+    function showPage(page) {
+        const tbody = document.querySelector('#MainTable tbody');
+        tbody.innerHTML = '';
+
+        const startIndex = (page - 1) * itemsPerPage;
+        const endIndex = Math.min(startIndex + itemsPerPage, data.length);
+        const pageData = data.slice(startIndex, endIndex);
+
+        for (let item of pageData) {
+            const row = document.createElement('tr');
+            row.setAttribute('align', 'center');
+            row.setAttribute('class', 'c12-k');
+            row.setAttribute('bgcolor', '#FFFFFF');
+            row.setAttribute('onmouseover', "this.style.background='#FCFCC0';");
+            row.setAttribute('onmouseout', "this.style.background='#FFFFFF';");
+
+            const columnOrder = ['BC_NA', 'target_quota', 'OV_Rate', 'amount', 'amount_b', 'BRate', 'target_quota_day', 'QRate', 'RateCount', 'InCount', 'CheckCount', 'PayCount', 'TRate', 'PRate'];
+
+            for (let key of columnOrder) {
+                const cell = document.createElement('td');
+                switch (key) {
+                    case 'OV_Rate':
+                    case 'BRate':
+                    case 'QRate':
+                    case 'TRate':
+                    case 'PRate':
+                        cell.textContent = (item[key] || 0) + '%';
+                        row.appendChild(cell);
+                        break;
+                    default:
+                        cell.textContent = item[key] || 0;
+                        row.appendChild(cell);
+                }
+            }
+            tbody.appendChild(row);
+        }
+    }
+
+</script>

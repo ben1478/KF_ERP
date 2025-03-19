@@ -1,0 +1,66 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script src="../Base.js"></script>
+    <title>作業平台</title>
+</head>
+<body>
+    <table width="100%" xwidth="1400" id="TOPage" border="0" cellpadding="1" cellspacing="1" bgcolor="#666666" align="left">
+        <tbody>
+            <tr height="42" bgcolor="#FFFFFF">
+                <td width="180" nowrap="" class="c12-k" align="center">
+                    <font color="#0000FF" face="標楷體" size="5"><b>國峯業務系統</b></font>
+                </td>
+                <td class="c12-k" align="left" valign="top">
+                    <iframe src="/Top_info.html" width="100%" height="42" style="padding-top: 10px; border: none;"></iframe>
+                </td>
+            </tr>
+            <tr bgcolor="#FFFFFF">
+                <td valign="top">
+                    <!--左側登入者資訊-->
+                    <table class="w12" valign="top" cellpadding="4" cellspacing="1" bgcolor="#999999">
+                        <tbody>
+                            <tr bgcolor="#CCCCFF">
+                                <td align="left" width="230">
+                                    <b name="WebUser"></b>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <!--左側功能列表-->
+                    <div id="DivMenu" style="height: 625.5px; width: 255px; overflow: auto;">
+                        <table style="height:auto;width:240px" id="TbMenu" class="w12" valign="top" cellpadding="4" cellspacing="1" bgcolor="#999999">
+                        </table>
+                        <script>
+                            var windowHeight = window.innerHeight;
+
+                            var table = document.getElementById("DivMenu");
+                            table.style.height = (windowHeight * 0.9) + "px";
+                        </script>
+                    </div>
+                </td>
+                <td valign="top" nowrap="">
+                    <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                        <!--放置內容物-->
+                    </table>
+                    <div id="pagination"></div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+</body>
+</html>
+<script>
+    const params = new URLSearchParams(window.location.search);
+    const WebUser = params.get('WebUser');
+    const WebBC = params.get('U_BC');
+
+    fetchWebUser(WebUser);
+    fetchWebFun(WebUser);
+</script>

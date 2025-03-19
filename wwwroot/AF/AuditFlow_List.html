@@ -1,0 +1,144 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script src="../Base.js"></script>
+    <title>作業平台</title>
+</head>
+<body>
+    <input type="button" value="新增主流程" onclick="addAuditFlow()" />
+    <table width="650" border="0" cellspacing="0" cellpadding="0">
+        <tbody>
+            <tr>
+                <td valign="top"> </td>
+                <td align="center" valign="top">
+                    <table id="MainTable" width="980" border="0" cellpadding="4" cellspacing="1" bgcolor="#666666">
+                        <thead>
+                            <tr align="center" height="30" bgcolor="#CCCCFF" class="c12-k">
+                                <td width="40">序號</td>
+                                <td width="60">流程編號</td>
+                                <td width="100">流程名稱</td>
+                                <td width="200">流程描述</td>
+                                <td width="60">流程步驟</td>
+                                <td width="400">流程步驟說明</td>
+                                <td width="40">修改</td>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr align="center" class="c12-k" bgcolor="#FFFFFF" onmouseover="this.style.background='#FFFF66';" onmouseout="this.style.background='#FFFFFF'; " style="background: rgb(255, 255, 255);">
+                            </tr>
+
+                            <tr align="center" class="c12-k" bgcolor="#FFFFFF" onmouseover="this.style.background='#FFFF66';" onmouseout="this.style.background='#FFFFFF'; " style="background: rgb(255, 255, 255);">
+                            </tr>
+
+                            <tr align="center" height="30" bgcolor="#CCCCFF">
+                                <td class="c12-k" colspan="16">
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div id="pagination"></div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</body>
+</html>
+<script>
+    const Params = getQueryParams();
+    let WebUser = Params.WebUser;
+    let WebBC = Params.WebBC;
+
+    const itemsPerPage = 20;  
+    let currentPage = 1;  
+    let data = [];  
+
+    fetchData();
+
+    function fetchData() {
+        const url = `${BASE_URL}/AE_AF/AuditFlow_LQurey`;
+        
+        fetch(url, {
+            method: 'Post',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include',
+            body: JSON.stringify({})
+        })
+            .then(response => response.json())
+            .then(responseData => {
+                if (responseData.resultCode == "000") {
+                    data = JSON.parse(responseData.objResult);
+                    showPage(currentPage);
+                    createPagination();
+                } else {
+                    alert(response.resultMsg);
+                }
+            })
+            .catch(error => {
+                alert('API 請求失敗:', error);
+            });
+    }
+
+    function showPage(page) {
+        const tbody = document.querySelector('#MainTable tbody');
+        tbody.innerHTML = '';
+
+        const startIndex = (page - 1) * itemsPerPage;
+        const endIndex = Math.min(startIndex + itemsPerPage, data.length);
+        const pageData = data.slice(startIndex, endIndex);
+
+        for (let item of pageData) {
+            const row = document.createElement('tr');
+            row.setAttribute('align', 'center');
+            row.setAttribute('class', 'c12-k');
+            row.setAttribute('bgcolor', '#FFFFFF');
+            row.setAttribute('onmouseover', "this.style.background='#FCFCC0';");
+            row.setAttribute('onmouseout', "this.style.background='#FFFFFF';");
+
+            const columnOrder = ['AF_ID', 'AF_Name', 'AF_Caption', 'AF_Step', 'AF_Step_Caption', 'Dateil'];
+
+            const serialCell = document.createElement('td');
+            serialCell.textContent = startIndex + pageData.indexOf(item) + 1;
+            row.appendChild(serialCell);
+            let AF_ID = "";
+            for (let key of columnOrder) {
+                const cell = document.createElement('td');
+                switch (key) {
+                    case 'AF_ID':
+                        AF_ID = item[key];
+                        cell.textContent = AF_ID || '';
+                        row.appendChild(cell);
+                        break;
+                    case 'Dateil':
+                        let encryptedAF_ID = encryptParameter(AF_ID);
+                        let encryptedWebUser = encryptParameter(WebUser);
+                        row.appendChild(createButtonCell(
+                            "../images/edit.png",
+                            "修改",
+                            function () {
+                                window.open(`AuditFlow_Detail.html?AF_ID=${encryptedAF_ID}&PM_U_num=${encryptedWebUser}`, '_blank', 'scrollbars=yes,resizable=yes,top=100,width=800,height=500');
+                            }
+                        ));
+                        break;
+                    default:
+                        cell.textContent = item[key] || '';
+                        row.appendChild(cell);
+                }
+            }
+            tbody.appendChild(row);
+        }
+    }
+
+    function addAuditFlow() {
+        const AF_ID = 'add';
+        let encryptedAF_ID = encryptParameter(AF_ID);
+        let encryptedWebUser = encryptParameter(WebUser);
+        window.open(`AuditFlow_Detail.html?AF_ID=${encryptedAF_ID}&PM_U_num=${encryptedWebUser}`, '_blank', 'scrollbars=yes,resizable=yes,top=100,width=800,height=500');
+    }
+</script>

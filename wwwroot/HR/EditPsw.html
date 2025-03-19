@@ -1,0 +1,107 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="../Base.js"></script>
+    <title>作業平台</title>
+</head>
+<body>
+    <table width="400" border="0" cellspacing="1" cellpadding="2" bgcolor="#999999">
+        <tbody>
+            <tr class="c12-k" bgcolor="#CCCCFF" height="30">
+                <td colspan="2" align="center"><span class="c14k">使用者資料密碼變更</span></td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td width="100" align="right" bgcolor="#CCCCFF">員編</td>
+                <td width="300" align="left" id="U_num"></td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td align="right" bgcolor="#CCCCFF">姓名</td>
+                <td align="left" id="U_name"></td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td align="right" bgcolor="#CCCCFF">輸入新密碼</td>
+                <td align="left">
+                    <input type="text" name="U_psw_1" size="20" maxlength="20" class="box" value="">(6～20碼)
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td align="right" bgcolor="#CCCCFF">確認新密碼</td>
+                <td align="left">
+                    <input type="text" name="U_psw_2" size="20" maxlength="20" class="box" value="">(6～20碼)
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#CCCCFF" height="30">
+                <td colspan="2" align="center">
+                    <input type="hidden" name="U_num" value="">
+                    <input type="button" class="btn" value="確定修改" onclick="ChangePsw();">
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</body>
+</html>
+<script>
+    const params = new URLSearchParams(window.location.search);
+    const U_num = params.get('U_num');
+    let data = [];
+    fetchData();
+    function fetchData() {
+        const url = `${BASE_URL}/AE_HR/User_M_SQuery?U_num=${encodeURIComponent(U_num)}`;
+
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({}),
+            credentials: 'include'
+        })
+            .then(response => response.json())
+            .then(responseData => {
+                if (responseData.resultCode == "000") {
+                    data = JSON.parse(responseData.objResult); 
+                    const user = data[0];
+                    const uNum = user.U_num;
+                    const uName = user.U_name;
+                    document.getElementById('U_num').textContent = uNum;
+                    document.getElementById('U_name').textContent = uName;
+                    document.querySelector('input[name="U_num"]').value = uNum;
+                } else {
+                    console.error('API 回傳資料格式錯誤');
+                }
+            })
+            .catch(error => {
+                console.error('API 請求失敗:', error);
+            });
+    }
+    function ChangePsw() {
+        let Psw1 = document.querySelector('input[name="U_psw_1"]').value;
+        let Psw2 = document.querySelector('input[name="U_psw_2"]').value;
+        console.log(U_num + ';' + Psw1);
+        if (Psw1 === Psw2) {
+            const url = `${BASE_URL}/AE_HR/Password_Upd?U_num=${encodeURIComponent(U_num)}&Psw=${encodeURIComponent(Psw1)}`;
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({}),
+                credentials: 'include'
+            })
+                .then(response => response.json())
+                .then(responseData => {
+                    if (responseData.resultCode == "000") {
+                        alert("密碼變更完畢");
+                        window.close();
+                    } else {
+                        alert("密碼變更錯誤,請洽資訊人員");
+                    }
+                })
+        } else {
+            alert("密碼不一致");
+        }
+        
+    }
+</script>

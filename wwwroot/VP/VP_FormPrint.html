@@ -1,0 +1,304 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script src="../Base.js"></script>
+    <title>作業平台</title>
+</head>
+<body>
+    <style type="text/css">
+        td {
+            text-align: center;
+            font-family: DFKai-sb;
+            font-size: 22px;
+        }
+
+            td.left {
+                text-align: left;
+            }
+
+        .Title {
+            font-size: 32px;
+        }
+    </style>
+    <div class="Noprint">
+        <table width="1024" border="0" cellpadding="0" cellspacing=0 class="c12-k">
+            <tr>
+                <td colspan="1" align="center" height="40">
+                    <div class="Noprint">
+                        <input type="button" value="列　　印" OnClick="print();">
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+    <table width="1024" border="0" cellspacing="0" cellpadding="3" bgcolor="#FFFFFF">
+        <tr>
+            <td class="Title" colspan="3">
+                <label>國峯租賃股份有限公司</label>
+            </td>
+        </tr>
+        <tr>
+            <td class="Title" colspan="3">請款單</td>
+        </tr>
+        <tr>
+            <td class="Title" colspan="3">
+                <span>
+                    <input type="checkbox" id="type_pa"/>請款單&nbsp;
+                    (
+                    <input type="checkbox" id="type_po"/>有請採購單
+                    <input type="checkbox" id="type_pp"/>是否為預支款
+                    <input type="checkbox" id="type_ps"/>是否為沖銷預支款
+                    )
+                </span>
+            </td>
+        </tr>
+        <tr>
+            <td style="text-align:left;">
+                部門名稱：
+                <span id="BC_Name"></span>
+            </td>
+            <td style="text-align:left;">
+                申請日期：
+                <span id="VP_AppDate"></span>
+            </td>
+            <td style="text-align:left;">
+                單號：
+                <span id="VP_ID"></span>
+            </td>
+        </tr>
+    </table>
+    <table width="1024" border="1" cellspacing="0" cellpadding="3" bgcolor="#FFFFFF">
+        <tr class="14-k" bgcolor="#FFFFFF" height="35">
+            <td colspan="5">請款人</td>
+
+        </tr>
+        <tr>
+            <td>NO</td>
+            <td>單號</td>
+            <td>費用摘要</td>
+            <td>金額</td>
+            <td colspan="2">給付方式</td>
+        </tr>
+        <tbody id="detailsRows"></tbody>
+    </table>
+    <table width="1024" border="1" cellspacing="0" cellpadding="3" bgcolor="#FFFFFF">
+        <tr>
+            <td width="18%">總經理簽核</td>
+            <td width="15%">副總經理簽核</td>
+            <td width="15%">副總經理簽核</td>
+            <td width="13%">財務簽核</td>
+            <td width="13%">會計簽核</td>
+            <td width="13%">部門主管簽核</td>
+            <td width="13%">申請人</td>
+        </tr>
+        <tr height="70">
+            <td></td>
+            <td>
+                <span id="sign4"></span>
+                <br />
+                <span id="signDate4"></span>
+            </td>
+            <td></td>
+            <td>
+                <span id="sign3"></span>
+                <br />
+                <span id="signDate3"></span>
+            </td>
+            <td>
+                <span id="sign2"></span>
+                <br />
+                <span id="signDate2"></span>
+            </td>
+            <td>
+                <span id="sign1"></span>
+                <br />
+                <span id="signDate1"></span>
+            </td>
+            <td>
+                <span id="sign"></span>
+                <br />
+                <span id="signDate"></span>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>
+<script>
+    const Params = new URLSearchParams(window.location.search);
+    let VP_ID = decryptParameter(Params.get('VP_ID'));
+
+    fetchData();
+
+    function fetchData() {
+        const url = `${BASE_URL}/AE_VP/GetPrintData?VP_ID=${VP_ID}`;
+
+        fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+            .then(response => response.json())
+            .then(responseData => {
+                if (responseData.resultCode == "000") {
+                    data = JSON.parse(responseData.objResult);
+                    
+                    document.getElementById("type_pa").checked = true;
+                    document.getElementById("type_pa").disabled = true;
+                    if (data.VP_type == 'PP') {
+                        document.getElementById("type_pp").checked = true;
+                        document.getElementById("type_pp").disabled = true;
+                    }
+                    if (data.VP_type == 'PS') {
+                        document.getElementById("type_ps").checked = true;
+                        document.getElementById("type_ps").disabled = true;
+                    }
+                    if (data.VP_type_PO == 'PO') {
+                        document.getElementById("type_po").checked = true;
+                        document.getElementById("type_po").disabled = true;
+                    }
+                    document.getElementById("BC_Name").textContent = data.BC_Name;
+                    document.getElementById("VP_AppDate").textContent = data.VP_AppDate;
+                    document.getElementById("VP_ID").textContent = data.VP_ID;
+
+                    const detailsList = data.VP_Deatil_List || [];
+                    const flowsList = data.VP_Flow_List || [];
+
+                    const detailstbody = document.getElementById("detailsRows");
+                    const totalRows = 22;
+                    const detailsCount = detailsList.length;
+                    for (var i = 0; i < totalRows; i++) {
+                        let row = {};
+                        if (i < detailsCount) {
+                            row = detailsList[i];
+                        } else {
+                            row = {
+                                Form_ID: '',
+                                VD_Fee_Summary: '',
+                                VD_Fee: ''
+                            };
+                        }
+
+                        const tr = document.createElement("tr");
+                        tr.style.height = "35px";
+                        if (i === 0) {
+                            tr.innerHTML = `
+                            <td><span>${i + 1}</span></td>
+                            <td><span>${row.Form_ID || ''}</span></td>
+                            <td><span>${row.VD_Fee_Summary}</span></td>
+                            <td><span>${row.VD_Fee}</span></td>
+                            <td colspan="2" rowspan="19" style="vertical-align: top; text-align: left;">
+                                <input type="checkbox" id="VP_Pay_MT"/>匯款 T/T :
+                                <br />銀行代碼：<span>${data.bank_code || ''}</span>
+                                <br />銀行：<span>${data.bank_name || ''}</span>
+                                <br />分行：<span>${data.branch_name || ''}</span>
+                                <br />帳號：<span>${data.bank_account || ''}</span>
+                                <br />戶名：<span>${data.payee_name || ''}</span>
+                            </td>
+                            `;
+                        } else if (i < 19) {
+                            tr.innerHTML = `
+                            <td><span>${i + 1}</span></td>
+                            <td><span>${row.Form_ID || ''}</span></td>
+                            <td><span>${row.VD_Fee_Summary}</span></td>
+                            <td><span>${row.VD_Fee}</span></td>
+                            `;
+                        } else if (i === 19) {
+                            tr.innerHTML = `
+                            <td><span>${i + 1}</span></td>
+                            <td><span>${row.Form_ID || ''}</span></td>
+                            <td><span>${row.VD_Fee_Summary}</span></td>
+                            <td><span>${row.VD_Fee}</span></td>
+                            <td rowspan="3" style="vertical-align: top; text-align: left;">
+                               <input type="checkbox" id="VP_Pay_GC"/>領現簽章
+                            </td>
+                            `;
+                        } else if (i === 20) {
+                            tr.innerHTML = `
+                            <td colspan="3" style="text-align: right;">合計金額</td>
+                            <td><span id="VP_Total_Money"></span></td>
+                            `;
+                        } else {
+                            const chineseNumber = convertToTraditionalChineseNumber(data.VP_Total_Money); 
+                            tr.innerHTML = `
+                            <td colspan="4"><span>金額 新台幣  ${chineseNumber}  元正整</span></td>
+                            `;
+                        }
+                        detailstbody.appendChild(tr);
+                    }
+
+                    if (data.VP_Pay_Type === 'MT') {
+                        document.getElementById("VP_Pay_MT").checked = true;
+                        document.getElementById("VP_Pay_MT").disabled = true;
+                    } else {
+                        document.getElementById("VP_Pay_GC").checked = true;
+                        document.getElementById("VP_Pay_GC").disabled = true;
+                    }
+                    document.getElementById("VP_Total_Money").textContent = data.VP_Total_Money;
+
+
+                    document.getElementById("sign").textContent = data.U_name;
+                    document.getElementById("signDate").textContent = data.add_date;
+
+                    const maxStep = Math.max(...flowsList.map(flow => parseInt(flow.FD_Step)));
+                    for (let i = 1; i <= maxStep && i <= 4; i++) {
+                        const sign = flowsList.find(flow => flow.FD_Step === String(i));
+
+                        if (sign) {
+                            document.getElementById(`sign${i}`).textContent = sign.U_name;
+                            document.getElementById(`signDate${i}`).textContent = sign.FD_Step_date;
+                        }
+                    }
+                } else {
+                    alert(response.resultMsg);
+                }
+            })
+            .catch(error => {
+                alert('API 請求失敗:', error);
+            });
+    }
+
+    function convertToTraditionalChineseNumber(numString) {
+        numString = numString.replace(/,/g, '');
+
+        const chineseDigits = ["零", "壹", "貳", "參", "肆", "伍", "陸", "柒", "捌", "玖"];
+        const chineseUnits = ["", "拾", "佰", "仟", "萬", "億"];
+
+        if (isNaN(numString)) {
+            return "無效的數字";
+        }
+
+        let result = "";
+        let unitPos = 0;  
+        let zeroFlag = false; 
+
+        for (let i = numString.length - 1; i >= 0; i--) {
+            const currentDigit = numString.charAt(i);
+            const digitValue = parseInt(currentDigit);
+
+            if (digitValue === 0) {
+                if (!zeroFlag && unitPos !== 0) {
+                    result = chineseDigits[0] + result;
+                    zeroFlag = true;
+                }
+            } else {
+                result = chineseDigits[digitValue] + chineseUnits[unitPos] + result;
+                zeroFlag = false;
+            }
+
+            unitPos++;
+        }
+
+        if (result.startsWith("壹拾")) {
+            result = result.substring(1);
+        }
+
+        return result;
+    }
+
+</script>

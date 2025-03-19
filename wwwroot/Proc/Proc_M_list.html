@@ -1,0 +1,291 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script src="../Base.js"></script>
+    <title>作業平台</title>
+</head>
+<body>
+    <input type="button" name="add" value="新增請採購單" onclick="addProcurement();">
+    <table width="650" border="0" cellspacing="0" cellpadding="0">
+        <tbody>
+            <tr>
+                <td valign="top"> </td>
+                <td align="center" valign="top">
+                    <table id="MainTable" width="1050" border="0" cellpadding="4" cellspacing="1" bgcolor="#666666">
+                        <thead>
+                            <tr align="center" height="30" bgcolor="#CCCCFF" class="c12-k">
+                                <td width="40">序號</td>
+                                <td width="60">單號</td>
+                                <td width="70">簽核結果</td>
+                                <td width="620">簽核流程</td>
+                                <td width="40">詳細</td>
+                                <td width="90">附加檔案</td>
+                                <td width="40">修改</td>
+                                <td width="40">抽單</td>
+                                <td width="40">列印</td>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr align="center" class="c12-k" bgcolor="#FFFFFF" onmouseover="this.style.background='#FFFF66';" onmouseout="this.style.background='#FFFFFF'; " style="background: rgb(255, 255, 255);">
+                            </tr>
+
+                            <tr align="center" class="c12-k" bgcolor="#FFFFFF" onmouseover="this.style.background='#FFFF66';" onmouseout="this.style.background='#FFFFFF'; " style="background: rgb(255, 255, 255);">
+                            </tr>
+
+                            <tr align="center" height="30" bgcolor="#CCCCFF">
+                                <td class="c12-k" colspan="16">
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div id="pagination"></div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</body>
+</html>
+<script>
+    const Params = getQueryParams();
+    let WebUser = Params.WebUser;
+    let WebBC = Params.WebBC;
+
+    const itemsPerPage = 20;
+    let currentPage = 1;
+    let data = [];
+
+    fetchData();
+
+    function fetchData() {
+        const url = `${BASE_URL}/AE_PRO/Procurement_M_LQuery?User=${WebUser}`;
+
+        fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include'
+        })
+            .then(response => response.json())
+            .then(responseData => {
+                if (responseData.resultCode == "000") {
+                    data = JSON.parse(responseData.objResult);
+                    showPage(currentPage);
+                    createPagination();
+                } else {
+                    alert(response.resultMsg);
+                }
+            })
+            .catch(error => {
+                alert('API 請求失敗:', error);
+            });
+    }
+
+    function showPage(page) {
+        const tbody = document.querySelector('#MainTable tbody');
+        tbody.innerHTML = '';
+
+        const startIndex = (page - 1) * itemsPerPage;
+        const endIndex = Math.min(startIndex + itemsPerPage, data.length);
+        const pageData = data.slice(startIndex, endIndex);
+
+        pageData.forEach((item, index) => {
+            const row = document.createElement('tr');
+            row.setAttribute('align', 'center');
+            row.setAttribute('class', 'c12-k');
+            row.setAttribute('bgcolor', '#FFFFFF');
+            row.setAttribute('onmouseover', "this.style.background='#FCFCC0';");
+            row.setAttribute('onmouseout', "this.style.background='#FFFFFF';");
+
+            const columnOrder = ['PM_ID','FM_Step','FM_Step_SignType', 'Audit', 'Dateil', 'PM_cknum_count', 'PM_cknum', 'Upd', 'PM_Cancel', 'Print']
+
+            const serialCell = document.createElement('td');
+            serialCell.textContent = startIndex + index + 1;
+            row.appendChild(serialCell);
+
+            let PM_ID;
+            let PM_cknum_count;
+            let encryptedPM_ID;
+            let str_Sign;
+            let encryptedWebUser = encryptParameter(WebUser);
+            let encryptedWebBC = encryptParameter(WebBC);
+            let FM_Step;
+
+            columnOrder.forEach(key => {
+                const cell = document.createElement('td');
+                switch (key) {
+                    case 'PM_ID':
+                        PM_ID = item[key];
+                        cell.textContent = item[key] || '';
+                        row.appendChild(cell);
+                        break;
+                    case 'FM_Step':
+                        FM_Step = item[key];
+                        break;
+                    case 'FM_Step_SignType':
+                        str_Sign = item[key];
+                        cell.textContent = item[key] || '';
+                        row.appendChild(cell);
+                        break;
+                    case 'Audit':
+                        const fmStepCell = document.createElement('td');
+                        fmStepCell.innerHTML = '<span>載入中...</span>';
+                        row.appendChild(fmStepCell);
+
+                        const url = `${BASE_URL}/AE_AF/RevFlow_Query?FormID=${PM_ID}`;
+                        fetch(url, {
+                            method: 'GET',
+                        })
+                            .then(response => response.json())
+                            .then(responseData => {
+                                if (responseData.resultCode === '000') {
+                                    const objResult = JSON.parse(responseData.objResult);
+                                    let tableHTML = `
+                                      <table border="0" cellpadding="2" cellspacing="1" bgcolor="#0000FF">
+                                          <tbody>
+                                              <tr bgcolor="#E2F1F7" height="25" class="c12-k" align="center">
+                                    `;
+                                    objResult.forEach(item => {
+                                        const title = item.FD_Step_title;
+                                        const bgcolor = (item.FM_Step === item.FD_Step) ? '#E2CCF7' : '';
+                                        tableHTML += `<td width="120" bgcolor="${bgcolor}">${title}</td>`;
+                                    });
+                                    tableHTML += '</tr></tbody></table>';
+                                    fmStepCell.innerHTML = tableHTML;
+                                } else {
+                                    fmStepCell.innerHTML = '<span>無法加載數據</span>';
+                                }
+                            })
+                            .catch(error => {
+                                fmStepCell.innerHTML = '<span>請求失敗</span>';
+                            });
+                        break;
+                    case 'Dateil':
+                        encryptedPM_ID = encryptParameter(PM_ID);
+                        let encryptedRead1 = encryptParameter('Y');
+                        row.appendChild(createButtonCell(
+                            "../images/view.png",
+                            "詳細",
+                            function () {
+                                window.open(`Proc_M_detail.html?PM_ID=${encryptedPM_ID}&Read=${encryptedRead1}&User=${encryptedWebUser}&U_BC=${encryptedWebBC}`, '_blank', 'scrollbars=yes,resizable=yes,top=100,width=950,height=500');
+                            }
+                        ));
+                        break;
+                    case 'PM_cknum_count':
+                        PM_cknum_count = item[key];
+                        break;
+                    case 'PM_cknum':
+                        const button = document.createElement('input');
+                        button.type = 'button';
+                        button.value = '附加檔案(' + PM_cknum_count + ')';
+                        button.onclick = function () {
+                            window.open(`../File/File_UpLoad_List.html?cknum=${item[key]}&user=${encryptedWebUser}`, '_blank', 'scrollbars=yes,resizable=yes,top=100,width=800,height=500');
+                        };
+                        cell.style.textAlign = 'center';
+                        cell.style.verticalAlign = 'middle';
+                        cell.appendChild(button);
+                        row.appendChild(cell);
+                        break;
+                    case 'Upd':
+                        if (FM_Step === '1') {
+                            encryptedPM_ID = encryptParameter(PM_ID);
+                            let encryptedRead2 = encryptParameter('N');
+                            row.appendChild(createButtonCell(
+                                "../images/edit.png",
+                                "修改",
+                                function () {
+                                    window.open(`Proc_M_detail.html?PM_ID=${encryptedPM_ID}&Read=${encryptedRead2}&User=${encryptedWebUser}&U_BC=${encryptedWebBC}`, '_blank', 'scrollbars=yes,resizable=yes,top=100,width=950,height=500');
+                                }
+                            ));
+                        } else {
+                            let cell = document.createElement('td');
+                            cell.textContent = '-';
+                            row.appendChild(cell);
+                        }
+                        break;
+                    case 'PM_Cancel':
+                        encryptedPM_ID = encryptParameter(PM_ID);
+                        if (String(item[key]) === 'N') {
+                            if (FM_Step < 6) {
+                                row.appendChild(createButtonCell(
+                                    "../images/delete.png",
+                                    "刪除",
+                                    function () {
+                                        const confirmDelete = window.confirm("確定要抽單嗎？");
+                                        if (confirmDelete) {
+                                            ProcurementCancel(PM_ID);
+                                        }
+                                    }
+                                ));
+                            } else {
+                                let cell1 = document.createElement('td');
+                                cell1.textContent = '-';
+                                row.appendChild(cell1);
+                            }
+                        } else {
+                            let cell1 = document.createElement('td');
+                            cell1.textContent = '-';
+                            row.appendChild(cell1);
+
+                            row.style.textDecoration = 'line-through';
+                        }
+                        break;
+                    case 'Print':
+                        if (str_Sign === '同意') {
+                            row.appendChild(createButtonCell(
+                                "../images/view.png",
+                                "列印",
+                                function () {
+                                    window.open(`Proc_FormPrint.html?PM_ID=${encryptedPM_ID}`, '_blank', 'scrollbars=yes,resizable=yes,top=30,width=1150,height=800');
+                                }
+                            ));
+                        } else {
+
+                            let cell2 = document.createElement('td');
+                            cell2.textContent = '-';
+                            row.appendChild(cell2);
+                        }
+
+                        break;
+                }
+            });
+            tbody.appendChild(row);
+        });
+    }
+
+    function addProcurement() {
+        let PM_ID = 'add';
+        let encryptedRead = encryptParameter('X');
+        window.open(`Proc_M_detail.html?User=${encryptParameter(WebUser)}&Read=${encryptedRead}&U_BC=${encryptParameter(WebBC)}&PM_ID=${encryptParameter(PM_ID)}`, 'add', 'scrollbars=yes,resizable=yes,width=950,height=500,left=250,top=100')
+    }
+
+    function ProcurementCancel(PM_ID) {
+        const url = `${BASE_URL}/AE_PRO/Procurement_Canel?PM_ID=${PM_ID}&User=${WebUser}`;
+
+        fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include'
+        })
+            .then(response => response.json())
+            .then(responseData => {
+                if (responseData.resultCode == "000") {
+                    alert("抽單完成");
+                    location.reload();
+                } else {
+                    alert('API 回傳資料格式錯誤');
+                }
+            })
+            .catch(error => {
+                alert('API 請求失敗:', error);
+            });
+    }
+
+</script>

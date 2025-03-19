@@ -1,0 +1,259 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="../Base.js"></script>
+    <title>作業平台</title>
+</head>
+<body>
+    <style type="text/css">
+        td {
+            text-align: center;
+            font-family: DFKai-sb;
+            font-size: 22px;
+        }
+
+            td.left {
+                text-align: left;
+            }
+
+        .Title {
+            font-size: 32px;
+        }
+    </style>
+    <div class="Noprint">
+        <table width="1024" border="0" cellpadding="0" cellspacing=0 class="c12-k">
+            <tr>
+                <td colspan="1" align="center" height="40">
+                    <div class="Noprint">
+                        <input type="button" value="列　　印" OnClick="print();">
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+    <table width="1024" border="0" cellspacing="0" cellpadding="3" bgcolor="#FFFFFF">
+        <tr>
+            <td class="Title" colspan="2">
+                <label>國峯租賃股份有限公司</label>
+            </td>
+        </tr>
+        <tr>
+            <td class="Title" colspan="2">人事、薪資異動申請單</td>
+        </tr>
+        <tr>
+            <td style="text-align:left;">員工編號： <span id="U_num"></span> </td>
+            <td style="text-align:right;">申請日期：<span id="apply_date"></span></td>
+        </tr>
+    </table>
+    <table width="1024" border="1" cellspacing="0" cellpadding="3" bgcolor="#FFFFFF">
+        <tr class="14-k" bgcolor="#FFFFFF" height="25">
+            <td rowspan=2>
+                異動種類
+            </td>
+            <td>薪資異動 </td>
+            <td>職務異動 </td>
+            <td>復職 </td>
+            <td>留職停薪 </td>
+        </tr>
+        <tr class="14-k" bgcolor="#FFFFFF" height="25">
+            <td>　</td>
+            <td>　</td>
+            <td>　</td>
+            <td>　</td>
+        </tr>
+        <tr class="14-k" bgcolor="#FFFFFF" height="25">
+            <td>姓名</td>
+            <td colspan="2"><span id="U_name"></span></td>
+            <td>到職日</td>
+            <td><span id="U_arrive_date"></span></td>
+        </tr>
+    </table>
+    <table width="1024" border="1" cellspacing="0" cellpadding="3" bgcolor="#FFFFFF">
+        <tr class="14-k" bgcolor="#FFFFFF" height="25">
+            <td style="width:10%">現任單位 </td>
+            <td colspan=3 style="width:25%"><span id="BC_NA"></span></td>
+            <td colspan=2 style="width:20%">職稱 </td>
+            <td colspan=3 style="width:45%"><span id="PFT_NA"></span></td>
+        </tr>
+        <tr class="14-k" bgcolor="#FFFFFF" height="25">
+            <td>新任單位 </td>
+            <td colspan=3>
+                <br>
+                <br>
+                <br>
+            </td>
+            <td colspan=2>職稱 </td>
+            <td colspan=3>　</td>
+        </tr>
+        <tr class="14-k" bgcolor="#FFFFFF" height="25">
+            <td>生日</td>
+            <td colspan=3><span id="U_Birthday"></span></td>
+            <td colspan=2>學歷</td>
+            <td colspan=3><span id="student"></span></td>
+        </tr>
+        <tr class="14-k" bgcolor="#FFFFFF" height="25">
+            <td>
+                申請說明
+            </td>
+            <td colspan="8">
+                <br>
+                <br>
+                <br>
+                <br>
+                <br>
+                <br>
+                <br>
+                <br>
+                <br>
+                <br>
+        </tr>
+        <tr class="14-k" bgcolor="#FFFFFF" height="25">
+            <td rowspan="3" style="width:10%">
+                薪資異動
+            </td>
+            <td style="width:10%">區分</td>
+            <td style="width:10%">本薪</td>
+            <td style="width:10%">主管加給</td>
+            <td style="width:10%">職務加給</td>
+            <td style="width:12%">績效加給</td>
+            <td style="width:12%">伙食費</td>
+            <td style="width:11%">獎金</td>
+            <td style="width:15%">合計</td>
+        </tr>
+        <tr class="14-k" bgcolor="#FFFFFF" height="25">
+            <td style="width:10%">原薪資</td>
+            <td style="width:10%">
+                <br>
+                <br>
+                <br>　
+            </td>
+            <td style="width:10%">　</td>
+            <td style="width:10%">　</td>
+            <td style="width:12%">　</td>
+            <td style="width:12%">　</td>
+            <td style="width:11%">　</td>
+            <td style="width:15%">　</td>
+        </tr>
+        <tr class="14-k" bgcolor="#FFFFFF" height="25">
+            <td style="width:10%">調整薪資</td>
+            <td style="width:10%">
+                <br>
+                <br>
+                <br>　
+            </td>
+            <td style="width:10%">　</td>
+            <td style="width:10%">　</td>
+            <td style="width:12%">　</td>
+            <td style="width:12%">　</td>
+            <td style="width:11%">　</td>
+            <td style="width:15%">　</td>
+        </tr>
+        <tr class="14-k" bgcolor="#FFFFFF" height="25">
+            <td>
+                管理部意見
+            </td>
+            <td class="left" colspan="8">
+                1.	薪資核算及調幅：　　　　　 %
+                <br>
+                2.	出勤紀錄：正常
+                <br>
+                3.	獎懲紀錄：無
+                <br>
+                4.	生效日：　　年　　月　　日
+                <br>
+                5.	調整投保級距至：
+                <br>
+                <br>
+                <br>
+                <br>
+                <br>
+                <br>
+                <br>
+                <br>
+                <br>
+                <br>
+            </td>
+        </tr>
+        <tr class="14-k" bgcolor="#FFFFFF" height="25">
+            <td colspan=2>總經理室</td>
+            <td colspan=2>
+                管理部
+                <BR>副總經理
+            </td>
+            <td colspan=2>
+                業務部
+                <BR>副總經理
+            </td>
+            <td colspan=2>新任部門主管</td>
+            <td colspan=1>現任部門主管</td>
+        </tr>
+        <tr class="14-k" bgcolor="#FFFFFF" height="25">
+            <td colspan=2>
+                <br>
+                <br>　
+            </td>
+            <td colspan=2>
+                <br>
+            </td>
+            <td colspan=2>
+                <br>
+            </td>
+            <td colspan=2>
+                <br>
+            </td>
+            <td colspan=1>
+                <br>
+            </td>
+        </tr>
+
+    </table>
+</body>
+</html>
+<script>
+    const params = new URLSearchParams(window.location.search);
+    const U_num = params.get('U_num');
+    document.getElementById("U_num").textContent = U_num;
+    let data = [];
+
+    let today = new Date();
+    let year = today.getFullYear() - 1911; 
+    let month = today.getMonth() + 1; 
+    let day = today.getDate();
+    let applyDate = `${year}年${month}月${day}日`;
+    document.getElementById("apply_date").textContent = applyDate;
+
+    fetchData();
+
+    function fetchData() {
+        const url = `${BASE_URL}/AE_HR/User_M_Shanges?U_num=${encodeURIComponent(U_num)}`;
+
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({}),
+            credentials: 'include'
+        })
+            .then(response => response.json())
+            .then(responseData => {
+                if (responseData.resultCode == "000") {
+                    data = JSON.parse(responseData.objResult);
+                    const user = data[0];
+                    document.getElementById("U_name").textContent = user.u_name;
+                    document.getElementById("U_arrive_date").textContent = user.U_arrive_date;
+                    document.getElementById("BC_NA").textContent = user.BC_NA;
+                    document.getElementById("PFT_NA").textContent = user.PFT_NA;
+                    document.getElementById("U_Birthday").textContent = user.U_Birthday;
+                    document.getElementById("student").textContent = user.student;
+                } else {
+                    console.error('API 回傳資料格式錯誤');
+                }
+            })
+            .catch(error => {
+                console.error('API 請求失敗:', error);
+            });
+    }
+</script>
