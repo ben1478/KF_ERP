@@ -10,11 +10,12 @@
     <title>作業平台</title>
 </head>
 <body>
-    <table width="890" border="0" cellspacing="1" cellpadding="2" bgcolor="#999999">
+    <table width="1020" border="0" cellspacing="1" cellpadding="2" bgcolor="#999999">
         <tbody>
             <tr class="c12-k" bgcolor="#CCCCFF" height="30">
                 <td colspan="2" align="center">
-                    <span class="c14k">採購單資料</span>&nbsp;&nbsp;&nbsp;&nbsp;<span><input type="button" value="新增廠商" onclick="addManufacturer();" /></span>
+                    <span class="c14k">採購單資料</span>&nbsp;&nbsp;&nbsp;&nbsp;<span><input type="button" value="新增廠商" onclick="addManufacturer();" /></span><br />
+                    <span style="color:red" name="BackID"></span>
                 </td>
             </tr>
             <tr class="c12-k" bgcolor="#FFFFFF">
@@ -68,7 +69,7 @@
         </tbody>
     </table>
     <br />
-    <table id="detailsList" border="0" cellpadding="4" cellspacing="1" bgcolor="#666666" width="890">
+    <table id="detailsList" border="0" cellpadding="4" cellspacing="1" bgcolor="#666666" width="1020">
         <thead>
             <tr align="center" bgcolor="#CCCCFF" class="c12-k">
                 <td width="50">品名</td>
@@ -102,6 +103,7 @@
     loadBCName();
     dateTW();
     fetchData();
+    getBackReason(PM_ID)
 
     function loadBCName() {
         const url = `${BASE_URL}/AE/GetBCList`;
@@ -620,5 +622,20 @@
 
         const totalSpan = document.querySelector('span[name="PM_Amt"]');
         totalSpan.textContent = total.toFixed(0);
+    }
+
+    function getBackReason(PM_ID) {
+        const url = `${BASE_URL}/AE_AF/GetBackInfo?FormID=${PM_ID}`;
+        fetch(url)
+            .then(response => response.json())
+            .then(responseData => {
+                if (responseData.resultCode === "000") {
+                    const data = JSON.parse(responseData.objResult);
+                    console.log(data);
+                    document.querySelector('span[name="BackID"]').textContent = `上次退單理由: ${data[0].AF_Back_Reason}  (${data[0].AF_Back_ID})`;
+                }
+            }).catch(error => {
+                console.error('載入選項時出錯:', error);
+            });
     }
 </script>

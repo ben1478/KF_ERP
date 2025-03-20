@@ -14,7 +14,8 @@
         <tbody>
             <tr class="c12-k" bgcolor="#CCCCFF" height="30">
                 <td colspan="2" align="center">
-                    <span class="c14k">請款(預支單)</span>
+                    <span class="c14k" style="display: block; text-align: center;">請款(預支單)</span>
+                    <span style="color:red" name="BackID"></span>
                 </td>
             </tr>
             <tr class="c12-k" bgcolor="#FFFFFF">
@@ -119,10 +120,12 @@
 
     let indexNumber = 0;
     let ChkRole;
-   /* let bcOptions = [];*/
+    let WbcOptions = [];
 
     loadBCName();
     ChkUserRole();
+    loadWBCName();
+    getBackReason(VP_ID);
 
     function loadBCName() {
         const url = `${BASE_URL}/AE/GetBCList`;
@@ -131,10 +134,10 @@
             .then(data => {
                 if (data.resultCode === "000") {
                     const selectElement = document.getElementById('VP_BC');
-                    bcOptions = JSON.parse(data.objResult);
+                    const options = JSON.parse(data.objResult);
                     selectElement.innerHTML = '<option value="" selected>不限</option>';
 
-                    bcOptions.forEach(option => {
+                    options.forEach(option => {
                         const optionElement = document.createElement('option');
                         optionElement.value = option.item_D_code;
                         optionElement.textContent = option.item_D_name;
@@ -144,6 +147,22 @@
                     selectElement.value = WebBC;
                     selectElement.setAttribute('readonly', true);
                     selectElement.style.pointerEvents = 'none';
+                } else {
+                    console.log('錯誤: ' + (data.resultMsg || '未知錯誤'));
+                }
+            })
+            .catch(error => {
+                console.error('載入選項時出錯:', error);
+            });
+    }
+
+    function loadWBCName() {
+        const url = `${BASE_URL}/AE_VP/GetWintonBCList`;
+        fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                if (data.resultCode === "000") {
+                    WbcOptions = JSON.parse(data.objResult);
                 } else {
                     console.log('錯誤: ' + (data.resultMsg || '未知錯誤'));
                 }
@@ -179,13 +198,13 @@
         const vBCCell = document.createElement('td');
         const selectElement = document.createElement('select');
         selectElement.name = `VD_BC_${indexNumber}`; 
-        bcOptions.forEach(option => {
+        selectElement.style.width = '110px';
+        WbcOptions.forEach(option => {
             const optionElement = document.createElement('option');
             optionElement.value = option.item_D_code;
             optionElement.textContent = option.item_D_name;
             selectElement.appendChild(optionElement);
         });
-        selectElement.value = WebBC;
         vBCCell.appendChild(selectElement);
         row.appendChild(vBCCell);
 
@@ -193,7 +212,7 @@
         const captionInput = document.createElement('input');
         captionInput.type = 'text';
         captionInput.name = 'FormCaption';
-        captionInput.size = '20';
+        captionInput.size = '15';
         captionCell.appendChild(captionInput);
         row.appendChild(captionCell);
 
@@ -533,13 +552,14 @@
             const vBCCell = document.createElement('td');
             const selectElement = document.createElement('select');
             selectElement.name = `VD_BC_${group.VD_ID || indexNumber}`;
-            bcOptions.forEach(option => {
+            selectElement.style.width = '110px';
+            WbcOptions.forEach(option => {
                 const optionElement = document.createElement('option');
                 optionElement.value = option.item_D_code;
                 optionElement.textContent = option.item_D_name;
                 selectElement.appendChild(optionElement);
             });
-            selectElement.value = group.VD_BC;
+            selectElement.value = group.VD_BC || '';
             vBCCell.appendChild(selectElement);
             row.appendChild(vBCCell);
 
@@ -548,6 +568,7 @@
             const captionInput = document.createElement('input');
             captionInput.type = 'text';
             captionInput.name = 'FormCaption';
+            captionInput.size = '15';
             captionInput.value = group.FormCaption || '';
             captionInput.dataset.originalValue = group.FormCaption || '';
             captionCell.appendChild(captionInput);
@@ -881,5 +902,20 @@
                     alert('刪除失敗，請洽資訊人員。');
                 })
         }
+    }
+
+    function getBackReason(VP_ID) {
+        const url = `${BASE_URL}/AE_AF/GetBackInfo?FormID=${VP_ID}`;
+        fetch(url)
+            .then(response => response.json())
+            .then(responseData => {
+                if (responseData.resultCode === "000") {
+                    const data = JSON.parse(responseData.objResult);
+                    console.log(data);
+                    document.querySelector('span[name="BackID"]').textContent = `上次退單理由: ${data[0].AF_Back_Reason}  (${data[0].AF_Back_ID})`;
+                }
+            }).catch(error => {
+                console.error('載入選項時出錯:', error);
+            });
     }
 </script>
