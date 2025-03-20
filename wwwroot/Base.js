@@ -1,6 +1,6 @@
 ﻿/*本地端*/
-const BASE_URL = 'https://localhost:44374';
-const BASE_WEB = 'https://localhost:7135';
+const BASE_URL = 'http://localhost:44374';
+const BASE_WEB = 'http://localhost:7135';
 
 /*正式區*/
 //const BASE_URL = 'http://192.168.1.22/KF_WebAPI';
