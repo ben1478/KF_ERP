@@ -68,7 +68,7 @@
             <tr class="c12-k" bgcolor="#FFFFFF">
                 <td align="right" bgcolor="#CCCCFF">撥款日期</td>
                 <td align="left">
-                    <input type="text" name="get_amount_date" size="15" maxlength="15" class="box" value="">
+                    <input type="text" name="get_amount_date" class="datepicker" value="" style="width:80px;">
                 </td>
             </tr>
             <tr class="c12-k" bgcolor="#FFFFFF">
@@ -86,9 +86,9 @@
             <tr class="c12-k" bgcolor="#FFFFFF">
                 <td align="right" bgcolor="#CCCCFF">經辦業務</td>
                 <td align="left">
-                    <input type="text" name="U_plan_num" id="U_plan_num" size="10" maxlength="10" class="box" value="" readonly="">
-                    <input type="text" name="U_plan_name" id="U_plan_name" size="10" maxlength="10" class="box" value="" readonly="">
-                    <input type="button" value="..." name="_select_user_one" onclick="openUserOne('plan_num')">
+                    <input type="text" name="plan_num" id="U_num" size="10" maxlength="10" class="box" value="" readonly="">
+                    <input type="text" name="plan_name" id="U_name" size="10" maxlength="10" class="box" value="" readonly="">
+                    <input type="button" value="..." name="_select_user_one" onclick="openUserOne('appUser')">
                 </td>
             </tr>
             <tr class="c12-k" bgcolor="#FFFFFF">
@@ -97,11 +97,7 @@
                     <input type="text" name="case_remark" size="15" maxlength="15" class="box" value="">
                 </td>
             </tr>
-            <tr class="c12-k" bgcolor="#FFFFFF">
-                <td align="right" bgcolor="#CCCCFF">核准函</td>
-                <td align="left">
-                </td>
-            </tr>
+           
             <tr class="c12-k" bgcolor="#CCCCFF" height="30">
                 <td colspan="2" align="center">
                     <input type="button" value="儲存" onclick="saveData();" />
@@ -116,7 +112,7 @@
     let Case_id = decryptParameter(Params.get('case_id'));
     let WebUser = decryptParameter(Params.get('User'));
     let ChkRole;
-
+    dateTW();
     fetchData();
     //ChkUserRole();
      
@@ -134,6 +130,7 @@
                     if (response.resultCode === '000') {
                         const data = JSON.parse(response.objResult)[0];
                         $("input[name='case_id']").val(data.case_id);
+                        $("input[name='show_fund_company']").val(data.show_fund_company),
                         $("input[name='Company_name']").val(data.Company_name);
                         $("input[name='show_project_title']").val(data.show_project_title);
                         $("input[name='cs_name']").val(data.cs_name);
@@ -143,7 +140,9 @@
                         $("input[name='interest_rate_pass']").val(data.interest_rate_pass);
                         $("input[name='get_amount_date']").val(data.get_amount_date);
                         $("input[name='comm_amt']").val(data.comm_amt);
+                        $("input[name='act_perf_amt']").val(data.act_perf_amt);
                         $("input[name='plan_num']").val(data.plan_num);
+                        $("input[name='plan_name']").val(data.plan_name);
                         $("input[name='case_remark']").val(data.case_remark);
                         $("input[name='case_id_count']").val(data.case_id_count);
                     } else {
@@ -214,7 +213,7 @@
             case_remark: $("input[name='case_remark']").val(),
             comm_amt: parseFloat($("input[name='comm_amt']").val()) || 0,
             act_perf_amt: parseFloat($("input[name='act_perf_amt']").val()) || 0,
-            U_plan_num: $("input[name='plan_num']").val(),
+            plan_num: $("input[name='plan_num']").val(),
             add_num: WebUser,
             edit_num: WebUser
         };
