@@ -17,12 +17,7 @@
                     <span class="c14k">車貸建檔</span>
                 </td>
             </tr>
-            <tr class="c12-k" bgcolor="#FFFFFF">
-                <td width="150" align="right" bgcolor="#CCCCFF">車貸代號</td>
-                <td width="500" align="left">
-                    <input type="text" name="case_id" size="15" maxlength="10" class="box" value="" style="background-color: #f0f0f0" readonly>
-                </td>
-            </tr>
+
             <tr class="c12-k" bgcolor="#FFFFFF">
                 <td width="150" align="right" bgcolor="#CCCCFF">放款公司</td>
                 <td width="500" align="left">
@@ -32,7 +27,7 @@
             <tr class="c12-k" bgcolor="#FFFFFF">
                 <td width="150" align="right" bgcolor="#CCCCFF">專案名稱</td>
                 <td width="500" align="left">
-                    <input type="text" name="show_project_title" size="15" maxlength="10" class="box" value="">
+                    <input type="text" name="show_project_title" size="15" maxlength="10" class="box" value="" required >
                 </td>
             </tr>
             <tr class="c12-k" bgcolor="#FFFFFF">
@@ -48,9 +43,15 @@
                 </td>
             </tr>
             <tr class="c12-k" bgcolor="#FFFFFF">
-                <td align="right" bgcolor="#CCCCFF">撥款金額</td>
+                <td align="right" bgcolor="#CCCCFF">撥款金額(萬)</td>
                 <td align="left">
                     <input type="text" name="get_amount" size="55" maxlength="55" class="box" value="">
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td align="right" bgcolor="#CCCCFF">佣金</td>
+                <td align="left">
+                    <input type="text" name="comm_amt" size="15" maxlength="15" class="box" value="">
                 </td>
             </tr>
             <tr class="c12-k" bgcolor="#FFFFFF">
@@ -72,17 +73,12 @@
                 </td>
             </tr>
             <tr class="c12-k" bgcolor="#FFFFFF">
-                <td align="right" bgcolor="#CCCCFF">佣金</td>
+                <td align="right" bgcolor="#CCCCFF">備註</td>
                 <td align="left">
-                    <input type="text" name="comm_amt" size="15" maxlength="15" class="box" value="">
+                    <input type="text" name="case_remark" size="15" maxlength="15" class="box" value="">
                 </td>
             </tr>
-            <tr class="c12-k" bgcolor="#FFFFFF">
-                <td align="right" bgcolor="#CCCCFF">實績</td>
-                <td align="left">
-                    <input type="text" name="act_perf_amt" size="15" maxlength="15" class="box" value="">
-                </td>
-            </tr>
+
             <tr class="c12-k" bgcolor="#FFFFFF">
                 <td align="right" bgcolor="#CCCCFF">經辦業務</td>
                 <td align="left">
@@ -91,13 +87,8 @@
                     <input type="button" value="..." name="_select_user_one" onclick="openUserOne('appUser')">
                 </td>
             </tr>
-            <tr class="c12-k" bgcolor="#FFFFFF">
-                <td align="right" bgcolor="#CCCCFF">備註</td>
-                <td align="left">
-                    <input type="text" name="case_remark" size="15" maxlength="15" class="box" value="">
-                </td>
-            </tr>
-           
+
+
             <tr class="c12-k" bgcolor="#CCCCFF" height="30">
                 <td colspan="2" align="center">
                     <input type="button" value="儲存" onclick="saveData();" />
