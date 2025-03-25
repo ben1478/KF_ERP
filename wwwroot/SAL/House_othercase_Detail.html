@@ -1,0 +1,306 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script src="../Base.js"></script>
+    <title>作業平台</title>
+</head>
+<body>
+    <table width="650" border="0" cellspacing="1" cellpadding="2" bgcolor="#999999">
+        <tbody>
+            <tr class="c12-k" bgcolor="#CCCCFF">
+                <td colspan="2" align="center">
+                    <span class="c14k">車貸建檔</span>
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td width="150" align="right" bgcolor="#CCCCFF">車貸代號</td>
+                <td width="500" align="left">
+                    <input type="text" name="case_id" size="15" maxlength="10" class="box" value="" style="background-color: #f0f0f0" readonly>
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td width="150" align="right" bgcolor="#CCCCFF">放款公司</td>
+                <td width="500" align="left">
+                    <input type="text" name="show_fund_company" size="15" maxlength="10" class="box" value="">
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td width="150" align="right" bgcolor="#CCCCFF">專案名稱</td>
+                <td width="500" align="left">
+                    <input type="text" name="show_project_title" size="15" maxlength="10" class="box" value="">
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td width="150" align="right" bgcolor="#CCCCFF">客戶</td>
+                <td width="500" align="left">
+                    <input type="text" name="cs_name" size="35" maxlength="35" class="box" value="">
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td align="right" bgcolor="#CCCCFF">客戶ID</td>
+                <td align="left">
+                    <input type="text" name="cs_id" size="10" maxlength="100" class="box" value="">
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td align="right" bgcolor="#CCCCFF">撥款金額</td>
+                <td align="left">
+                    <input type="text" name="get_amount" size="55" maxlength="55" class="box" value="">
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td align="right" bgcolor="#CCCCFF">期數</td>
+                <td align="left">
+                    <input type="text" name="period" size="55" maxlength="55" class="box" value="">
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td align="right" bgcolor="#CCCCFF">承作利率</td>
+                <td align="left">
+                    <input type="text" name="interest_rate_pass" size="15" maxlength="15" class="box" value="">
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td align="right" bgcolor="#CCCCFF">撥款日期</td>
+                <td align="left">
+                    <input type="text" name="get_amount_date" size="15" maxlength="15" class="box" value="">
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td align="right" bgcolor="#CCCCFF">佣金</td>
+                <td align="left">
+                    <input type="text" name="comm_amt" size="15" maxlength="15" class="box" value="">
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td align="right" bgcolor="#CCCCFF">實績</td>
+                <td align="left">
+                    <input type="text" name="act_perf_amt" size="15" maxlength="15" class="box" value="">
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td align="right" bgcolor="#CCCCFF">經辦業務</td>
+                <td align="left">
+                    <input type="text" name="U_plan_num" id="U_plan_num" size="10" maxlength="10" class="box" value="" readonly="">
+                    <input type="text" name="U_plan_name" id="U_plan_name" size="10" maxlength="10" class="box" value="" readonly="">
+                    <input type="button" value="..." name="_select_user_one" onclick="openUserOne('plan_num')">
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td align="right" bgcolor="#CCCCFF">備註</td>
+                <td align="left">
+                    <input type="text" name="case_remark" size="15" maxlength="15" class="box" value="">
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td align="right" bgcolor="#CCCCFF">核准函</td>
+                <td align="left">
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#CCCCFF" height="30">
+                <td colspan="2" align="center">
+                    <input type="button" value="儲存" onclick="saveData();" />
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</body>
+</html>
+<script>
+    let Params = new URLSearchParams(window.location.search);
+    let Case_id = decryptParameter(Params.get('case_id'));
+    let WebUser = decryptParameter(Params.get('User'));
+    let ChkRole;
+
+    fetchData();
+    //ChkUserRole();
+     
+    function fetchData() {
+        if (Case_id !== 'add') {
+            const url = `${BASE_URL}/AE_SAL/House_othercase_SQuery?case_id=${Case_id}`;
+            fetch(url, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+                .then(response => response.json())
+                .then(response => {
+                    if (response.resultCode === '000') {
+                        const data = JSON.parse(response.objResult)[0];
+                        $("input[name='case_id']").val(data.case_id);
+                        $("input[name='Company_name']").val(data.Company_name);
+                        $("input[name='show_project_title']").val(data.show_project_title);
+                        $("input[name='cs_name']").val(data.cs_name);
+                        $("input[name='cs_id']").val(data.cs_id);
+                        $("input[name='get_amount']").val(data.get_amount);
+                        $("input[name='period']").val(data.period);
+                        $("input[name='interest_rate_pass']").val(data.interest_rate_pass);
+                        $("input[name='get_amount_date']").val(data.get_amount_date);
+                        $("input[name='comm_amt']").val(data.comm_amt);
+                        $("input[name='plan_num']").val(data.plan_num);
+                        $("input[name='case_remark']").val(data.case_remark);
+                        $("input[name='case_id_count']").val(data.case_id_count);
+                    } else {
+                        alert(response.resultMsg);
+                    }
+                })
+                .catch(error => {
+                    alert('API 請求失敗:', error);
+                });
+        }
+    }
+
+    function saveTest() {
+        let formData = {
+            case_id: 'add',
+            show_fund_company: '',
+            show_project_title:'',
+            cs_name: '',
+            cs_id: '',
+            get_amount: '',
+            period: '',
+            interest_rate_pass: '',
+            get_amount_date: '',//new Date(),
+            case_remark: '',
+            comm_amt: 0,
+            act_perf_amt: 0,
+            plan_num: '',
+            add_num: '',
+            edit_num: ''
+        };
+
+            const url = `${BASE_URL}/AE_SAL/House_othercase_Ins`;
+
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(formData)
+            })
+                .then(response => response.json())
+                .then(response => {
+                    alert('新增成功');
+                    window.close();
+
+                    let locationUrl = BASE_WEB + '/SAL/House_othercase_list';
+                    if (window.opener.location.href === locationUrl) {
+                        window.opener.location.reload();
+                    }
+                })
+                .catch(error => {
+                    alert('請求失敗，請稍後再試。');
+                });
+    }
+
+    function saveData() {
+        let formData = {
+            case_id: Case_id,
+            CaseType: 'CarCase', // 目前僅有CarCase:車貸
+            show_fund_company: $("input[name='show_fund_company']").val(),
+            show_project_title: $("input[name='show_project_title']").val(),
+            cs_name: $("input[name='cs_name']").val(),
+            cs_id: $("input[name='cs_id']").val(),
+            get_amount: $("input[name='get_amount']").val(),
+            period: $("input[name='period']").val(),
+            interest_rate_pass: $("input[name='interest_rate_pass']").val(),
+            get_amount_date: $("input[name='get_amount_date']").val(),
+            case_remark: $("input[name='case_remark']").val(),
+            comm_amt: parseFloat($("input[name='comm_amt']").val()) || 0,
+            act_perf_amt: parseFloat($("input[name='act_perf_amt']").val()) || 0,
+            U_plan_num: $("input[name='plan_num']").val(),
+            add_num: WebUser,
+            edit_num: WebUser
+        };
+        if (Case_id === 'add') {
+
+            const url = `${BASE_URL}/AE_SAL/House_othercase_Ins`;
+
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'include',
+                body: JSON.stringify(formData)
+            })
+                .then(response => response.json())
+                .then(response => {
+                    if (response.resultCode === '000') {
+                        alert('新增成功');
+                        window.close();
+                        
+                        let locationUrl = BASE_WEB + '/SAL/House_othercase_list';
+                        if (window.opener.location.href === locationUrl) {
+                            window.opener.location.reload();
+                        }
+                    } else {
+                        alert(data.resultMsg);
+                    }
+                })
+                .catch(error => {
+                    alert('請求失敗，請稍後再試。');
+                });
+        } else {
+            const url = `${BASE_URL}/AE_SAL/House_othercase_Upd`;
+
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(formData)
+            })
+                .then(response => response.json())
+                .then(response => {
+                    if (response.resultCode === '000') {
+                        alert('修改成功');
+                        window.close();
+                        if (window.opener) {
+                            window.opener.location.reload();
+                        }
+                        
+                    } else {
+                        alert(data.resultMsg);
+                    }
+                })
+                .catch(error => {
+                    alert('請求失敗，請稍後再試。');
+                });
+        }
+
+    }
+
+    /*
+    function ChkUserRole() {
+        const url = `${BASE_URL}/AE_VP/ChkUserRole?User=${WebUser}`;
+        fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+            .then(response => response.json())
+            .then(responseData => {
+                if (responseData.resultCode === '000') {
+                    ChkRole = responseData.objResult;
+                    if (ChkRole === 'Y') {
+                        document.querySelector('input[name="case_id"]').removeAttribute('readonly');
+                        document.querySelector('input[name="case_id"]').style.removeProperty('background-color');
+                    }
+                    fetchData();
+                }
+            })
+            .catch(error => {
+                alert('角色辨別失敗，請稍後再試。');
+            })
+            
+    }
+    */
+</script>

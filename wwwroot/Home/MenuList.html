@@ -114,6 +114,13 @@
                             </tr>
                             <tr>
                                 <td width="13%" align="center">
+                                    <input type="button" name="add" value="車貸建檔" onclick="openHouse_othercase();">
+                                </td>
+                                <td width="13%" align="center"></td>
+                                <td width="13%" align="center"></td>
+                            </tr>
+                            <tr>
+                                <td width="13%" align="center">
                                     <input type="button" name="add" value="登出" onclick="openLogout();">
                                 </td>
                                 <td width="13%" align="center"></td>
@@ -175,6 +182,11 @@
     function openInvPrepay() {
         window.open(`/VP/InvPre_M_list.html?User=${WebUser}&U_BC=${WebBC}`, 'list', 'scrollbars=yes,resizable=yes,width=1300,height=500,left=250,top=100')
     }
+
+    function openHouse_othercase() {
+        window.open(`/SAL/House_othercase_list.html?User=${WebUser}&U_BC=${WebBC}`, 'list', 'scrollbars=yes,resizable=yes,width=1300,height=500,left=250,top=100')
+    }
+
 
     function openLogout() {
         window.location.href = '/Login.html';
