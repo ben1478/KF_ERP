@@ -14,7 +14,7 @@
         <tbody>
             <tr class="c12-k" bgcolor="#CCCCFF">
                 <td colspan="2" align="center">
-                    <span class="c14k">車貸建檔</span>
+                    <span class="c14k">車貸建檔*</span>
                 </td>
             </tr>
 
@@ -27,7 +27,7 @@
             <tr class="c12-k" bgcolor="#FFFFFF">
                 <td width="150" align="right" bgcolor="#CCCCFF">專案名稱</td>
                 <td width="500" align="left">
-                    <input type="text" name="show_project_title" size="15" maxlength="10" class="box" value="" required >
+                    <input type="text" required name="show_project_title" size="15" maxlength="10" class="box" value="">
                 </td>
             </tr>
             <tr class="c12-k" bgcolor="#FFFFFF">
@@ -87,10 +87,9 @@
                     <input type="button" value="..." name="_select_user_one" onclick="openUserOne('appUser')">
                 </td>
             </tr>
-
-
             <tr class="c12-k" bgcolor="#CCCCFF" height="30">
                 <td colspan="2" align="center">
+                    <input type="hidden" name="confirm_num" id="confirm_num" value="">
                     <input type="button" value="儲存" onclick="saveData();" />
                 </td>
             </tr>
@@ -105,9 +104,10 @@
     let ChkRole;
     dateTW();
     fetchData();
-    //ChkUserRole();
      
     function fetchData() {
+        //alert(`Case_id=${Case_id}`)
+
         if (Case_id !== 'add') {
             const url = `${BASE_URL}/AE_SAL/House_othercase_SQuery?case_id=${Case_id}`;
             fetch(url, {
@@ -121,7 +121,7 @@
                     if (response.resultCode === '000') {
                         const data = JSON.parse(response.objResult)[0];
                         $("input[name='case_id']").val(data.case_id);
-                        $("input[name='show_fund_company']").val(data.show_fund_company),
+                        $("input[name='show_fund_company']").val(data.show_fund_company);
                         $("input[name='Company_name']").val(data.Company_name);
                         $("input[name='show_project_title']").val(data.show_project_title);
                         $("input[name='cs_name']").val(data.cs_name);
@@ -136,6 +136,7 @@
                         $("input[name='plan_name']").val(data.plan_name);
                         $("input[name='case_remark']").val(data.case_remark);
                         $("input[name='case_id_count']").val(data.case_id_count);
+                        $("input[name='confirm_num']").val(data.confirm_num);
                     } else {
                         alert(response.resultMsg);
                     }
@@ -143,6 +144,7 @@
                 .catch(error => {
                     alert('API 請求失敗:', error);
                 });
+
         }
     }
 
@@ -190,6 +192,30 @@
     }
 
     function saveData() {
+        
+        var isValid = true;
+        
+        let cm = $("input[name='confirm_num']").val();
+        if (cm) {
+            alert(`此案件已經財務結帳,無法修改`);
+            isValid = false;
+        }
+
+        var inputs = document.querySelectorAll('input[required]');
+        
+        for (var i = 0; i < inputs.length; i++) {
+            var input = inputs[i];
+            if (!input.value.trim()) {
+                alert("必填請輸入");
+                isValid = false;
+                break;
+            }
+        }
+
+        if (!isValid) {
+            return;
+        }
+
         let formData = {
             case_id: Case_id,
             CaseType: 'CarCase', // 目前僅有CarCase:車貸
@@ -205,9 +231,16 @@
             comm_amt: parseFloat($("input[name='comm_amt']").val()) || 0,
             act_perf_amt: parseFloat($("input[name='act_perf_amt']").val()) || 0,
             plan_num: $("input[name='plan_num']").val(),
+            confirm_num: $("input[name='confirm_num']").val(),
             add_num: WebUser,
             edit_num: WebUser
         };
+
+        
+        
+            
+
+
         if (Case_id === 'add') {
 
             const url = `${BASE_URL}/AE_SAL/House_othercase_Ins`;
@@ -267,30 +300,4 @@
 
     }
 
-    /*
-    function ChkUserRole() {
-        const url = `${BASE_URL}/AE_VP/ChkUserRole?User=${WebUser}`;
-        fetch(url, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        })
-            .then(response => response.json())
-            .then(responseData => {
-                if (responseData.resultCode === '000') {
-                    ChkRole = responseData.objResult;
-                    if (ChkRole === 'Y') {
-                        document.querySelector('input[name="case_id"]').removeAttribute('readonly');
-                        document.querySelector('input[name="case_id"]').style.removeProperty('background-color');
-                    }
-                    fetchData();
-                }
-            })
-            .catch(error => {
-                alert('角色辨別失敗，請稍後再試。');
-            })
-            
-    }
-    */
 </script>
