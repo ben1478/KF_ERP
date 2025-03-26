@@ -157,7 +157,7 @@
     }
 
     function loadWBCName() {
-        const url = `${BASE_URL}/AE_VP/GetWintonBCList`;
+        const url = `${BASE_URL}/AE_VP/GetWintonBCList?User=${WebUser}`;
         fetch(url)
             .then(response => response.json())
             .then(data => {
@@ -205,6 +205,7 @@
             optionElement.textContent = option.item_D_name;
             selectElement.appendChild(optionElement);
         });
+        selectElement.value = WbcOptions[0].WBC;
         vBCCell.appendChild(selectElement);
         row.appendChild(vBCCell);
 
@@ -506,6 +507,7 @@
                         receiveData(data.Ins_List);
 
                         setReadOnlyMode(vpType);
+                      
                     }
                 }).catch(error => {
                     alert('請求失敗，請稍後再試。');
@@ -559,7 +561,7 @@
                 optionElement.textContent = option.item_D_name;
                 selectElement.appendChild(optionElement);
             });
-            selectElement.value = group.VD_BC || '';
+            selectElement.value = group.VD_BC || WbcOptions[0].WBC;
             vBCCell.appendChild(selectElement);
             row.appendChild(vBCCell);
 
@@ -752,7 +754,7 @@
     function getCompanySuggestions() {
         const input = document.getElementById('payee_name').value;
         const suggestionsDiv = document.getElementById('suggestions');
-
+      
         if (input.length === 0) {
             suggestionsDiv.style.display = 'none';
             return;
@@ -797,22 +799,31 @@
 
     function validateInput() {
         const input = document.getElementById('payee_name').value;
-        const suggestionsDiv = document.getElementById('suggestions');
-        const suggestionItems = suggestionsDiv.querySelectorAll('div');
-
         let isValid = false;
-        console.log(suggestionItems);
-        for (let i = 0; i < suggestionItems.length; i++) {
-            if (suggestionItems[i].textContent === input) {
-                isValid = true;
-                break;
-            }
-        }
+        const url = `${BASE_URL}/AE_PRO/GetManufaList?Name=${input}`;
 
-        if (!isValid) {
-            document.getElementById('payee_name').value = '';
-            alert('請選擇一個有效的公司名稱！');
-        }
+        fetch(url)
+            .then(response => response.json())
+            .then(responseData => {
+                if (responseData.resultCode === "000") {
+                    const suggestions = JSON.parse(responseData.objResult);
+                    console.log(suggestions);
+                    for (let i = 0; i < suggestions.length; i++) {
+                        if (suggestions[i].name === input) {
+                            isValid = true;
+                            break;
+                        }
+                    }
+
+                    if (!isValid) {
+                        document.getElementById('payee_name').value = '';
+                        alert('請選擇一個有效的公司名稱！');
+                    }
+
+                }
+            }).catch(error => {
+                console.error('載入選項時出錯:', error);
+            });
     }
 
     function receiveDataFromChild(selectedGroups) {
@@ -891,7 +902,7 @@
             })
                 .then(response => response.json())
                 .then(responseData => {
-                    console.log(responseData.resultCode);
+                  
                     if (responseData.resultCode === '000') {
                         alert('明細已刪除');
                     } else {
@@ -911,7 +922,7 @@
             .then(responseData => {
                 if (responseData.resultCode === "000") {
                     const data = JSON.parse(responseData.objResult);
-                    console.log(data);
+                   
                     document.querySelector('span[name="BackID"]').textContent = `上次退單理由: ${data[0].AF_Back_Reason}  (${data[0].AF_Back_ID})`;
                 }
             }).catch(error => {
