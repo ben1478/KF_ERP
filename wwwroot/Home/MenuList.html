@@ -121,6 +121,13 @@
                             </tr>
                             <tr>
                                 <td width="13%" align="center">
+                                    <input type="button" name="add" value="委對單" onclick="openHouse_agency_list();">
+                                </td>
+                                <td width="13%" align="center"></td>
+                                <td width="13%" align="center"></td>
+                            </tr>
+                            <tr>
+                                <td width="13%" align="center">
                                     <input type="button" name="add" value="登出" onclick="openLogout();">
                                 </td>
                                 <td width="13%" align="center"></td>
@@ -187,6 +194,10 @@
         window.open(`/SAL/House_othercase_list.html?User=${WebUser}&U_BC=${WebBC}`, 'list', 'scrollbars=yes,resizable=yes,width=1300,height=500,left=250,top=100')
     }
 
+    // 委對單
+    function openHouse_agency_list() {
+        window.open(`/Agcy/House_agency_list.html?User=${WebUser}&U_BC=${WebBC}`, 'list', 'scrollbars=yes,resizable=yes,width=1300,height=500,left=250,top=100')
+    }
 
     function openLogout() {
         window.location.href = '/Login.html';

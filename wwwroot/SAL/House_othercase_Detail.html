@@ -14,7 +14,7 @@
         <tbody>
             <tr class="c12-k" bgcolor="#CCCCFF">
                 <td colspan="2" align="center">
-                    <span class="c14k">車貸建檔*</span>
+                    <span class="c14k">車貸建檔</span>
                 </td>
             </tr>
 
@@ -106,8 +106,6 @@
     fetchData();
      
     function fetchData() {
-        //alert(`Case_id=${Case_id}`)
-
         if (Case_id !== 'add') {
             const url = `${BASE_URL}/AE_SAL/House_othercase_SQuery?case_id=${Case_id}`;
             fetch(url, {
@@ -147,50 +145,7 @@
 
         }
     }
-
-    function saveTest() {
-        let formData = {
-            case_id: 'add',
-            show_fund_company: '',
-            show_project_title:'',
-            cs_name: '',
-            cs_id: '',
-            get_amount: '',
-            period: '',
-            interest_rate_pass: '',
-            get_amount_date: '',//new Date(),
-            case_remark: '',
-            comm_amt: 0,
-            act_perf_amt: 0,
-            plan_num: '',
-            add_num: '',
-            edit_num: ''
-        };
-
-            const url = `${BASE_URL}/AE_SAL/House_othercase_Ins`;
-
-            fetch(url, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(formData)
-            })
-                .then(response => response.json())
-                .then(response => {
-                    alert('新增成功');
-                    window.close();
-
-                    let locationUrl = BASE_WEB + '/SAL/House_othercase_list';
-                    if (window.opener.location.href === locationUrl) {
-                        window.opener.location.reload();
-                    }
-                })
-                .catch(error => {
-                    alert('請求失敗，請稍後再試。');
-                });
-    }
-
+    
     function saveData() {
         
         var isValid = true;
@@ -231,7 +186,7 @@
             comm_amt: parseFloat($("input[name='comm_amt']").val()) || 0,
             act_perf_amt: parseFloat($("input[name='act_perf_amt']").val()) || 0,
             plan_num: $("input[name='plan_num']").val(),
-            confirm_num: $("input[name='confirm_num']").val(),
+            //confirm_num: $("input[name='confirm_num']").val(),
             add_num: WebUser,
             edit_num: WebUser
         };
@@ -259,7 +214,7 @@
                         alert('新增成功');
                         window.close();
                         
-                        let locationUrl = BASE_WEB + '/SAL/House_othercase_list';
+                        let locationUrl = BASE_WEB + '/House_othercase_list';
                         if (window.opener.location.href === locationUrl) {
                             window.opener.location.reload();
                         }
