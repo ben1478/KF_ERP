@@ -191,7 +191,7 @@
                 "../images/edit.png",
                 "修改",
                 function () {
-                    window.open(`House_agency_Detail.html?id=${encryptedId}&User=${encryptedWebUser}`, '_blank', 'scrollbars=yes,resizable=yes,top=100,width=800,height=500');
+                    window.open(`House_agency_Detail.html?Id=${encryptedId}&User=${encryptedWebUser}`, '_blank', 'scrollbars=yes,resizable=yes,top=100,width=800,height=500');
                 }
             ));
 
@@ -232,6 +232,6 @@
         const id = 'add';
         let encryptedID = encryptParameter(id);
         let encryptedWebUser = encryptParameter(WebUser);
-        window.open(`House_agency_Detail.html?id=${encryptedID}&User=${encryptedWebUser}`, '_blank', 'scrollbars=yes,resizable=yes,top=100,width=800,height=500');
+        window.open(`House_agency_Detail.html?Id=${encryptedID}&User=${encryptedWebUser}`, '_blank', 'scrollbars=yes,resizable=yes,top=100,width=800,height=500');
     }
 </script>

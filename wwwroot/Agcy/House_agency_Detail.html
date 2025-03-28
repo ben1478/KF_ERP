@@ -109,7 +109,7 @@
 </html>
 <script>
     let Params = new URLSearchParams(window.location.search);
-    let Id = decryptParameter(Params.get('id'));
+    let Id = decryptParameter(Params.get('Id'));
     let WebUser = decryptParameter(Params.get('User'));
     let ChkRole;
     dateTW();
@@ -161,6 +161,57 @@
         }
     }
 
+    function insertData() {
+
+        if (Id === 'add') {
+
+
+
+
+            let formData = {
+                case_com: $("input[name='case_com']").val(),
+                agency_com: $("input[name='agency_com']").val(),
+                case_text: $("input[name='case_text']").val(),
+                CS_text: $("input[name='CS_text']").val(),
+                check_date: $("input[name='check_date']").val(),
+                check_address: $("input[name='check_address']").val(),
+                pass_amount: $("input[name='pass_amount']").val(),
+                set_amount: $("input[name='set_amount']").val(),
+                print_data: $("input[name='print_data']").val(),
+                get_data: $("input[name='get_data']").val(),
+                process_charge: $("input[name='process_charge']").val(),
+                AG_note: $("input[name='AG_note']").val(),
+                check_leader_num: $("input[name='check_leader_num']").val(),
+                add_num: WebUser,
+                edit_num: WebUser
+            };
+            const url = `${BASE_URL}/AE_Agcy/House_agency_Ins`;
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'include',
+                body: JSON.stringify(formData)
+            })
+                .then(response => response.json())
+                .then(response => {
+                    if (response.resultCode === '000') {
+                        alert('新增成功');
+                        window.close();
+                        if (window.opener) {
+                            window.opener.location.reload();
+                        }
+                    } else {
+                        alert(data.resultMsg);
+                    }
+                })
+                .catch(error => {
+                    alert('請求失敗，請稍後再試。');
+                });
+        }
+    }
+
     function saveData() {
         let formData = {
             AG_id: Id,
@@ -181,7 +232,7 @@
             edit_num: WebUser
         };
 
-
+        
         if (Id === 'add') {
 
             const url = `${BASE_URL}/AE_Agcy/House_agency_Ins`;
