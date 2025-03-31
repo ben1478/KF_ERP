@@ -45,7 +45,7 @@
             <tr class="c12-k" bgcolor="#FFFFFF">
                 <td align="right" bgcolor="#CCCCFF">撥款金額(萬)</td>
                 <td align="left">
-                    <input type="text" name="get_amount" size="55" maxlength="55" class="box" value="">
+                    <input type="text" required name="get_amount" size="55" maxlength="55" class="box" value="">
                 </td>
             </tr>
             <tr class="c12-k" bgcolor="#FFFFFF">
@@ -99,15 +99,15 @@
 </html>
 <script>
     let Params = new URLSearchParams(window.location.search);
-    let Case_id = decryptParameter(Params.get('case_id'));
+    let Id = decryptParameter(Params.get('Id'));
     let WebUser = decryptParameter(Params.get('User'));
     let ChkRole;
     dateTW();
     fetchData();
      
     function fetchData() {
-        if (Case_id !== 'add') {
-            const url = `${BASE_URL}/AE_SAL/House_othercase_SQuery?case_id=${Case_id}`;
+        if (Id !== 'add') {
+            const url = `${BASE_URL}/AE_SAL/House_othercase_SQuery?Id=${Id}`;
             fetch(url, {
                 method: 'GET',
                 headers: {
@@ -172,7 +172,7 @@
         }
 
         let formData = {
-            case_id: Case_id,
+            case_id: Id,
             CaseType: 'CarCase', // 目前僅有CarCase:車貸
             show_fund_company: $("input[name='show_fund_company']").val(),
             show_project_title: $("input[name='show_project_title']").val(),
@@ -186,17 +186,11 @@
             comm_amt: parseFloat($("input[name='comm_amt']").val()) || 0,
             act_perf_amt: parseFloat($("input[name='act_perf_amt']").val()) || 0,
             plan_num: $("input[name='plan_num']").val(),
-            //confirm_num: $("input[name='confirm_num']").val(),
             add_num: WebUser,
             edit_num: WebUser
         };
 
-        
-        
-            
-
-
-        if (Case_id === 'add') {
+        if (Id === 'add') {
 
             const url = `${BASE_URL}/AE_SAL/House_othercase_Ins`;
 
