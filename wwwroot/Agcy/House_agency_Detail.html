@@ -93,17 +93,19 @@
             <tr class="c12-k" bgcolor="#FFFFFF">
                 <td align="right" bgcolor="#CCCCFF">對保單位主管</td>
                 <td align="left">
-                    <input type="text" name="check_leader_num" id="U_num" size="10" maxlength="10" class="box" value="" readonly="">
-                    <input type="text" name="check_leader_name" id="U_name" size="10" maxlength="10" class="box" value="" readonly="">
-                    <input type="button" value="..." name="_select_user_one" onclick="openUserOne('appUser')">
+                    <input type="text" name="check_leader_num" id="U_leader_1_num" size="10" maxlength="10" class="box" value="" readonly="">
+                    <input type="text" name="check_leader_name" id="U_leader_1_name" size="10" maxlength="10" class="box" value="" readonly="">
+                    <input type="button" value="..." name="_select_user_one" onclick="openUserOne('leader1')">
                 </td>
             </tr>
             <tr class="c12-k" bgcolor="#FFFFFF" id="tr_check_process_num">
                 <td align="right" bgcolor="#CCCCFF">對保人員</td>
                 <td align="left">
-                    <input type="text" name="check_process_num" size="15" maxlength="15" class="box" value="">
-                   
-</td>
+                    <input type="text" name="check_process_num" id="U_num" size="10" maxlength="10" class="box" value="" readonly="">
+                    <input type="text" name="check_process_name" id="U_name" size="10" maxlength="10" class="box" value="" readonly="">
+                    <input type="button" value="..." name="_select_user_one" onclick="openUserOne('appUser')">
+                    <label id="set_process_date"></label>
+                </td>
             </tr>
             <tr class="c12-k" bgcolor="#FFFFFF" id="tr_check_process_type">
                 <td align="right" bgcolor="#CCCCFF">對保處理進度</td>
@@ -150,8 +152,8 @@
     ShowMode();
 
     // 判斷是否有變更值
-    let Before_check_process_type;
-
+    let Before_check_process_type; // 對保
+    let Before_check_process_num;   //對保人員
     function fetchData() {
         
         if (Id !== 'add') {
@@ -182,8 +184,11 @@
                         $("input[name='check_leader_num']").val(data.check_leader_num);
                         $("input[name='check_leader_name']").val(data.check_leader_name);
                         $("input[name='check_process_num']").val(data.check_process_num);
+                        $("input[name='check_process_name']").val(data.check_process_name);
+                        Before_check_process_num = data.check_process_num ? data.check_process_num : '';
                         $("input[name='check_process_note']").val(data.check_process_note);
-
+                        
+                        
                         
                         document.getElementById('lbCheck_process_note').innerHTML = data.check_process_note;
 
@@ -206,6 +211,10 @@
                             document.getElementById('check_process_date').innerHTML = `${lbcheck_process_type} / 日期：${data.check_process_date}`;
                         }
 
+                        if (data.set_process_date) {
+                            document.getElementById('set_process_date').innerHTML = `分配日期:${data.set_process_date}`;
+                        }
+                        
                         $("input[name='close_date']").val(data.close_date);
 
                         
@@ -231,7 +240,12 @@
             cpdate = new Date(); // 有改變：給值
         }
         
-
+        let spdate;
+        if ($("input[name='check_process_num']:checked").val() === Before_check_process_num) {
+            spdate = ''; // 沒有改變
+        } else {
+            spdate = new Date(); // 有改變：給值
+        }
 
         let formData = {
             AG_id: Id,
@@ -249,6 +263,7 @@
             AG_note: $("input[name='AG_note']").val(),
             check_leader_num: $("input[name='check_leader_num']").val(),
             check_process_num: $("input[name='check_process_num']").val(),
+            set_process_date: spdate,
             check_process_type: $("input[name='check_process_type']:checked") ? $("input[name='check_process_type']:checked").val() : '',
             check_process_note: $("input[name='check_process_note']").val(),
             check_process_date: cpdate,
