@@ -102,21 +102,24 @@
                 <td align="right" bgcolor="#CCCCFF">對保人員</td>
                 <td align="left">
                     <input type="text" name="check_process_num" size="15" maxlength="15" class="box" value="">
-                    分配日期：
-                </td>
+                   
+</td>
             </tr>
             <tr class="c12-k" bgcolor="#FFFFFF" id="tr_check_process_type">
                 <td align="right" bgcolor="#CCCCFF">對保處理進度</td>
                 <td align="left">
-                    <input type="radio" name="check_process_type" value="N" />尚未對保
-                    <input type="radio" name="check_process_type" value="Y" />對保完成
-                    <label id="lb_check_process_type" name="check_process_type"></label>
+                    <div id="divCheck_process_type">
+                        <input type="radio" name="check_process_type" value="N" />尚未對保
+                        <input type="radio" name="check_process_type" value="Y" />對保完成
+                    </div>
+                    <label id="check_process_date"></label>
                 </td>
             </tr>
             <tr class="c12-k" bgcolor="#FFFFFF" id="tr_check_process_note">
                 <td align="right" bgcolor="#CCCCFF">對保說明</td>
                 <td align="left">
-                    <input type="text" name="check_process_note" size="15" maxlength="15" class="box" value="">
+                    <input type="text" id="check_process_note" name="check_process_note" size="15" maxlength="15" class="box" value="">
+                    <label id="lbCheck_process_note"></label>
                 </td>
             </tr>
             <tr class="c12-k" bgcolor="#FFFFFF" id="tr_close_type">
@@ -180,22 +183,33 @@
                         $("input[name='check_leader_name']").val(data.check_leader_name);
                         $("input[name='check_process_num']").val(data.check_process_num);
                         $("input[name='check_process_note']").val(data.check_process_note);
+
                         
-                        
+                        document.getElementById('lbCheck_process_note').innerHTML = data.check_process_note;
 
                         Before_check_process_type = data.check_process_type;
-                        if (data.check_process_type === 'Y')
+                        let lbcheck_process_type;
+                        if (data.check_process_type === 'Y') {
+                            lbcheck_process_type = '對保完成';
                             $("input[name='check_process_type'][value='Y']").prop('checked', true);
-                        else
+                        } else {
+                            lbcheck_process_type = '尚未對保';
                             $("input[name='check_process_type'][value='N']").prop('checked', true);
-                        $("label[name='check_process_note']").val(data.check_process_note);
+                        }
 
                         if (data.close_type === 'Y')
                             $("input[name='close_type'][value='Y']").prop('checked', true);
                         else
                             $("input[name='close_type'][value='N']").prop('checked', true);
+
+                        if (data.check_process_date) {
+                            document.getElementById('check_process_date').innerHTML = `${lbcheck_process_type} / 日期：${data.check_process_date}`;
+                        }
+
                         $("input[name='close_date']").val(data.close_date);
+
                         
+
                     } else {
                         alert(response.resultMsg);
                     }
@@ -304,47 +318,51 @@
 
     // 顯示模式:新增、修改、對保處理進度
     function ShowMode() {
-        //新增
-        if (Opt === 'add') {
-            setCheck_processMode(false) // 隱藏：'none'/ 顯示:'table-row';
-        }
-        //修改
-        if (Opt === 'Upd') {
+        switch (Opt) {
+            case 'add': //新增
+                HiddenMode(false); // 隱藏：'none'/ 顯示:'table-row';
+                break;
+            case 'Upd': // 修改:
+                //不可修改對保處理進度(check_process_date)/對保說明(check_process_note)
+                //顯示:是否結案 < tr >
+                
+                
+                document.getElementById('tr_close_type').style.display = 'none';
+                document.getElementById('check_process_note').style.display = 'none'; //visibility = 'hidden'; // 會保留原字元位置
+                
+                const divCheck_process_type = document.getElementById('divCheck_process_type');
+                divCheck_process_type.style.display = 'none';
+                break;
+            case 'check_process_type': //對保處理進度:
+                //可修改：對保處理進度/對保備註
+                //隱藏:是否結案 < tr >
+                //其他都不行
+                setReadOnlyMode('Y');
 
+                setOneReadOnlyMode('check_process_type', 'N'); // Name ,N：顯示/Y:隱藏
+                
+                setOneReadOnlyMode('check_process_note', 'N'); // Name ,N：顯示/Y:隱藏
+                document.getElementById('lbCheck_process_note').style.visibility = "hidden";
+                check_process_date.style.display = "none";
+                document.getElementById('tr_close_type').style.display = 'none';
+                setOneReadOnlyMode('btnSave', 'N'); // Name ,N：顯示/Y:隱藏
+                break;
         }
-
-        //對保處理進度
-        if (Opt === 'check_process_type') {
-            setReadOnlyMode('Y');
-            setCheck_processMode(true) // true：顯示/ false:隱藏
-        }
-        
     }
 
-    function setCheck_processMode(read) {
-
-        let status = read ? 'table-row' : 'none'; // 隱藏：'none'/ 顯示:'table-row';
+    function HiddenMode() {
+        let status = 'none'; // 隱藏：'none'/ 顯示:'table-row';
         const tr_check_process_num = document.getElementById('tr_check_process_num');
-        tr_check_process_num.style.display = status; 
-        document.querySelector('input[name="check_process_num"]').removeAttribute('readonly'); 
-        document.querySelector('input[name="check_process_num"]').removeAttribute('disabled');
-
-        const tr_check_process_type = document.getElementById('tr_check_process_type');
-        tr_check_process_type.style.display = status;
-        const rd_check_process_type = document.getElementById('check_process_type');
-        rd_check_process_type.style.display = status;
+        tr_check_process_num.style.display = status;
 
         const tr_check_process_note = document.getElementById('tr_check_process_note');
         tr_check_process_note.style.display = status; 
-        
+
+        const tr_check_process_type = document.getElementById('tr_check_process_type');
+        tr_check_process_type.style.display = status;
 
         const tr_close_type = document.getElementById('tr_close_type');
         tr_close_type.style.display = status; 
-        document.querySelector('input[name="close_type"]').removeAttribute('readonly');
-        document.querySelector('input[name="close_type"]').removeAttribute('disabled');
-
-        document.querySelector('input[name="btnSave"]').removeAttribute('readonly');
-        document.querySelector('input[name="btnSave"]').removeAttribute('disabled');
     }
 
     function setReadOnlyMode(Read) {
@@ -365,6 +383,16 @@
             //buttons.forEach(button => {
             //    button.setAttribute('disabled', true);
             //});
+        }
+    }
+
+    function setOneReadOnlyMode(name, Read) {
+        const inputs = document.getElementsByName(name);
+        if (Read === 'N') {
+            inputs.forEach(input => {
+                input.removeAttribute('readonly');
+                input.removeAttribute('disabled');
+            });
         }
     }
 </script>

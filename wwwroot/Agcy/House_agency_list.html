@@ -154,34 +154,36 @@
             row.appendChild(serialCell);
 
             let Id;
-            let encryptedId;
             let encryptedWebUser = encryptParameter(WebUser);
-
+            let encryptedId = '';
             for (let key of columnOrder) {
                 const cell = document.createElement('td');
                 switch (key) {
                     case 'AG_id':
                         Id = item[key];
                         encryptedId = encryptParameter(Id);
-                        cell.textContent = item[key];
+                        cell.textContent = Id;
+                        row.appendChild(cell);
+                        break;
+                    case 'check_process_name':
+                        cell.textContent = item[key] ? item[key] : '未分配' ;
                         row.appendChild(cell);
                         break;
                     case 'check_process_type':
-                        if (item[key] === 'N') {
-                            let encryptedOpt_check_process_type = encryptParameter('check_process_type');
-                            row.appendChild(createButtonCell(
-                                "../images/edit.png",
-                                "尚未對保",
-                                function () {
-                                    window.open(`House_agency_Detail.html?Id=${encryptedId}&User=${encryptedWebUser}&Opt=${encryptedOpt_check_process_type}`, '_blank', 'scrollbars=yes,resizable=yes,top=100,width=800,height=500');
-                                }
-                            ));
-                        } else {
-                            cell.textContent = '已對保';
-                            row.appendChild(cell);
-                        }
+                        let encryptedOpt_check_process_type = encryptParameter('check_process_type');
+                        const button = document.createElement('input');
+                        button.type = 'button';
+                        button.value = item[key] === 'N' ? '尚未對保' : '對保完成';
+                        button.onclick = function () {
+                            window.open(`House_agency_Detail.html?Id=${encryptedId}&User=${encryptedWebUser}&Opt=${encryptedOpt_check_process_type}`, '_blank', 'scrollbars=yes,resizable=yes,top=100,width=800,height=500');
+                        };
+                        cell.style.textAlign = 'center';
+                        cell.style.verticalAlign = 'middle';
+                        cell.appendChild(button);
+                        row.appendChild(cell);
                         break;
                     case 'Upd':
+                        
                         let encryptedOpt_Upd = encryptParameter('Upd');
                         row.appendChild(createButtonCell(
                             "../images/edit.png",
