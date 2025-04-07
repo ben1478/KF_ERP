@@ -152,8 +152,8 @@
     ShowMode();
 
     // 判斷是否有變更值
-    let Before_check_process_type; // 對保
-    let Before_check_process_num;   //對保人員
+    let Before_check_process_type=''; // 對保
+    let Before_check_process_num='';   //對保人員
     function fetchData() {
         
         if (Id !== 'add') {
@@ -230,6 +230,8 @@
         }
     }
 
+    
+
     function saveData() {
 
         // 判斷使用者有改變：對保處理進度
@@ -248,7 +250,7 @@
         }
 
         let formData = {
-            AG_id: Id,
+            AG_id: Id === 'add'? 0: Id,
             case_com: $("input[name='case_com']").val(),
             agency_com: $("input[name='agency_com']").val(),
             case_text: $("input[name='case_text']").val(),
@@ -410,4 +412,6 @@
             });
         }
     }
+
+
 </script>
