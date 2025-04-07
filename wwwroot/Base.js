@@ -235,7 +235,7 @@ function createButtonCell(imgSrc, imgAlt, onClickAction) {
 }
 
 function openUserOne(type) {
-    var url = '/HR/User_one.html?type=' + type;
+    var url = `${BASE_WEB}/HR/User_one.html?type=` + type;
     window.open(url,'User_one','scrollbars=yes,resizable=yes,width=700,height=500,left=250,top=100');
 }
 function openFile(cknum, WebUser) {
