@@ -1,0 +1,138 @@
+<!-- #INCLUDE FILE='../_include/replace_keyin.asp' -->
+<!-- #INCLUDE FILE='../_include/Check_login.asp' -->
+<%'######################## 版面 - down 開始 ########################%>
+<!-- #INCLUDE FILE='../_AE_top_no_menu.asp' -->
+<%'######################## 版面 - down 結束 ########################%>
+<%
+
+ID_form = replace_str(request("ID_form"))
+ID_num = replace_str(request("ID_num"))
+ID_name = replace_str(request("ID_name"))
+
+set conn = server.CreateObject ("adodb.connection")
+conn.Open conn_Open_str
+
+Set vrs_set = Server.CreateObject ("ADODB.RecordSet")
+Set vrs = Server.CreateObject ("ADODB.RecordSet")
+
+%>
+
+<script language="JavaScript" type="text/JavaScript">
+<!--
+function on_click(U_Num,U_Name)
+   {
+   <% if ID_num<>"" then %>
+   opener.<%=ID_form%>.<%=ID_num%>.value = U_Num;
+   <% end if %>
+   <% if ID_name<>"" then %>
+   opener.<%=ID_form%>.<%=ID_name%>.value = U_Name;
+   <% end if %>
+   <% if ID_num<>"" then %>
+   opener.<%=ID_form%>.<%=ID_num%>.focus();
+   <% end if %>
+   self.close();
+   }
+//-->
+</script>
+
+<%
+SQL_txt = ""
+
+
+
+If IsNull(request("U_BC")) Then
+	U_BC =""
+else
+	U_BC = (request("U_BC"))
+end if
+
+
+if U_BC <> "" then
+	SQL_txt = SQL_txt & " AND U_BC='"& U_BC &"'"
+end if
+
+if instr(session("u_num"),"AA")=0 AND  instr(session("u_num"),"ZZ")=0 then
+	SQL_txt = SQL_txt & " AND isnull(U_type,'')='' "
+end if
+
+if ID_name="project_leader_name" then
+   SQL_txt = SQL_txt & " AND U_PFT in ('PFT010','PFT015','PFT020','PFT030') "
+end if
+
+if ID_name="sendcase_handle_name" then
+   SQL_txt = SQL_txt & " AND U_PFT in ('PFT100') "
+end if
+
+check_leave_date = datevalue(dateadd("m",-1,now())) & " 00:00:00"
+SQL_txt = SQL_txt & " AND ( U_leave_date is null OR U_leave_date >= '" & check_leave_date & "' ) "
+
+tSQL = ""
+tSQL = tSQL & "select * "
+tSQL = tSQL & " ,(select item_D_name from Item_list where item_M_code = 'branch_company' AND item_D_code = User_M.U_BC  AND item_D_type='Y' AND show_tag='0' AND del_tag='0') as U_BC_name "
+tSQL = tSQL & " ,(select item_sort from Item_list where item_M_code = 'branch_company' AND item_D_code = User_M.U_BC  AND item_D_type='Y' AND show_tag='0' AND del_tag='0') as U_BC_sort "
+tSQL = tSQL & " ,(select item_D_name from Item_list where item_M_code = 'professional_title' AND item_D_code = User_M.U_PFT  AND item_D_type='Y' AND show_tag='0' AND del_tag='0') as U_PFT_name "
+tSQL = tSQL & " ,(select item_sort from Item_list where item_M_code = 'professional_title' AND item_D_code = User_M.U_PFT  AND item_D_type='Y' AND show_tag='0' AND del_tag='0') as U_PFT_sort "
+tSQL = tSQL & "from User_M where del_tag = '0'  " & SQL_txt & " order by U_type desc,U_BC_sort,U_PFT_sort,U_id "
+
+vrs.Open tSQL,conn,3,1
+%>
+
+                  <table width="310" border="0" cellpadding="4" cellspacing="1" bgcolor="#666666">
+                  <form name="form1" method="post" action="select_user_one.asp">
+                    <tr align="center" bgcolor="#CCCCFF" class="c12-k"> 
+                      <td width="30"><font size="2" color="#663300" class="c12">序</font></td>
+                      <td width="60"><font size="2" color="#663300" class="c12">分公司</font></td>
+                      <td width="60"><font size="2" color="#663300" class="c12">員編</font></td>
+                      <td width="100"><font size="2" color="#663300" class="c12">姓名</font></td>
+                      <td width="60"><font size="2" color="#663300" class="c12">職稱</font></td>
+                    </tr>
+                    <%
+                    check_total=vrs.recordcount
+                    for i=1 to vrs.recordcount
+                    	if vrs.EOF then exit for
+                        show_strike = ""
+                    	if isnull(vrs("U_leave_date"))=false then
+                    	    show_strike="<strike><i>"
+                    	end if
+                    %>
+                    <% if i>20 AND (i mod 20)=1 then %>
+                     <tr align="center" bgcolor="#CCCCFF" class="c12-k"> 
+                      <td width="30"><font size="2" color="#663300" class="c12">序</font></td>
+                      <td width="60"><font size="2" color="#663300" class="c12">分公司</font></td>
+                      <td width="60"><font size="2" color="#663300" class="c12">員編</font></td>
+                      <td width="100"><font size="2" color="#663300" class="c12">姓名</font></td>
+                      <td width="60"><font size="2" color="#663300" class="c12">職稱</font></td>
+                    </tr>
+                    <% end if %>
+                    <tr bgcolor="#FFFFFF" height="25" class="c12-k" align=center style="cursor: pointer;" onclick="on_click('<%=vrs("U_num")%>','<%=vrs("U_name")%>');" onmouseover="this.style.background='#FCFCC0';" onmouseout="this.style.background='#FFFFFF'; ">
+	                    <td><%=i%></td>
+	                    <td><%=show_strike%><%=vrs("U_BC_name")%></td>
+	                    <td><%=show_strike%><%=vrs("U_num")%></td>
+	                    <td class="c14k"><b><%=show_strike%><%=vrs("U_name")%></b></td>
+	                    <td><%=show_strike%><%=vrs("U_PFT_name")%></td>
+	                  </tr>
+                    <%
+                    	vrs.movenext
+                    	if vrs.EOF then exit for
+                    next
+                    %>
+                    <tr align="center" height="15" bgcolor="#CCCCFF"> 
+                      <td class="c12-k" colspan="5">
+                        </td>
+                    </tr>
+                    </form>
+                  </table>
+
+
+
+<%
+vrs.close
+conn.close
+set rs = nothing
+set vrs = nothing
+set conn = nothing
+%>
+
+<%'######################## 版面 - down 開始 ########################%>
+<!-- #INCLUDE FILE='../_AE_down.asp' -->
+<%'######################## 版面 - down 結束 ########################%>

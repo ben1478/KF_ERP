@@ -6,81 +6,100 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
-    <link href="../_include/main.css" rel="stylesheet" type="text/css">
     <script src="../Base.js"></script>
     <title>作業平台</title>
 </head>
 <body>
-    
-    <table width="720" border="1" cellspacing="0" cellpadding="3" bgcolor="#6666FF">
+    <table width="650" border="0" cellspacing="1" cellpadding="2" bgcolor="#999999">
         <tbody>
-            <tr class="14-k" bgcolor="#FFFFFF" height="35" align="center">
-                <td colspan="2">委對單 - 對保人員處理 </td>
-            </tr>
-            <tr class="12-k" bgcolor="#FFFFFF" height="25" align="center">
-                <td width="120">案件單位</td>
-                <td width="600" align="left"><input type="text" class="text_box_1" name="case_com" size="10" style="width:120px;" maxlength="30" value=""></td>
-            </tr>
-            <tr class="12-k" bgcolor="#FFFFFF" height="25" align="center">
-                <td>對保單位</td>
-                <td align="left"><input type="text" class="text_box_1" name="agency_com" size="10" style="width:120px;" maxlength="30" value=""></td>
-            </tr>
-
-            <tr class="12-k" bgcolor="#FFFFFF" height="25" align="center">
-                <td>案件AO / 電話</td>
-                <td align="left"><input type="text" class="text_box_1" name="case_text" size="10" style="width:580px;" maxlength="100" value=""></td>
-            </tr>
-
-            <tr class="12-k" bgcolor="#FFFFFF" height="25" align="center">
-                <td>客戶姓名 / 電話</td>
-                <td align="left"><input type="text" class="text_box_1" name="CS_text" size="10" style="width:580px;" maxlength="100" value=""></td>
-            </tr>
-            <tr class="12-k" bgcolor="#FFFFFF" height="25" align="center">
-                <td>對保日期 / 時間</td>
-                <td align="left"><input type="text" class="text_box_1" name="check_date" size="10" style="width:580px;" maxlength="100" value=""></td>
-            </tr>
-            <tr class="12-k" bgcolor="#FFFFFF" height="25" align="center">
-                <td>對保地點</td>
-                <td align="left"><input type="text" class="text_box_1" name="check_address" size="10" style="width:580px;" maxlength="100" value=""></td>
-            </tr>
-            <tr class="12-k" bgcolor="#FFFFFF" height="25" align="center">
-                <td>核貸金額</td>
-                <td align="left"><input type="text" class="text_box_1" name="pass_amount" size="10" style="width:200px;" maxlength="50" value=""></td>
-            </tr>
-            <tr class="12-k" bgcolor="#FFFFFF" height="25" align="center">
-                <td>本票及設定金額</td>
-                <td align="left"><input type="text" class="text_box_1" name="set_amount" size="10" style="width:200px;" maxlength="50" value=""></td>
-            </tr>
-            <tr class="12-k" bgcolor="#FFFFFF" height="25" align="center">
-                <td>需影印資料</td>
-                <td align="left"><input type="text" class="text_box_1" name="print_data" size="10" style="width:580px;" maxlength="100" value=""></td>
-            </tr>
-            <tr class="12-k" bgcolor="#FFFFFF" height="25" align="center">
-                <td>代收資料</td>
-                <td align="left"><input type="text" class="text_box_1" name="get_data" size="10" style="width:580px;" maxlength="100" value=""></td>
-            </tr>
-            <tr class="12-k" bgcolor="#FFFFFF" height="25" align="center">
-                <td>車馬費</td>
-                <td align="left"><input type="text" class="text_box_1" name="process_charge" size="10" style="width:200px;" maxlength="50" value=""></td>
-            </tr>
-
-
-            <tr class="14-k" bgcolor="#FFFFFF" height="25" align="center">
-                <td>備註</td>
-                <td align="left" colspan="1">
-                    <textarea id="AG_note" name="AG_note" cols="80" rows="6"></textarea>
+            <tr class="c12-k" bgcolor="#CCCCFF">
+                <td colspan="2" align="center">
+                    <span class="c14k">委對單</span>
                 </td>
             </tr>
-            <tr class="12-k" bgcolor="#FFFFFF" height="25" align="center">
-                <td>對保單位主管</td>
+
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td width="150" align="right" bgcolor="#CCCCFF">案件單位</td>
+                <td width="500" align="left">
+                    <input type="text" name="case_com" size="15" maxlength="10" class="box" value="">
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td width="150" align="right" bgcolor="#CCCCFF">對保單位</td>
+                <td width="500" align="left">
+                    <input type="text" required name="agency_com" size="15" maxlength="10" class="box" value="">
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td width="150" align="right" bgcolor="#CCCCFF">案件AO / 電話</td>
+                <td width="500" align="left">
+                    <input type="text" name="case_text" size="35" maxlength="35" class="box" value="">
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td align="right" bgcolor="#CCCCFF">客戶姓名 / 電話</td>
+                <td align="left">
+                    <input type="text" name="CS_text" size="10" maxlength="100" class="box" value="">
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td align="right" bgcolor="#CCCCFF">對保日期 / 時間</td>
+                <td align="left">
+                    <input type="text" name="check_date" size="55" maxlength="55" class="box" value="">
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td align="right" bgcolor="#CCCCFF">對保地點</td>
+                <td align="left">
+                    <input type="text" name="check_address" size="15" maxlength="15" class="box" value="">
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td align="right" bgcolor="#CCCCFF">核貸金額</td>
+                <td align="left">
+                    <input type="text" name="pass_amount" size="55" maxlength="55" class="box" value="">
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td align="right" bgcolor="#CCCCFF">本票及設定金額</td>
+                <td align="left">
+                    <input type="text" name="set_amount" size="15" maxlength="15" class="box" value="">
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td align="right" bgcolor="#CCCCFF">需影印資料</td>
+                <td align="left">
+                    <input type="text" name="print_data" size="15" maxlength="15" class="box" value="">
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td align="right" bgcolor="#CCCCFF">代收資料</td>
+                <td align="left">
+                    <input type="text" name="get_data" size="15" maxlength="15" class="box" value="">
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td align="right" bgcolor="#CCCCFF">車馬費</td>
+                <td align="left">
+                    <input type="text" name="process_charge" size="15" maxlength="15" class="box" value="">
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td align="right" bgcolor="#CCCCFF">備註</td>
+                <td align="left">
+                    <input type="text" name="AG_note" size="15" maxlength="15" class="box" value="">
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td align="right" bgcolor="#CCCCFF">對保單位主管</td>
                 <td align="left">
                     <input type="text" name="check_leader_num" id="U_leader_1_num" size="10" maxlength="10" class="box" value="" readonly="">
                     <input type="text" name="check_leader_name" id="U_leader_1_name" size="10" maxlength="10" class="box" value="" readonly="">
                     <input type="button" value="..." name="_select_user_one" onclick="openUserOne('leader1')">
                 </td>
             </tr>
-            <tr class="12-k" bgcolor="#FFFFFF" height="25" align="center">
-                <td>對保人員</td>
+            <tr class="c12-k" bgcolor="#FFFFFF" id="tr_check_process_num">
+                <td align="right" bgcolor="#CCCCFF">對保人員</td>
                 <td align="left">
                     <input type="text" name="check_process_num" id="U_num" size="10" maxlength="10" class="box" value="" readonly="">
                     <input type="text" name="check_process_name" id="U_name" size="10" maxlength="10" class="box" value="" readonly="">
@@ -88,8 +107,8 @@
                     <label id="set_process_date"></label>
                 </td>
             </tr>
-            <tr class="12-k" bgcolor="#FFFFFF" height="25" align="center">
-                <td>對保處理進度</td>
+            <tr class="c12-k" bgcolor="#FFFFFF" id="tr_check_process_type">
+                <td align="right" bgcolor="#CCCCFF">對保處理進度</td>
                 <td align="left">
                     <div id="divCheck_process_type">
                         <input type="radio" name="check_process_type" value="N" />尚未對保
@@ -98,25 +117,23 @@
                     <label id="check_process_date"></label>
                 </td>
             </tr>
-
-            <tr class="12-k" bgcolor="#FFFFFF" height="25" align="center" id="tr_check_process_note">
-                <td>對保備註</td>
+            <tr class="c12-k" bgcolor="#FFFFFF" id="tr_check_process_note">
+                <td align="right" bgcolor="#CCCCFF">對保說明</td>
                 <td align="left">
-                    <input type="text" id="check_process_note" name="check_process_note" size="15" style="width:580px;" maxlength="100" class="box" value="">
+                    <input type="text" id="check_process_note" name="check_process_note" size="15" maxlength="15" class="box" value="">
                     <label id="lbCheck_process_note"></label>
                 </td>
             </tr>
-            <tr class="c12-k" bgcolor="#FFFFFF" id="tr_close_type" height="25" align="center">
-                <td align="left">是否結案</td>
+            <tr class="c12-k" bgcolor="#FFFFFF" id="tr_close_type">
+                <td align="right" bgcolor="#CCCCFF">是否結案</td>
                 <td align="left">
                     <input type="radio" name="close_type" value="N" />未結案
                     <input type="radio" name="close_type" value="Y" />已結案 ／ 日期：
                 </td>
             </tr>
-
-            <tr class="14-k" bgcolor="#FFFFFF" height="35" align="center">
-                <td align="center" colspan="2">
-                    <input type="button" name="btnSave" value="確定修改" onclick="saveData();" />
+            <tr class="c12-k" bgcolor="#CCCCFF" height="30">
+                <td colspan="2" align="center">
+                    <input type="button" name="btnSave" value="儲存" onclick="saveData();" />
                 </td>
             </tr>
         </tbody>
@@ -151,58 +168,19 @@
                 .then(response => {
                     if (response.resultCode === '000') {
                         const data = JSON.parse(response.objResult)[0];
-                        $("input[name='AG_id']").val(data.AG_id);
-                        $("input[name='case_com']").val(data.case_com);
-                        $("input[name='agency_com']").val(data.agency_com);
-                        $("input[name='case_text']").val(data.case_text);
-                        $("input[name='CS_text']").val(data.CS_text);
-                        $("input[name='check_date']").val(data.check_date);
-                        $("input[name='check_address']").val(data.check_address);
-                        $("input[name='pass_amount']").val(data.pass_amount);
-                        $("input[name='set_amount']").val(data.set_amount);
-                        $("input[name='print_data']").val(data.print_data);
-                        $("input[name='get_data']").val(data.get_data);
-                        $("input[name='process_charge']").val(data.process_charge);
-                        $('textarea#AG_note').val(data.AG_note);
-                        
-                        $("input[name='check_leader_num']").val(data.check_leader_num);
-                        $("input[name='check_leader_name']").val(data.check_leader_name);
-                        $("input[name='check_process_num']").val(data.check_process_num);
-                        $("input[name='check_process_name']").val(data.check_process_name);
-                        Before_check_process_num = data.check_process_num ? data.check_process_num : '';
-                        $("input[name='check_process_note']").val(data.check_process_note);
-                        
-                        
-                        
-                        document.getElementById('lbCheck_process_note').innerHTML = data.check_process_note;
-
-                        Before_check_process_type = data.check_process_type;
-                        let lbcheck_process_type;
-                        if (data.check_process_type === 'Y') {
-                            lbcheck_process_type = '對保完成';
-                            $("input[name='check_process_type'][value='Y']").prop('checked', true);
-                        } else {
-                            lbcheck_process_type = '尚未對保';
-                            $("input[name='check_process_type'][value='N']").prop('checked', true);
-                        }
-
-                        if (data.close_type === 'Y')
-                            $("input[name='close_type'][value='Y']").prop('checked', true);
-                        else
-                            $("input[name='close_type'][value='N']").prop('checked', true);
-
-                        if (data.check_process_date) {
-                            document.getElementById('check_process_date').innerHTML = `${lbcheck_process_type} / 日期：${data.check_process_date}`;
-                        }
-
-                        if (data.set_process_date) {
-                            document.getElementById('set_process_date').innerHTML = `分配日期:${data.set_process_date}`;
-                        }
-                        
-                        $("input[name='close_date']").val(data.close_date);
-
-                        
-
+                        $("input[name='Comp_Id']").val(data.Comp_Id);
+                        $("input[name='CS_name']").val(data.CS_name);
+                        $("input[name='Sales_num']").val(data.Sales_num);
+                        $("input[name='Complaint']").val(data.Complaint);
+                        $("input[name='CompDate']").val(data.CompDate);
+                        $("input[name='CompTime']").val(data.CompTime);
+                        $("input[name='Remark']").val(data.Remark);
+                        $("input[name='add_date']").val(data.add_date);
+                        $("input[name='add_num']").val(data.add_num);
+                        $("input[name='edit_date']").val(data.edit_date);
+                        $("input[name='edit_num']").val(data.edit_num);
+                        $("input[name='del_date']").val(data.del_date);
+                        $("input[name='del_num']").val(data.del_num);
                     } else {
                         alert(response.resultMsg);
                     }
@@ -246,7 +224,7 @@
             print_data: $("input[name='print_data']").val(),
             get_data: $("input[name='get_data']").val(),
             process_charge: $("input[name='process_charge']").val(),
-            AG_note: $('textarea#AG_note').val(),
+            AG_note: $("input[name='AG_note']").val(),
             check_leader_num: $("input[name='check_leader_num']").val(),
             check_process_num: $("input[name='check_process_num']").val(),
             set_process_date: spdate,

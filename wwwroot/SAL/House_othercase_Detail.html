@@ -6,91 +6,89 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <link href="../_include/main.css" rel="stylesheet" type="text/css">
     <script src="../Base.js"></script>
     <title>作業平台</title>
+
 </head>
 <body>
     <table width="650" border="0" cellspacing="1" cellpadding="2" bgcolor="#999999">
         <tbody>
-            <tr class="c12-k" bgcolor="#CCCCFF">
-                <td colspan="2" align="center">
-                    <span class="c14k">車貸建檔</span>
-                </td>
+        <tbody>
+            <tr class="c12-k" bgcolor="#CCCCFF" height="30">
+                <td colspan="2" align="center"><span class="c14k">車貸建檔</span></td>
             </tr>
-
             <tr class="c12-k" bgcolor="#FFFFFF">
                 <td width="150" align="right" bgcolor="#CCCCFF">放款公司</td>
-                <td width="500" align="left">
-                    <input type="text" name="show_fund_company" size="15" maxlength="10" class="box" value="">
+                <td width="440" align="left">
+                    <input type="text" id="show_fund_company" name="show_fund_company" size="40" maxlength="50" class="box LogData" value="">
                 </td>
             </tr>
             <tr class="c12-k" bgcolor="#FFFFFF">
                 <td width="150" align="right" bgcolor="#CCCCFF">專案名稱</td>
-                <td width="500" align="left">
-                    <input type="text" required name="show_project_title" size="15" maxlength="10" class="box" value="">
+                <td width="440" align="left">
+                    <input type="text" id="show_project_title" name="show_project_title" size="40" maxlength="50" class="box LogData" value="">
                 </td>
             </tr>
             <tr class="c12-k" bgcolor="#FFFFFF">
-                <td width="150" align="right" bgcolor="#CCCCFF">客戶</td>
-                <td width="500" align="left">
-                    <input type="text" name="cs_name" size="35" maxlength="35" class="box" value="">
-                </td>
+                <td align="right" bgcolor="#CCCCFF">客戶名稱</td>
+                <td align="left"><input type="text" id="cs_name" name="cs_name" size="20" maxlength="10" class="box" value=""></td>
             </tr>
             <tr class="c12-k" bgcolor="#FFFFFF">
                 <td align="right" bgcolor="#CCCCFF">客戶ID</td>
-                <td align="left">
-                    <input type="text" name="cs_id" size="10" maxlength="100" class="box" value="">
-                </td>
+                <td align="left"><input type="text" id="cs_id" name="cs_id" size="20" maxlength="10" class="box" value=""></td>
             </tr>
             <tr class="c12-k" bgcolor="#FFFFFF">
                 <td align="right" bgcolor="#CCCCFF">撥款金額(萬)</td>
-                <td align="left">
-                    <input type="text" required name="get_amount" size="55" maxlength="55" class="box" value="">
-                </td>
+                <td align="left"><input type="text" id="get_amount" name="get_amount" size="3" maxlength="3" class="box LogData" value="">(萬)</td>
             </tr>
             <tr class="c12-k" bgcolor="#FFFFFF">
                 <td align="right" bgcolor="#CCCCFF">佣金</td>
-                <td align="left">
-                    <input type="text" name="comm_amt" size="15" maxlength="15" class="box" value="">
-                </td>
+                <td align="left"><input type="text" id="comm_amt" name="comm_amt" size="10" maxlength="10" class="box LogData" value=""></td>
             </tr>
             <tr class="c12-k" bgcolor="#FFFFFF">
                 <td align="right" bgcolor="#CCCCFF">期數</td>
-                <td align="left">
-                    <input type="text" name="period" size="55" maxlength="55" class="box" value="">
-                </td>
+                <td align="left"><input type="text" id="period" name="period" size="5" maxlength="5" class="box" value=""></td>
             </tr>
             <tr class="c12-k" bgcolor="#FFFFFF">
                 <td align="right" bgcolor="#CCCCFF">承作利率</td>
-                <td align="left">
-                    <input type="text" name="interest_rate_pass" size="15" maxlength="15" class="box" value="">
-                </td>
-            </tr>
-            <tr class="c12-k" bgcolor="#FFFFFF">
-                <td align="right" bgcolor="#CCCCFF">撥款日期</td>
-                <td align="left">
-                    <input type="text" name="get_amount_date" class="datepicker" value="" style="width:80px;">
-                </td>
-            </tr>
-            <tr class="c12-k" bgcolor="#FFFFFF">
-                <td align="right" bgcolor="#CCCCFF">備註</td>
-                <td align="left">
-                    <input type="text" name="case_remark" size="15" maxlength="15" class="box" value="">
-                </td>
+                <td align="left"><input type="text" id="interest_rate_pass" name="interest_rate_pass" size="5" maxlength="10" class="box LogData" value="">%</td>
             </tr>
 
             <tr class="c12-k" bgcolor="#FFFFFF">
-                <td align="right" bgcolor="#CCCCFF">經辦業務</td>
+                <td align="right" bgcolor="#CCCCFF">撥款日期</td>
                 <td align="left">
+                    <input type="text" class="text_box_1" id="get_amount_date" name="get_amount_date" size="10" maxlength="10" style="width:100px;" value="" readonly="">
+                    <input type="button" value="..." name="btn_Date" onclick="getdate_YMD_onclick('get_amount_date','../_include/');">
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td width="150" align="right" bgcolor="#CCCCFF">備註</td>
+                <td width="440" align="left">
+                    <input type="text" id="case_remark" name="case_remark" size="40" maxlength="50" class="box" value="">
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td width="150" align="right" bgcolor="#CCCCFF">經辦業務</td>
+                <td width="440" align="left">
                     <input type="text" name="plan_num" id="U_num" size="10" maxlength="10" class="box" value="" readonly="">
                     <input type="text" name="plan_name" id="U_name" size="10" maxlength="10" class="box" value="" readonly="">
                     <input type="button" value="..." name="_select_user_one" onclick="openUserOne('appUser')">
+                    <input type="hidden" name="plan_num" id="plan_num" value="">
+                </td>
+            </tr>
+
+            <tr class="c12-k" style="display:none" bgcolor="#FFFFFF">
+                <td width="150" align="right" bgcolor="#CCCCFF">核准函</td>
+                <td width="440" align="left">
+
+                    <input type="button" class="btn" value="附加檔案 ( 0 )" name="ASP_UpLoad" onclick="javascript:window.open('../ASP_UpLoad/ASP_UpLoad_List.asp?cknum=','_file_list','scrollbars=yes,resizable=no,width=725,height=400,top=300,left=150');">
                 </td>
             </tr>
             <tr class="c12-k" bgcolor="#CCCCFF" height="30">
                 <td colspan="2" align="center">
                     <input type="hidden" name="confirm_num" id="confirm_num" value="">
-                    <input type="button" value="儲存" onclick="saveData();" />
+                    <input type="button" class="btn" value="儲存" onclick="saveData();" />
                 </td>
             </tr>
         </tbody>

@@ -1,0 +1,29 @@
+<%
+function replace_str(rep_str)
+	'rep_str = trim(Lcase(rep_str))
+	rep_str = trim(rep_str)
+	'replace_txt = "select ,insert ,update ,create ,alter ,where ,drop ,table ,script ,[,],;,'"
+	replace_txt = "select ,insert ,update ,create ,alter ,where ,drop ,table ,script"
+	replace_arr = split(replace_txt,",")
+	for FF = lbound(replace_arr) to ubound(replace_arr)
+		rep_str = replace(rep_str,replace_arr(FF),"")	
+	next
+	rep_str = replace(rep_str,"'","¡¦")
+	rep_str = replace(rep_str,"""","¡¨")
+	rep_str = replace(rep_str,"(","¡]")
+	rep_str = replace(rep_str,")","¡^")
+	rep_str = replace(rep_str,";","")
+	rep_str = replace(rep_str,"-","¡Ğ")
+	rep_str = replace(rep_str,"|","¡U")
+	rep_str = replace(rep_str,">","¡Ö")
+	rep_str = replace(rep_str,"<","¡Õ")
+	rep_str = replace(rep_str,"%","¢H")
+	replace_str = rep_str
+end function
+
+conn_Open_str = "Driver={SQL Server};Server=(local);UID=sa;PWD=juestcho;database=AE_DB"
+
+'conn_Open_str = "Driver={SQL Server};Server=MSSQL2014;UID=sa;PWD=juestcho;database=AE_DB"
+
+	 
+%>

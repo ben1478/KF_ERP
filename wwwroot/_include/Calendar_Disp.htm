@@ -1,0 +1,323 @@
+<HTML><HEAD><TITLE>Calendar</TITLE>
+<META http-equiv=Content-Type content="text/html; charset=big5">
+<STYLE>.DayN {
+	BORDER-RIGHT: rgb(192,192,192) 2px solid; BORDER-TOP: rgb(192,192,192) 2px solid; FONT-WEIGHT: bold; FONT-SIZE: 11px; VERTICAL-ALIGN: middle; BORDER-LEFT: rgb(192,192,192) 2px solid; COLOR: rgb(0,0,0); BORDER-BOTTOM: rgb(192,192,192) 2px solid; FONT-FAMILY: Arial; BACKGROUND-COLOR: rgb(192,192,192); TEXT-ALIGN: center
+}
+.DayU {
+	BORDER-RIGHT: rgb(255,255,255) 2px outset; BORDER-TOP: rgb(255,255,255) 2px outset; FONT-WEIGHT: bold; FONT-SIZE: 11px; VERTICAL-ALIGN: middle; BORDER-LEFT: rgb(255,255,255) 2px outset; COLOR: rgb(255,255,255); BORDER-BOTTOM: rgb(255,255,255) 2px outset; FONT-FAMILY: Arial; BACKGROUND-COLOR: rgb(128,128,128); TEXT-ALIGN: center
+}
+.DayD {
+	BORDER-RIGHT: rgb(255,255,255) 2px inset; BORDER-TOP: rgb(255,255,255) 2px inset; FONT-WEIGHT: bold; FONT-SIZE: 11px; VERTICAL-ALIGN: middle; BORDER-LEFT: rgb(255,255,255) 2px inset; COLOR: rgb(0,0,0); BORDER-BOTTOM: rgb(255,255,255) 2px inset; FONT-FAMILY: Arial; BACKGROUND-COLOR: rgb(255,255,255); TEXT-ALIGN: center
+}
+.WeekDay {
+	BORDER-RIGHT: rgb(255,255,255) 1px solid; BORDER-TOP: rgb(255,255,255) 1px solid; FONT-WEIGHT: bold; FONT-SIZE: 11px; VERTICAL-ALIGN: middle; BORDER-LEFT: rgb(255,255,255) 1px solid; COLOR: rgb(255,255,255); FONT-FAMILY: Arial; BACKGROUND-COLOR: #000000; TEXT-ALIGN: center
+}
+.WeekEnd {
+	BORDER-RIGHT: rgb(255,255,255) 1px solid; BORDER-TOP: rgb(255,255,255) 1px solid; FONT-WEIGHT: bold; FONT-SIZE: 11px; VERTICAL-ALIGN: middle; BORDER-LEFT: rgb(255,255,255) 1px solid; COLOR: rgb(255,255,255); FONT-FAMILY: Arial; BACKGROUND-COLOR: green; TEXT-ALIGN: center
+}
+.ArrowN {
+	BORDER-RIGHT: rgb(128,128,128) 2px solid; BORDER-TOP: rgb(128,128,128) 2px solid; FONT-WEIGHT: bold; FONT-SIZE: 13px; VERTICAL-ALIGN: middle; BORDER-LEFT: rgb(128,128,128) 2px solid; COLOR: rgb(255,255,255); BORDER-BOTTOM: rgb(128,128,128) 2px solid; FONT-FAMILY: Arial; BACKGROUND-COLOR: rgb(128,128,128); TEXT-ALIGN: center
+}
+.ArrowU {
+	BORDER-RIGHT: rgb(255,255,255) 2px outset; BORDER-TOP: rgb(255,255,255) 2px outset; FONT-WEIGHT: bold; FONT-SIZE: 13px; VERTICAL-ALIGN: middle; BORDER-LEFT: rgb(255,255,255) 2px outset; COLOR: rgb(255,255,255); BORDER-BOTTOM: rgb(255,255,255) 2px outset; FONT-FAMILY: Arial; BACKGROUND-COLOR: rgb(128,128,128); TEXT-ALIGN: center
+}
+.ArrowD {
+	BORDER-RIGHT: rgb(255,255,255) 2px inset; BORDER-TOP: rgb(255,255,255) 2px inset; FONT-WEIGHT: bold; FONT-SIZE: 13px; VERTICAL-ALIGN: middle; BORDER-LEFT: rgb(255,255,255) 2px inset; COLOR: rgb(255,255,255); BORDER-BOTTOM: rgb(255,255,255) 2px inset; FONT-FAMILY: Arial; BACKGROUND-COLOR: rgb(192,192,192); TEXT-ALIGN: center
+}
+.DateSelect {
+	FONT-WEIGHT: bold; FONT-SIZE: 11px; FONT-FAMILY: Arial; BACKGROUND-COLOR: rgb(192,192,192); TEXT-ALIGN: right
+}
+</STYLE>
+
+<META content="MSHTML 6.00.2800.1400" name=GENERATOR></HEAD>
+<BODY bgColor=#ffffff leftMargin=0 topMargin=0>
+<TABLE onselectstart="return false;" id=tblCal style="BORDER-RIGHT: rgb(0,0,0) 1px solid; BORDER-TOP: rgb(0,0,0) 1px solid; FONT-SIZE: 11px; BORDER-LEFT: rgb(0,0,0) 1px solid; CURSOR: hand; BORDER-BOTTOM: rgb(0,0,0) 1px solid; BACKGROUND-COLOR: rgb(192,192,192)" height="100%" cellSpacing=0 cellPadding=0 width="100%" border=0>
+  <TR>
+    <TD class=ArrowN id=celBack align=middle bgColor=#808080>&lt;</TD>
+    <TD id=celMonth style="VERTICAL-ALIGN: middle" align=middle colSpan=5>
+      <TABLE cellSpacing=0 cellPadding=0 align=center border=0>
+        <TR>
+          <TD width=68>
+            <DIV style="CLIP: rect(2px 45px 16px 2px); POSITION: absolute; TOP: 3px">
+            <P>
+              <SELECT class=DateSelect style="TEXT-ALIGN: right" onchange=selMonthYear(); size=1 name=selMonth>
+                <OPTION value=January selected>一月</OPTION>
+                <OPTION value=February>二月</OPTION>
+                <OPTION value=March>三月</OPTION>
+                <OPTION value=April>四月</OPTION>
+                <OPTION value=May>五月</OPTION>
+                <OPTION value=June>六月</OPTION>
+                <OPTION value=July>七月</OPTION>
+                <OPTION value=August>八月</OPTION>
+                <OPTION value=September>九月</OPTION>
+                <OPTION value=October>十月</OPTION>
+                <OPTION value=November>十一月</OPTION>
+                <OPTION value=December>十二月</OPTION>
+              </SELECT>
+            </P>
+            </DIV>
+          </TD>
+          <TD width=30>
+            <DIV style="CLIP: rect(2px 28px 16px 2px); POSITION: absolute; TOP: 3px">
+            <P>
+              <SELECT class=DateSelect style="TEXT-ALIGN: right" onchange=selMonthYear(); size=1 name=selYear>
+              </SELECT>
+            </P>
+            </DIV>
+          </TD>
+        </TR>
+      </TABLE>
+    </TD>
+    <TD class=ArrowN id=celNext align=middle bgColor=#808080>&gt;</TD></TR>
+  <TR>
+    <TD class=WeekEnd style="VERTICAL-ALIGN: middle; COLOR: rgb(255,255,255); BACKGROUND-COLOR: rgb(255,0,0)" align=middle width="14%" bgColor=#ffff99>日</TD>
+    <TD class=WeekDay style="VERTICAL-ALIGN: middle" align=middle width="14%">一</TD>
+    <TD class=WeekDay style="VERTICAL-ALIGN: middle" align=middle width="14%">二</TD>
+    <TD class=WeekDay style="VERTICAL-ALIGN: middle" align=middle width="14%">三</TD>
+    <TD class=WeekDay style="VERTICAL-ALIGN: middle" align=middle width="14%">四</TD>
+    <TD class=WeekDay style="VERTICAL-ALIGN: middle" align=middle width="14%">五</TD>
+    <TD class=WeekEnd style="VERTICAL-ALIGN: middle; COLOR: #ffffff; BACKGROUND-COLOR: #008000" align=middle width="14%">六</TD></TR>
+  <TR>
+    <TD class=DayN id=d1 style="VERTICAL-ALIGN: middle" align=middle width="14%"></TD>
+    <TD class=DayN id=d2 style="VERTICAL-ALIGN: middle" align=middle width="14%"></TD>
+    <TD class=DayN id=d3 style="VERTICAL-ALIGN: middle" align=middle width="14%"></TD>
+    <TD class=DayN id=d4 style="VERTICAL-ALIGN: middle" align=middle width="14%"></TD>
+    <TD class=DayN id=d5 style="VERTICAL-ALIGN: middle" align=middle width="14%"></TD>
+    <TD class=DayN id=d6 style="VERTICAL-ALIGN: middle" align=middle width="14%"></TD>
+    <TD class=DayN id=d7 style="VERTICAL-ALIGN: middle" align=middle width="14%"></TD></TR>
+  <TR>
+    <TD class=DayN id=d8 style="VERTICAL-ALIGN: middle" align=middle width="14%"></TD>
+    <TD class=DayN id=d9 style="VERTICAL-ALIGN: middle" align=middle width="14%"></TD>
+    <TD class=DayN id=d10 style="VERTICAL-ALIGN: middle" align=middle width="14%"></TD>
+    <TD class=DayN id=d11 style="VERTICAL-ALIGN: middle" align=middle width="14%"></TD>
+    <TD class=DayN id=d12 style="VERTICAL-ALIGN: middle" align=middle width="14%"></TD>
+    <TD class=DayN id=d13 style="VERTICAL-ALIGN: middle" align=middle width="14%"></TD>
+    <TD class=DayN id=d14 style="VERTICAL-ALIGN: middle" align=middle width="14%"></TD></TR>
+  <TR>
+    <TD class=DayN id=d15 style="VERTICAL-ALIGN: middle" align=middle width="14%"></TD>
+    <TD class=DayN id=d16 style="VERTICAL-ALIGN: middle" align=middle width="14%"></TD>
+    <TD class=DayN id=d17 style="VERTICAL-ALIGN: middle" align=middle width="14%"></TD>
+    <TD class=DayN id=d18 style="VERTICAL-ALIGN: middle" align=middle width="14%"></TD>
+    <TD class=DayN id=d19 style="VERTICAL-ALIGN: middle" align=middle width="14%"></TD>
+    <TD class=DayN id=d20 style="VERTICAL-ALIGN: middle" align=middle width="14%"></TD>
+    <TD class=DayN id=d21 style="VERTICAL-ALIGN: middle" align=middle width="14%"></TD></TR>
+  <TR>
+    <TD class=DayN id=d22 style="VERTICAL-ALIGN: middle" align=middle width="14%"></TD>
+    <TD class=DayN id=d23 style="VERTICAL-ALIGN: middle" align=middle width="14%"></TD>
+    <TD class=DayN id=d24 style="VERTICAL-ALIGN: middle" align=middle width="14%"></TD>
+    <TD class=DayN id=d25 style="VERTICAL-ALIGN: middle" align=middle width="14%"></TD>
+    <TD class=DayN id=d26 style="VERTICAL-ALIGN: middle" align=middle width="14%"></TD>
+    <TD class=DayN id=d27 style="VERTICAL-ALIGN: middle" align=middle width="14%"></TD>
+    <TD class=DayN id=d28 style="VERTICAL-ALIGN: middle" align=middle width="14%"></TD></TR>
+  <TR>
+    <TD class=DayN id=d29 style="VERTICAL-ALIGN: middle" align=middle width="14%"></TD>
+    <TD class=DayN id=d30 style="VERTICAL-ALIGN: middle" align=middle width="14%"></TD>
+    <TD class=DayN id=d31 style="VERTICAL-ALIGN: middle" align=middle width="14%"></TD>
+    <TD class=DayN id=d32 style="VERTICAL-ALIGN: middle" align=middle width="14%"></TD>
+    <TD class=DayN id=d33 style="VERTICAL-ALIGN: middle" align=middle width="14%"></TD>
+    <TD class=DayN id=d34 style="VERTICAL-ALIGN: middle" align=middle width="14%"></TD>
+    <TD class=DayN id=d35 style="VERTICAL-ALIGN: middle" align=middle width="14%"></TD></TR>
+  <TR>
+    <TD class=DayN id=d36 style="VERTICAL-ALIGN: middle" align=middle width="14%"></TD>
+    <TD class=DayN id=d37 style="VERTICAL-ALIGN: middle" align=middle width="14%"></TD>
+    <TD class=DayN id=d38 style="VERTICAL-ALIGN: middle" align=middle width="14%"></TD>
+    <TD class=DayN id=d39 style="VERTICAL-ALIGN: middle" align=middle width="14%"></TD>
+    <TD class=DayN id=d40 style="VERTICAL-ALIGN: middle" align=middle width="14%"></TD>
+    <TD class=DayN id=d41 style="VERTICAL-ALIGN: middle" align=middle width="14%"></TD>
+    <TD class=DayN id=d42 style="VERTICAL-ALIGN: middle" align=middle width="14%"></TD></TR>
+</TABLE>
+<P>
+<SCRIPT language=JavaScript>
+<!--
+var dCurDate = "";
+var objTemp;
+
+window.onload = initWindow;
+window.onerror = doError;
+document.onmouseover = raiseCel;
+document.onmouseout = sinkCel;
+document.onmousedown = mdCel;
+document.onmouseup = muCel;
+
+function doError()
+{
+	alert(arguments[0]);
+}
+function initWindow()
+{
+	var dNow = new Date();
+	setDateSelect();
+	updateCal(dNow);
+	displayMonthYear(dNow);
+}
+function public_setDate(sDate)
+{
+	dCurDate = "";
+	objTemp = "";
+	var dNow = new Date(sDate);
+	dCurDate = dNow;
+	if (dNow == "NaN") {dNow = new Date(); dCurDate = "";}
+	
+	displayMonthYear(dNow);
+	updateCal(dNow);
+}
+function setDay(sDay)
+{
+	sMonth = selMonth.options[selMonth.selectedIndex].value;
+	sYear = selYear.value
+	window.external.raiseEvent("ondatechange",sMonth + " " + sDay + ", " + sYear);
+}
+function displayMonthYear(dDate)
+{
+	iYear = dDate.getFullYear();
+	selYear.value = iYear;
+	if (selYear.value == "")
+	{
+		objNewOpt = document.createElement("OPTION");
+		objNewOpt.text = iYear;
+		objNewOpt.value = iYear;
+		if (iYear > parseInt(selYear.options[0].value)) iPos = 0;
+			else iPos = selYear.options.length + 1;
+		selYear.options.add(objNewOpt,iPos);
+		selYear.value = iYear;
+	}
+	selMonth.selectedIndex = dDate.getMonth();
+}
+function selMonthYear()
+{
+	dDate = new Date(selYear.value, selMonth.selectedIndex, 1);
+	updateCal(dDate);
+}
+
+function setDateSelect()
+{
+	dNow = new Date();
+	iScrap = dNow.getFullYear();
+	for (i=-6; i<75; i++)
+	{
+		objNewOpt = document.createElement("OPTION");
+		objNewOpt.text = (iScrap - i);
+		objNewOpt.value = (iScrap - i);
+		selYear.options.add(objNewOpt);
+	}
+}
+
+function raiseCel()
+{
+	objItem = window.event.srcElement;
+	if (objItem.className == "DayN")
+		if (objItem.innerText != "") objItem.className = "DayU";
+	if (objItem.className == "ArrowN") objItem.className = "ArrowU";
+}
+
+function sinkCel()
+{
+	objItem = window.event.srcElement;
+	if (objItem.className == "DayU") objItem.className = "DayN";
+	if (objItem.className == "ArrowU") objItem.className = "ArrowN";
+}
+
+function mdCel()
+{
+	objTemp = "";
+	sCel = window.event.srcElement;
+	if (sCel.className == "DayU") {sCel.className = "DayD"; objTemp = sCel;}
+	if (sCel.className == "ArrowU") sCel.className = "ArrowD";
+}
+
+function muCel()
+{
+	sCel = window.event.srcElement;
+	if (sCel.className == "ArrowD")
+	{
+		sCel.className = "ArrowU";
+		if (sCel.id == "celBack")
+		{
+			dDate = dateAdd("m", -1, new Date(selYear.value, selMonth.selectedIndex, 1));
+			displayMonthYear(dDate);
+			updateCal(dDate);
+		}
+		if (sCel.id == "celNext")
+		{
+			dDate = dateAdd("m", 1, new Date(selYear.value, selMonth.selectedIndex, 1));
+			displayMonthYear(dDate);
+			updateCal(dDate);
+		}
+	}
+	if (sCel.className == "DayD") setDay(sCel.innerText);
+	if (objTemp != "") objTemp.className = "DayN";
+}
+function updateCal(dDate)
+{
+	iMonth = dDate.getMonth();
+	iYear = dDate.getFullYear();
+	iDay = dDate.getDate();
+
+	dStart = new Date(iYear, iMonth, 1);
+	dEnd = dateAdd("m", 1, dStart);
+
+	iDays = dateDiff("d", dStart, dEnd);
+	iStartDay = (dStart.getDay() + 1);
+	
+	for (i = 1;  i < 43; i++) {
+		sScrap = "d" + i
+		objItem = document.all[sScrap];
+		if (objItem.className == "DayD") objItem.className = "DayN";
+
+		if ((i < iStartDay) || ((i - iStartDay + 1) > iDays)) objItem.innerText = "";
+				else objItem.innerText = (i - iStartDay + 1);
+   }
+
+	if (dCurDate != "")
+		if ((dCurDate.getMonth() == dDate.getMonth()) && (dCurDate.getFullYear() == dDate.getFullYear()))
+			document.all("d" + (iStartDay - 1 + dCurDate.getDate())).className = "DayD";
+}
+function dateAdd(sInterval, iNumber, dDate)
+{
+	dTemp = new Date(dDate);
+	if (dTemp == "NaN") dTemp = new Date();
+	switch (sInterval) {
+		case "s" :
+			return new Date(Date.parse(dTemp) + (1000 * iNumber));
+		case "n" :
+			return new Date(Date.parse(dTemp) + (60000 * iNumber));
+		case "h" :
+			return new Date(Date.parse(dTemp) + (3600000 * iNumber));
+		case "d" :
+			return new Date(Date.parse(dTemp) + (86400000 * iNumber));
+		case "w" :
+			return new Date(Date.parse(dTemp) + ((86400000 * 7) * iNumber));
+		case "m" :
+			return new Date(dTemp.getFullYear(), (dTemp.getMonth()) + iNumber, dTemp.getDate());
+		case "y" :
+			return new Date((dTemp.getFullYear() + iNumber), dTemp.getMonth(), dTemp.getDate());
+	}
+}
+function dateDiff(sInterval, dStart, dEnd)
+{
+	dStart = new Date(dStart);
+		if (dStart == "NaN") dStart = new Date();
+	dEnd = new Date(dEnd);
+		if (dEnd == "NaN") dEnd = new Date();
+	switch (sInterval) {
+		case "s" :
+			return parseInt((Date.parse(dEnd) - Date.parse(dStart)) / 1000);
+		case "n" :
+			return parseInt((Date.parse(dEnd) - Date.parse(dStart)) / 60000);
+		case "h" :
+			return parseInt((Date.parse(dEnd) - Date.parse(dStart)) / 3600000);
+		case "d" :
+			iScrap = (Date.parse(dEnd) - Date.parse(dStart)) / 86400000
+			iScrap = iScrap + .1
+			return parseInt(iScrap);
+		case "w" :
+			return parseInt((Date.parse(dEnd) - Date.parse(dStart)) / (86400000 * 7));
+		case "m" :
+			return (dEnd.getMonth() - dStart.getMonth());
+		case "y" :
+			return (dEnd.getFullYear() - dStart.getFullYear());
+	}
+}
+// -->
+</SCRIPT>
+</P></BODY></HTML>

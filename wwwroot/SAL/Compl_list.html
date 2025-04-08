@@ -6,40 +6,27 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
-    <link href="../_include/main.css" rel="stylesheet" type="text/css">
     <script src="../Base.js"></script>
     <title>作業平台</title>
 </head>
 <body>
     <table border="0" width="100%">
         <tbody>
-            <tr>
-                <td width="20">　</td>
-                <td width="230" height="24" background="../../image/title-bk.gif">
-                    <span class="c14k"><strong>委對單</strong></span>
-                </td>
-                <td width="770"></td>
-            </tr>
             <tr class="c12-k">
-                <td></td>
-                <td colspan="2">
-                    <table border="0" with="100%" id="table1">
-                        <tr class="c12-k">
-                            <td colspan="2" class="c12-k">
-                                委對單號：
-                                <input type="text" name="AG_ID" id="AG_ID" size="10" maxlength="10" class="box">
-                                &nbsp;
-                                申請日期：
-                                <input type="text" name="Date_S" size="10" maxlength="10" class="datepickerTW" value="">
-                                ~
-                                <input type="text" name="Date_E" size="10" maxlength="10" class="datepickerTW" value="">
-                                <br />
-                                <input type="button" value="查詢" onclick="fetchData();" />  &nbsp;
-                                <input type="button" name="add" value="新增委對單" onclick="add();">
-                            </td>
-                        </tr>
-                    </table>
-</tr>
+                
+                <td width="86%">
+                    業務部門：
+                    <input type="text" name="U_BC" id="U_BC" size="10" maxlength="10" class="box">
+                    &nbsp;
+                    客訴時間(年月)：
+                    <input type="text" name="Date_S" size="10" maxlength="10" class="datepickerTW" value="">
+                    ~
+                    <input type="text" name="Date_E" size="10" maxlength="10" class="datepickerTW" value="">
+                    <br />
+                    <input type="button" value="查詢" onclick="fetchData();" />  &nbsp;
+                    <input type="button" name="add" value="新增客訴資料" onclick="add();">
+                </td>
+            </tr>
         </tbody>
     </table>
     
@@ -51,18 +38,16 @@
                     <table id="MainTable" width="1050" border="0" cellpadding="4" cellspacing="1" bgcolor="#666666">
                         <thead>
                             <tr align="center" bgcolor="#CCCCFF" class="c12-k">
-                                <td width="90">委對單號</td>
-                                <td width="200">申請日期</td>
-                                <td width="50">序</td>
-                                <td width="80">申請人</td>
-                                <td width="100">案件單位</td>
-                                <td width="80">對保單位</td>
-                                <td width="100">對保單位主管</td>
-                                <td width="100">對保人員</td>
-                                <td width="100">對保處理進度</td>
-                                <td width="50">修改</td>
-                                <td width="100">是否結案</td>
-                                <td width="50">刪除</td>
+                                <td width="50">序號</td>
+                                <td width="100">客戶名稱</td>
+                                <td width="100">負責業務</td>
+                                <td width="80">業務部門</td>
+                                <td width="80">客訴事由</td>
+                                <td width="120">來電時間</td>
+                                <td width="60">備註</td>
+                                <td width="60">新增人</td>
+                                <td width="100">修改</td>
+                                <td width="60">刪除</td>
                             </tr>
                         </thead>
                         <tbody>
@@ -75,15 +60,6 @@
                                 </td>
                             </tr>
                         </tbody>
-                        <tfoot>
-                            <tr align="center" height="15" bgcolor="#CCCCFF">
-                                <td class="c12-k" colspan="15">
-                                    <font color="#000080">
-                                        <label id="CountRows"></label>
-                                    </font>
-                                </td>
-                            </tr>
-                        </tfoot>
                     </table>
                     <div id="pagination"></div>
                 </td>
@@ -123,12 +99,12 @@
 
     function fetchData() {
         let Req = {
-            AG_id: $("input[name='AG_ID']").val() || 0,
+            U_BC: $("input[name='U_BC']").val() || 0,
             Date_S: document.querySelector('input[name="Date_S"]').value,
             Date_E: document.querySelector('input[name="Date_E"]').value
         };
 
-        const url = `${BASE_URL}/AE_SAL/House_agency_LQuery`;
+        const url = `${BASE_URL}/AE_SAL/Complaint_LQuery`;
 
         fetch(url, {
             method: 'POST',
@@ -154,7 +130,6 @@
     }
 
     function showPage(page) {
-        document.getElementById('CountRows').innerHTML = `筆數:${data.length}`;
         const tbody = document.querySelector('#MainTable tbody');
         tbody.innerHTML = '';
 
@@ -170,7 +145,7 @@
             row.setAttribute('onmouseover', "this.style.background='#FCFCC0';");
             row.setAttribute('onmouseout', "this.style.background='#FFFFFF';");
 
-            const columnOrder = ['AG_id', 'add_date', 'add_name', 'case_com', 'agency_com', 'check_leader_name', 'check_process_name', 'check_process_type', 'Upd', 'close_type'];
+            const columnOrder = ['Comp_Id', 'CS_name', 'BC_name', 'Complaint', 'CompDate', 'Remark', 'add_name', 'Upd'];
 
             const serialCell = document.createElement('td');
             serialCell.textContent = startIndex + pageData.indexOf(item) + 1;
@@ -182,11 +157,9 @@
             for (let key of columnOrder) {
                 const cell = document.createElement('td');
                 switch (key) {
-                    case 'AG_id':
+                    case 'Comp_Id':
                         Id = item[key];
                         encryptedId = encryptParameter(Id);
-                        cell.textContent = Id;
-                        row.appendChild(cell);
                         break;
                     case 'check_process_name':
                         cell.textContent = item[key] ? item[key] : '未分配' ;
@@ -206,23 +179,14 @@
                         row.appendChild(cell);
                         break;
                     case 'Upd':
-                        
                         let encryptedOpt_Upd = encryptParameter('Upd');
                         row.appendChild(createButtonCell(
                             "../images/edit.png",
                             "修改",
                             function () {
-                                window.open(`House_agency_Detail.html?Id=${encryptedId}&User=${encryptedWebUser}&Opt=${encryptedOpt_Upd}`, '_blank', 'scrollbars=yes,resizable=yes,top=100,width=800,height=500');
+                                window.open(`Complaint_Upd.html?Id=${encryptedId}&User=${encryptedWebUser}&Opt=${encryptedOpt_Upd}`, '_blank', 'scrollbars=yes,resizable=yes,top=100,width=800,height=500');
                             }
                         ));
-                        break;
-                    case 'close_type':
-                        if (item[key] === 'N') {
-                            cell.textContent = '未結案';
-                        } else {
-                            cell.textContent = '結案';
-                        }
-                        row.appendChild(cell);
                         break;
                     default:
                         cell.textContent = item[key] || '';
@@ -234,7 +198,7 @@
                 "刪除",
                 function () {
                     if (Id !== '') {
-                        const url = `${BASE_URL}/AE_SAL/House_agency_Del?Id=${Id}`;
+                        const url = `${BASE_URL}/AE_SAL/Complaint_Del?Id=${Id}`;
                         fetch(url, {
                             method: 'DELETE',
                             headers: {
@@ -267,6 +231,6 @@
         let encryptedID = encryptParameter(id);
         let encryptedWebUser = encryptParameter(WebUser);
         let encryptedOpt_add = encryptParameter('add');
-        window.open(`House_agency_Detail.html?Id=${encryptedID}&User=${encryptedWebUser}&Opt=${encryptedOpt_add}`, '_blank', 'scrollbars=yes,resizable=yes,top=100,width=800,height=500');
+        window.open(`Complaint_Ins.html?Id=${encryptedID}&User=${encryptedWebUser}&Opt=${encryptedOpt_add}`, '_blank', 'scrollbars=yes,resizable=yes,top=100,width=800,height=500');
     }
 </script>
