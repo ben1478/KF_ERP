@@ -58,8 +58,7 @@
             <tr class="c12-k" bgcolor="#FFFFFF">
                 <td align="right" bgcolor="#CCCCFF">撥款日期</td>
                 <td align="left">
-                    <input type="text" class="text_box_1" id="get_amount_date" name="get_amount_date" size="10" maxlength="10" style="width:100px;" value="" readonly="">
-                    <input type="button" value="..." name="btn_Date" onclick="getdate_YMD_onclick('get_amount_date','../_include/');">
+                    <input type="text" name="get_amount_date" size="10" maxlength="10" class="datepickerTW" value="">
                 </td>
             </tr>
             <tr class="c12-k" bgcolor="#FFFFFF">
@@ -71,10 +70,9 @@
             <tr class="c12-k" bgcolor="#FFFFFF">
                 <td width="150" align="right" bgcolor="#CCCCFF">經辦業務</td>
                 <td width="440" align="left">
-                    <input type="text" name="plan_num" id="U_num" size="10" maxlength="10" class="box" value="" readonly="">
                     <input type="text" name="plan_name" id="U_name" size="10" maxlength="10" class="box" value="" readonly="">
                     <input type="button" value="..." name="_select_user_one" onclick="openUserOne('appUser')">
-                    <input type="hidden" name="plan_num" id="plan_num" value="">
+                    <input type="hidden" name="plan_num" id="U_num" value="">
                 </td>
             </tr>
 
@@ -205,9 +203,7 @@
                     if (response.resultCode === '000') {
                         alert('新增成功');
                         window.close();
-                        
-                        let locationUrl = BASE_WEB + '/House_othercase_list';
-                        if (window.opener.location.href === locationUrl) {
+                        if (window.opener) {
                             window.opener.location.reload();
                         }
                     } else {

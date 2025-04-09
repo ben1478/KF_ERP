@@ -111,12 +111,11 @@
     let currentPage = 1;
     let data = []; 
 
-    window.onload = function () {
         dateTW();
         loadBCDropdown();
         loadYearDown();
-        fetchData();
-    }
+        //console.log(`[window.onload] selYear_S = ${document.getElementById('selYear_S').value}`);
+
 
     function loadYearDown() {
         const url = `${BASE_URL}/AE_SAL/House_othercase_GYMQuery`;
@@ -129,17 +128,28 @@
 
                 const options = JSON.parse(data.objResult);
 
-                //selectElement.innerHTML = '<option value="" selected>不限</option>';
-
+                let isFirstOption = true;
                 options.forEach(option => {
-                    const optionElement = document.createElement('option');
-                    optionElement.value = option.v; 
-                    optionElement.textContent = option.t; 
-                    selectElement.appendChild(optionElement);
+                    if(isFirstOption)
+                    {
+                        selectElement.innerHTML = `<option value=${option.v} selected>${option.t}</option>`;
+                        //optionElement.selected = isFirstOption;
+                    }else{
+                        const optionElement = document.createElement('option');
+                        optionElement.value = option.v; 
+                        optionElement.textContent = option.t;
+                        selectElement.appendChild(optionElement);
+                    }
+                    
+                    isFirstOption = false;
                 });
+
+                fetchData();
             } else {
                 alert('錯誤: ' + (data.resultMsg || '未知錯誤'));
             }
+
+            //console.log(`[loadYearDown] selYear_S = ${document.getElementById('selYear_S').value}`);
         })
         .catch(error => {
             console.error('載入選項時出錯:', error);
@@ -149,9 +159,11 @@
     }
 
     function fetchData() {
-        let Req = {
+
+        //console.log(`[fetchData] selYear_S = ${document.getElementById('selYear_S').value}`);
+        const Req = {
             BC_code:document.querySelector('#U_BC').value,
-            selYear_S: document.querySelector('#selYear_S').value
+            selYear_S: document.getElementById('selYear_S').value
         };
 
         const url = `${BASE_URL}/AE_SAL/House_othercase_LQuery`;
