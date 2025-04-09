@@ -33,7 +33,6 @@
                                 <input type="text" name="Date_S" size="10" maxlength="10" class="datepickerTW" value="">
                                 ~
                                 <input type="text" name="Date_E" size="10" maxlength="10" class="datepickerTW" value="">
-                                <br />
                                 <input type="button" value="查詢" onclick="fetchData();" />  &nbsp;
                                 <input type="button" name="add" value="新增委對單" onclick="add();">
                             </td>
@@ -51,9 +50,9 @@
                     <table id="MainTable" width="1050" border="0" cellpadding="4" cellspacing="1" bgcolor="#666666">
                         <thead>
                             <tr align="center" bgcolor="#CCCCFF" class="c12-k">
+                                <td width="50">序</td>
                                 <td width="90">委對單號</td>
                                 <td width="200">申請日期</td>
-                                <td width="50">序</td>
                                 <td width="80">申請人</td>
                                 <td width="100">案件單位</td>
                                 <td width="80">對保單位</td>
@@ -106,10 +105,10 @@
         const currentDate = new Date();
 
         const dateStart = new Date(currentDate);
-        dateStart.setMonth(currentDate.getMonth() - 3);
+        dateStart.setMonth(currentDate.getMonth() - 2);
 
         const dateEnd = new Date(currentDate);
-        dateEnd.setDate(currentDate.getDate() + 1);
+        dateEnd.setDate(currentDate.getDate());
 
         const getRepublicDate = (date) =>
             `${date.getFullYear() - 1911}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
@@ -122,6 +121,7 @@
 
 
     function fetchData() {
+        
         let Req = {
             AG_id: $("input[name='AG_ID']").val() || 0,
             Date_S: document.querySelector('input[name="Date_S"]').value,

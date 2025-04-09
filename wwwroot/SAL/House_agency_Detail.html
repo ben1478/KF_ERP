@@ -15,7 +15,7 @@
     <table width="720" border="1" cellspacing="0" cellpadding="3" bgcolor="#6666FF">
         <tbody>
             <tr class="14-k" bgcolor="#FFFFFF" height="35" align="center">
-                <td colspan="2">委對單 - 對保人員處理 </td>
+                <td colspan="2"><label id="lb_fun"></label> </td>
             </tr>
             <tr class="12-k" bgcolor="#FFFFFF" height="25" align="center">
                 <td width="120">案件單位</td>
@@ -74,21 +74,21 @@
             <tr class="12-k" bgcolor="#FFFFFF" height="25" align="center">
                 <td>對保單位主管</td>
                 <td align="left">
-                    <input type="text" name="check_leader_num" id="U_leader_1_num" size="10" maxlength="10" class="box" value="" readonly="">
+                    <input type="hidden" name="check_leader_num" id="U_leader_1_num" value="">
                     <input type="text" name="check_leader_name" id="U_leader_1_name" size="10" maxlength="10" class="box" value="" readonly="">
                     <input type="button" value="..." name="_select_user_one" onclick="openUserOne('leader1')">
                 </td>
             </tr>
-            <tr class="12-k" bgcolor="#FFFFFF" height="25" align="center">
+            <tr id="tr_check_process_num" class="12-k" bgcolor="#FFFFFF" height="25" align="center">
                 <td>對保人員</td>
                 <td align="left">
-                    <input type="text" name="check_process_num" id="U_num" size="10" maxlength="10" class="box" value="" readonly="">
+                    <input type="hidden" name="check_process_num" id="U_num" value="">
                     <input type="text" name="check_process_name" id="U_name" size="10" maxlength="10" class="box" value="" readonly="">
                     <input type="button" value="..." name="_select_user_one" onclick="openUserOne('appUser')">
                     <label id="set_process_date"></label>
                 </td>
             </tr>
-            <tr class="12-k" bgcolor="#FFFFFF" height="25" align="center">
+            <tr id="tr_check_process_type" class="12-k" bgcolor="#FFFFFF" height="25" align="center">
                 <td>對保處理進度</td>
                 <td align="left">
                     <div id="divCheck_process_type">
@@ -99,7 +99,7 @@
                 </td>
             </tr>
 
-            <tr class="12-k" bgcolor="#FFFFFF" height="25" align="center" id="tr_check_process_note">
+            <tr id="tr_check_process_note" class="12-k" bgcolor="#FFFFFF" height="25" align="center">
                 <td>對保備註</td>
                 <td align="left">
                     <input type="text" id="check_process_note" name="check_process_note" size="15" style="width:580px;" maxlength="100" class="box" value="">
@@ -116,7 +116,7 @@
 
             <tr class="14-k" bgcolor="#FFFFFF" height="35" align="center">
                 <td align="center" colspan="2">
-                    <input type="button" name="btnSave" value="確定修改" onclick="saveData();" />
+                    <input type="button" id="btnSave" name="btnSave" value="確定修改" onclick="saveData();" />
                 </td>
             </tr>
         </tbody>
@@ -213,9 +213,6 @@
 
         }
     }
-
-    
-
     function saveData() {
 
         // 判斷使用者有改變：對保處理進度
@@ -275,9 +272,7 @@
                     if (response.resultCode === '000') {
                         alert('新增成功');
                         window.close();
-                        
-                        let locationUrl = BASE_WEB + '/House_agency_list';
-                        if (window.opener.location.href === locationUrl) {
+                        if (window.opener) {
                             window.opener.location.reload();
                         }
                     } else {
@@ -319,15 +314,20 @@
 
     // 顯示模式:新增、修改、對保處理進度
     function ShowMode() {
+        const savebox = document.getElementById('btnSave');
         switch (Opt) {
             case 'add': //新增
+                document.getElementById('lb_fun').innerHTML = `委對單 - 新增`;
+                savebox.value = "確定送出";
+                
                 HiddenMode(false); // 隱藏：'none'/ 顯示:'table-row';
                 break;
             case 'Upd': // 修改:
                 //不可修改對保處理進度(check_process_date)/對保說明(check_process_note)
                 //顯示:是否結案 < tr >
                 
-                
+                savebox.value = "確定修改";
+                document.getElementById('lb_fun').innerHTML = `委對單 - 對保人員處理`;
                 document.getElementById('tr_close_type').style.display = 'none';
                 document.getElementById('check_process_note').style.display = 'none'; //visibility = 'hidden'; // 會保留原字元位置
                 
@@ -338,6 +338,7 @@
                 //可修改：對保處理進度/對保備註
                 //隱藏:是否結案 < tr >
                 //其他都不行
+                document.getElementById('lb_fun').innerHTML = `委對單 - 對保人員處理`;
                 setReadOnlyMode('Y');
 
                 setOneReadOnlyMode('check_process_type', 'N'); // Name ,N：顯示/Y:隱藏
@@ -364,6 +365,7 @@
 
         const tr_close_type = document.getElementById('tr_close_type');
         tr_close_type.style.display = status; 
+
     }
 
     function setReadOnlyMode(Read) {
@@ -384,6 +386,7 @@
             //buttons.forEach(button => {
             //    button.setAttribute('disabled', true);
             //});
+            $('textarea#AG_note').prop("readOnly", true);
         }
     }
 
