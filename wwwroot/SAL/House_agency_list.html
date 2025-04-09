@@ -207,14 +207,17 @@
                         break;
                     case 'Upd':
                         
-                        let encryptedOpt_Upd = encryptParameter('Upd');
-                        row.appendChild(createButtonCell(
-                            "../images/edit.png",
-                            "修改",
-                            function () {
-                                window.open(`House_agency_Detail.html?Id=${encryptedId}&User=${encryptedWebUser}&Opt=${encryptedOpt_Upd}`, '_blank', 'scrollbars=yes,resizable=yes,top=100,width=800,height=500');
-                            }
-                        ));
+                        // let encryptedOpt_Upd = encryptParameter('Upd');
+                        // row.appendChild(createButtonCell(
+                        //     "../images/edit.png",
+                        //     "修改",
+                        //     function () {
+                        //         window.open(`House_agency_Detail.html?Id=${encryptedId}&User=${encryptedWebUser}&Opt=${encryptedOpt_Upd}`, '_blank', 'scrollbars=yes,resizable=yes,top=100,width=800,height=500');
+                        //     }
+                        // ));
+
+                        cell.textContent = '-' ;
+                        row.appendChild(cell);
                         break;
                     case 'close_type':
                         if (item[key] === 'N') {
