@@ -135,6 +135,13 @@
                             </tr>
                             <tr>
                                 <td width="13%" align="center">
+                                    <input type="button" name="add" value="客訴資料" onclick="openComplaint_LQuery();">
+                                </td>
+                                <td width="13%" align="center"></td>
+                                <td width="13%" align="center"></td>
+                            </tr>
+                            <tr>
+                                <td width="13%" align="center">
                                     <input type="button" name="add" value="登出" onclick="openLogout();">
                                 </td>
                                 <td width="13%" align="center"></td>
@@ -209,6 +216,10 @@
 
     function openHouse_sendcase_list() {
         window.open(`/SAL/House_sendcase_list.html?User=${WebUser}&U_BC=${WebBC}`, 'list', 'scrollbars=yes,resizable=yes,width=1300,height=500,left=250,top=100')
+    }
+
+    function openComplaint_LQuery() {
+        window.open(`/SAL/Compl_list.html?User=${WebUser}&U_BC=${WebBC}`, 'list', 'scrollbars=yes,resizable=yes,width=1300,height=500,left=250,top=100')
     }
 
     function openLogout() {

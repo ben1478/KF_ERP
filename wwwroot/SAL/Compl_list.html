@@ -6,25 +6,43 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <link href="../_include/main.css" rel="stylesheet" type="text/css">
     <script src="../Base.js"></script>
     <title>作業平台</title>
 </head>
 <body>
     <table border="0" width="100%">
         <tbody>
+            <tr>
+                <td width="20">　</td>
+                <td width="230" height="24" background="../../image/title-bk.gif">
+                    <span class="c14k"><strong>客訴資料</strong></span>
+                </td>
+                <td width="770"></td>
+            </tr>
             <tr class="c12-k">
-                
-                <td width="86%">
-                    業務部門：
-                    <input type="text" name="U_BC" id="U_BC" size="10" maxlength="10" class="box">
-                    &nbsp;
-                    客訴時間(年月)：
-                    <input type="text" name="Date_S" size="10" maxlength="10" class="datepickerTW" value="">
-                    ~
-                    <input type="text" name="Date_E" size="10" maxlength="10" class="datepickerTW" value="">
-                    <br />
-                    <input type="button" value="查詢" onclick="fetchData();" />  &nbsp;
-                    <input type="button" name="add" value="新增客訴資料" onclick="add();">
+                <td></td>
+                <td colspan="2">
+                    <table border="0" with="100%" id="table1">
+                        <tr class="c12-k">
+                            <td colspan="4" align="left" width="80%">
+                                業務部門：
+                                <select name="U_BC" id="U_BC" class=""></select>
+                                客訴時間(年月)：
+                                <select name="selYear_S" id="selYear_S"></select>
+                            </td>
+                        </tr>
+                        <tr class="c12-k">
+                            <td>
+                                <input type="button" value="查詢" onclick="fetchData();" />  &nbsp;
+                                <input type="button" value="匯出Excel" name="btnExcel" onclick="exportToExcel()">
+                            </td>
+                            <td>
+                                <input type="button" name="add" value="新增案件" onclick="addHouse_othercase();">
+                            </td>
+                        </tr>
+                    </table>
+
                 </td>
             </tr>
         </tbody>
@@ -38,16 +56,16 @@
                     <table id="MainTable" width="1050" border="0" cellpadding="4" cellspacing="1" bgcolor="#666666">
                         <thead>
                             <tr align="center" bgcolor="#CCCCFF" class="c12-k">
-                                <td width="50">序號</td>
-                                <td width="100">客戶名稱</td>
+                                <td width="30">序號</td>
+                                <td width="80">客戶名稱</td>
                                 <td width="100">負責業務</td>
                                 <td width="80">業務部門</td>
-                                <td width="80">客訴事由</td>
-                                <td width="120">來電時間</td>
-                                <td width="60">備註</td>
-                                <td width="60">新增人</td>
-                                <td width="100">修改</td>
-                                <td width="60">刪除</td>
+                                <td width="300">客訴事由</td>
+                                <td width="80">來電時間</td>
+                                <td width="200">備註</td>
+                                <td width="100">新增人</td>
+                                <td width="30">修改</td>
+                                <td width="30">刪除</td>
                             </tr>
                         </thead>
                         <tbody>
@@ -60,6 +78,15 @@
                                 </td>
                             </tr>
                         </tbody>
+                        <tfoot>
+                            <tr align="center" height="15" bgcolor="#CCCCFF">
+                                <td class="c12-k" colspan="15">
+                                    <font color="#000080">
+                                        <label id="CountRows"></label>
+                                    </font>
+                                </td>
+                            </tr>
+                        </tfoot>
                     </table>
                     <div id="pagination"></div>
                 </td>
@@ -79,29 +106,15 @@
 
     window.onload = function () {
         dateTW();
-        const currentDate = new Date();
-
-        const dateStart = new Date(currentDate);
-        dateStart.setMonth(currentDate.getMonth() - 3);
-
-        const dateEnd = new Date(currentDate);
-        dateEnd.setDate(currentDate.getDate() + 1);
-
-        const getRepublicDate = (date) =>
-            `${date.getFullYear() - 1911}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
-
-        document.querySelector('input[name="Date_S"]').value = getRepublicDate(dateStart);
-        document.querySelector('input[name="Date_E"]').value = getRepublicDate(dateEnd);
-
-        fetchData();
+        loadBCDropdown();
+        loadYearDown();
     }
 
 
     function fetchData() {
         let Req = {
-            U_BC: $("input[name='U_BC']").val() || 0,
-            Date_S: document.querySelector('input[name="Date_S"]').value,
-            Date_E: document.querySelector('input[name="Date_E"]').value
+            BC_code:document.querySelector('#U_BC').value,
+            selYear_S: document.getElementById('selYear_S').value
         };
 
         const url = `${BASE_URL}/AE_SAL/Complaint_LQuery`;
@@ -130,6 +143,7 @@
     }
 
     function showPage(page) {
+        document.getElementById('CountRows').innerHTML = `筆數:${data.length}`;
         const tbody = document.querySelector('#MainTable tbody');
         tbody.innerHTML = '';
 
@@ -145,7 +159,7 @@
             row.setAttribute('onmouseover', "this.style.background='#FCFCC0';");
             row.setAttribute('onmouseout', "this.style.background='#FFFFFF';");
 
-            const columnOrder = ['Comp_Id', 'CS_name', 'BC_name', 'Complaint', 'CompDate', 'Remark', 'add_name', 'Upd'];
+            const columnOrder = ['Comp_Id', 'CS_name', 'Sales_name', 'BC_name', 'Complaint', 'CompDate', 'Remark', 'add_name', 'Upd'];
 
             const serialCell = document.createElement('td');
             serialCell.textContent = startIndex + pageData.indexOf(item) + 1;
@@ -161,23 +175,7 @@
                         Id = item[key];
                         encryptedId = encryptParameter(Id);
                         break;
-                    case 'check_process_name':
-                        cell.textContent = item[key] ? item[key] : '未分配' ;
-                        row.appendChild(cell);
-                        break;
-                    case 'check_process_type':
-                        let encryptedOpt_check_process_type = encryptParameter('check_process_type');
-                        const button = document.createElement('input');
-                        button.type = 'button';
-                        button.value = item[key] === 'N' ? '尚未對保' : '對保完成';
-                        button.onclick = function () {
-                            window.open(`House_agency_Detail.html?Id=${encryptedId}&User=${encryptedWebUser}&Opt=${encryptedOpt_check_process_type}`, '_blank', 'scrollbars=yes,resizable=yes,top=100,width=800,height=500');
-                        };
-                        cell.style.textAlign = 'center';
-                        cell.style.verticalAlign = 'middle';
-                        cell.appendChild(button);
-                        row.appendChild(cell);
-                        break;
+                    
                     case 'Upd':
                         let encryptedOpt_Upd = encryptParameter('Upd');
                         row.appendChild(createButtonCell(
@@ -232,5 +230,39 @@
         let encryptedWebUser = encryptParameter(WebUser);
         let encryptedOpt_add = encryptParameter('add');
         window.open(`Complaint_Ins.html?Id=${encryptedID}&User=${encryptedWebUser}&Opt=${encryptedOpt_add}`, '_blank', 'scrollbars=yes,resizable=yes,top=100,width=800,height=500');
+    }
+
+    function loadYearDown() {
+        const url = `${BASE_URL}/AE_SAL/Complaint_GYMQuery`;
+
+        fetch(url)
+        .then(response => response.json())
+        .then(data => {
+            if (data.resultCode === "000") {
+                const options = JSON.parse(data.objResult);
+                const selectElement = document.getElementById('selYear_S');
+                selectElement.innerHTML = '<option value="" selected>ALL</option>';
+                options.forEach(option => {
+                    
+                        const optionElement = document.createElement('option');
+                        optionElement.value = option.v.replace('-','/'); 
+                        optionElement.textContent = option.v;
+                        selectElement.appendChild(optionElement);
+                   
+                    isFirstOption = false;
+                });
+
+                fetchData();
+            } else {
+                alert('錯誤: ' + (data.resultMsg || '未知錯誤'));
+            }
+
+            //console.log(`[loadYearDown] selYear_S = ${document.getElementById('selYear_S').value}`);
+        })
+        .catch(error => {
+            console.error('載入選項時出錯:', error);
+            alert('無法載入資料，請稍後再試。');
+        });
+
     }
 </script>
