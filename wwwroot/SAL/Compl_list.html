@@ -38,7 +38,7 @@
                                 <input type="button" value="匯出Excel" name="btnExcel" onclick="exportToExcel()">
                             </td>
                             <td>
-                                <input type="button" name="add" value="新增案件" onclick="addHouse_othercase();">
+                                <input type="button" name="add" value="新增案件" onclick="add();">
                             </td>
                         </tr>
                     </table>
@@ -182,7 +182,7 @@
                             "../images/edit.png",
                             "修改",
                             function () {
-                                window.open(`Complaint_Upd.html?Id=${encryptedId}&User=${encryptedWebUser}&Opt=${encryptedOpt_Upd}`, '_blank', 'scrollbars=yes,resizable=yes,top=100,width=800,height=500');
+                                window.open(`Compl_Detail.html.html?Id=${encryptedId}&User=${encryptedWebUser}&Opt=${encryptedOpt_Upd}`, '_blank', 'scrollbars=yes,resizable=yes,top=100,width=800,height=500');
                             }
                         ));
                         break;
@@ -229,7 +229,7 @@
         let encryptedID = encryptParameter(id);
         let encryptedWebUser = encryptParameter(WebUser);
         let encryptedOpt_add = encryptParameter('add');
-        window.open(`Complaint_Ins.html?Id=${encryptedID}&User=${encryptedWebUser}&Opt=${encryptedOpt_add}`, '_blank', 'scrollbars=yes,resizable=yes,top=100,width=800,height=500');
+        window.open(`Compl_Detail.html?Id=${encryptedID}&User=${encryptedWebUser}&Opt=${encryptedOpt_add}`, '_blank', 'scrollbars=yes,resizable=yes,top=100,width=800,height=500');
     }
 
     function loadYearDown() {
