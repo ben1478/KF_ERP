@@ -6,6 +6,7 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <link href="../_include/main.css" rel="stylesheet" type="text/css">
     <script src="../Base.js"></script>
     <title>作業平台</title>
 </head>
@@ -17,12 +18,12 @@
             </tr>
             <tr class="c12-k" bgcolor="#FFFFFF">
                 <td align="right" bgcolor="#CCCCFF">*客戶名稱</td>
-                <td align="left"><input type="text" id="cs_name" name="cs_name" size="20" maxlength="20" class="box" value=""></td>
+                <td align="left"><input type="text" id="CS_name" name="CS_name" size="20" maxlength="20" class="box" value=""></td>
             </tr>
             <tr class="c12-k" bgcolor="#FFFFFF">
                 <td width="150" align="right" bgcolor="#CCCCFF">負責業務</td>
                 <td width="440" align="left">
-                    <input type="text" id="Sales_name" name="U_name" size="10" maxlength="10" class="box" value="" readonly="" >
+                    <input type="text" name="Sales_name" id="U_name" size="10" maxlength="10" class="box" value="" readonly="">
                     <input type="button" value="..." name="_select_user_one" onclick="openUserOne('appUser')">
                     <input type="hidden" name="Sales_num" id="U_num" value="">
                 </td>
@@ -92,11 +93,13 @@
             <tr class="c12-k" bgcolor="#FFFFFF">
                 <td align="right" bgcolor="#CCCCFF">新增人</td>
                 <td align="left">
+                    <label id="add_name"></label>
                 </td>
             </tr>
             <tr class="c12-k" bgcolor="#FFFFFF">
                 <td align="right" bgcolor="#CCCCFF">修改人</td>
                 <td align="left">
+                    <label id="edit_name"></label>
                 </td>
             </tr>
             
@@ -138,12 +141,15 @@
                         $("input[name='Comp_Id']").val(data.Comp_Id);
                         $("input[name='CS_name']").val(data.CS_name);
                         $("input[name='Sales_num']").val(data.Sales_num);
-                        $("input[name='Complaint']").val(data.Complaint);
+                        $("input[name='Sales_name']").val(data.Sales_name);
+                        $('textarea#Complaint').val(data.Complaint);
                         $("input[name='CompDate']").val(data.CompDate);
                         $("input[name='CompTime']").val(data.CompTime);
-                        $("input[name='Remark']").val(data.Remark);
+                        $('textarea#Remark').val(data.Remark);
                         $("input[name='add_date']").val(data.add_date);
                         $("input[name='add_num']").val(data.add_num);
+                        document.getElementById('add_name').innerHTML = data.add_name;
+                        document.getElementById('edit_name').innerHTML = data.edit_name;
                         
                     } else {
                         alert(response.resultMsg);
@@ -164,10 +170,10 @@
             Comp_Id: Id,
             CS_name: $("input[name='CS_name']").val(),
             Sales_num: $("input[name='Sales_num']").val(),
-            Complaint: $("input[name='Complaint']").val(),
+            Complaint: $('textarea#Complaint').val(),
             CompDate: $("input[name='CompDate']").val(),
-            CompTime: $("input[name='CompTime']").val(),
-            Remark: $("input[name='Remark']").val(),
+            CompTime: document.getElementById('CompTime').value,
+            Remark: $('textarea#Remark').val(),
             add_date: $("input[name='add_date']").val(),
             add_num: WebUser,
             edit_date: $("input[name='edit_date']").val(),
