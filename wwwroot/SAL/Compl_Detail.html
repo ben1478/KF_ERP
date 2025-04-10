@@ -18,7 +18,7 @@
             </tr>
             <tr class="c12-k" bgcolor="#FFFFFF">
                 <td align="right" bgcolor="#CCCCFF">*客戶名稱</td>
-                <td align="left"><input type="text" id="CS_name" name="CS_name" size="20" maxlength="20" class="box" value=""></td>
+                <td align="left"><input type="text" id="CS_name" name="CS_name" size="20" maxlength="20" class="box" value="" required></td>
             </tr>
             <tr class="c12-k" bgcolor="#FFFFFF">
                 <td width="150" align="right" bgcolor="#CCCCFF">負責業務</td>
@@ -166,6 +166,10 @@
 
     function saveData() {
 
+        if (!jsCheck()) {
+            return;
+        }
+
         let formData = {
             Comp_Id: Id,
             CS_name: $("input[name='CS_name']").val(),
@@ -235,7 +239,25 @@
 
     }
 
-    
+    function jsCheck() 
+    {
+	
+	    if ($("input[name='CS_name']").val() == '')
+	    {
+		    alert('請輸入[客戶姓名]!!');
+		    $("input[name='CS_name']").focus();
+		    return false;
+	    }
+	
+	    if ($('textarea#Complaint').val() == '')
+	    {
+		    alert('請輸入[客訴事由]!!');
+		    $('textarea#Complaint').focus();
+		    return false;
+	    }
+
+	    return true;
+    }
 
 
 </script>
