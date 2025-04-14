@@ -95,12 +95,14 @@
     const Params = getQueryParams();
     let WebUser = Params.WebUser;
     let WebBC = Params.WebBC;
-
+    
     const itemsPerPage = 20;  
     let currentPage = 1;
     let data = []; 
+    let CanEditor = 'N';
 
     window.onload = function () {
+        
         dateTW();
         const currentDate = new Date();
 
@@ -116,7 +118,9 @@
         document.querySelector('input[name="Date_S"]').value = getRepublicDate(dateStart);
         document.querySelector('input[name="Date_E"]').value = getRepublicDate(dateEnd);
 
-        fetchData();
+        // 權限判定  SpecialCkeck
+        Permissions();
+        
     }
 
 
@@ -125,7 +129,9 @@
         let Req = {
             AG_id: $("input[name='AG_ID']").val() || 0,
             Date_S: document.querySelector('input[name="Date_S"]').value,
-            Date_E: document.querySelector('input[name="Date_E"]').value
+            Date_E: document.querySelector('input[name="Date_E"]').value,
+            U_num:WebUser,
+            U_BC:WebBC
         };
 
         const url = `${BASE_URL}/AE_SAL/House_agency_LQuery`;
@@ -154,6 +160,8 @@
     }
 
     function showPage(page) {
+        
+        
         document.getElementById('CountRows').innerHTML = `筆數:${data.length}`;
         const tbody = document.querySelector('#MainTable tbody');
         tbody.innerHTML = '';
@@ -170,7 +178,7 @@
             row.setAttribute('onmouseover', "this.style.background='#FCFCC0';");
             row.setAttribute('onmouseout', "this.style.background='#FFFFFF';");
 
-            const columnOrder = ['AG_id', 'add_date', 'add_name', 'case_com', 'agency_com', 'check_leader_name', 'check_process_name', 'check_process_type', 'Upd', 'close_type'];
+            const columnOrder = ['AG_id', 'add_date', 'add_name', 'case_com', 'agency_com', 'check_leader_name', 'check_process_name', 'check_process_type', 'isEdit', 'close_type', 'isDel'];
 
             const serialCell = document.createElement('td');
             serialCell.textContent = startIndex + pageData.indexOf(item) + 1;
@@ -189,7 +197,23 @@
                         row.appendChild(cell);
                         break;
                     case 'check_process_name':
-                        cell.textContent = item[key] ? item[key] : '未分配' ;
+                        if(item['check_leader_num'] === WebUser)
+                        {
+                            let encryptedOpt_check_process_name = encryptParameter('check_process_name');
+                            const buttonCPN = document.createElement('input');
+                            buttonCPN.type = 'button';
+                            buttonCPN.value = item[key] === null ? '未分配' : item[key];
+                            buttonCPN.onclick = function () {
+                                window.open(`House_agency_Detail.html?Id=${encryptedId}&User=${encryptedWebUser}&Opt=${encryptedOpt_check_process_name}`, '_blank', 'scrollbars=yes,resizable=yes,top=100,width=800,height=500');
+                            };
+                            cell.style.textAlign = 'center';
+                            cell.style.verticalAlign = 'middle';
+                            cell.appendChild(buttonCPN);
+                        }
+                        else
+                        {
+                            cell.textContent = item[key] === null ? '未分配' : item[key];
+                        }
                         row.appendChild(cell);
                         break;
                     case 'check_process_type':
@@ -205,19 +229,22 @@
                         cell.appendChild(button);
                         row.appendChild(cell);
                         break;
-                    case 'Upd':
-                        
-                        // let encryptedOpt_Upd = encryptParameter('Upd');
-                        // row.appendChild(createButtonCell(
-                        //     "../images/edit.png",
-                        //     "修改",
-                        //     function () {
-                        //         window.open(`House_agency_Detail.html?Id=${encryptedId}&User=${encryptedWebUser}&Opt=${encryptedOpt_Upd}`, '_blank', 'scrollbars=yes,resizable=yes,top=100,width=800,height=500');
-                        //     }
-                        // ));
-
-                        cell.textContent = '-' ;
-                        row.appendChild(cell);
+                    case 'isEdit':
+                        if(item[key] === 'Y')
+                        {
+                            let encryptedOpt_Upd = encryptParameter('Upd');
+                            row.appendChild(createButtonCell(
+                                "../images/edit.png",
+                                "修改",
+                                function () {
+                                    window.open(`House_agency_Detail.html?Id=${encryptedId}&User=${encryptedWebUser}&Opt=${encryptedOpt_Upd}`, '_blank', 'scrollbars=yes,resizable=yes,top=100,width=800,height=500');
+                                }
+                            ));
+                        } else
+                        {
+                            cell.textContent = '-' ;
+                            row.appendChild(cell);
+                        }
                         break;
                     case 'close_type':
                         if (item[key] === 'N') {
@@ -227,40 +254,49 @@
                         }
                         row.appendChild(cell);
                         break;
+                    case 'isDel':
+                        if(item[key] === 'Y')
+                        {
+                            row.appendChild(createButtonCell(
+                                "../images/edit.png",
+                                "刪除",
+                                function () {
+                                    if (Id !== '') {
+                                        const url = `${BASE_URL}/AE_SAL/House_agency_Del?Id=${Id}`;
+                                        fetch(url, {
+                                            method: 'DELETE',
+                                            headers: {
+                                                'Content-Type': 'application/json'
+                                            }
+                                        })
+                                            .then(response => response.json())
+                                            .then(responseData => {
+                                                console.log(responseData.resultCode);
+                                                if (responseData.resultCode === '000') {
+                                                    alert('已刪除');
+                                                    location.reload();
+                                                } else {
+                                                    alert('刪除失敗，請洽資訊人員。');
+                                                }
+                                            })
+                                            .catch(error => {
+                                                alert('刪除失敗，請洽資訊人員。');
+                                            })
+                                    }
+                                }
+                            ));
+                        } else
+                        {
+                            cell.textContent = '-' ;
+                            row.appendChild(cell);
+                        }
+                        break;
                     default:
                         cell.textContent = item[key] || '';
                         row.appendChild(cell);
                 }
             }
-            row.appendChild(createButtonCell(
-                "../images/delete.png",
-                "刪除",
-                function () {
-                    if (Id !== '') {
-                        const url = `${BASE_URL}/AE_SAL/House_agency_Del?Id=${Id}`;
-                        fetch(url, {
-                            method: 'DELETE',
-                            headers: {
-                                'Content-Type': 'application/json'
-                            }
-                        })
-                            .then(response => response.json())
-                            .then(responseData => {
-                                console.log(responseData.resultCode);
-                                if (responseData.resultCode === '000') {
-                                    alert('已刪除');
-                                    location.reload();
-                                } else {
-                                    alert('刪除失敗，請洽資訊人員。');
-                                }
-                            })
-                            .catch(error => {
-                                alert('刪除失敗，請洽資訊人員。');
-                            })
-                    }
-                }
-            ));
-            
+                        
             tbody.appendChild(row);
         }
     }
@@ -271,5 +307,40 @@
         let encryptedWebUser = encryptParameter(WebUser);
         let encryptedOpt_add = encryptParameter('add');
         window.open(`House_agency_Detail.html?Id=${encryptedID}&User=${encryptedWebUser}&Opt=${encryptedOpt_add}`, '_blank', 'scrollbars=yes,resizable=yes,top=100,width=800,height=500');
+    }
+
+    function Permissions()
+    {
+        // 可查詢全部人員資料
+        // 可查詢全部人員資料且不限3個月內
+        //ChkEditor(); // 修改權限
+        fetchData();
+    }
+
+    // 委對單修改需判斷權限
+    function ChkEditor() {
+        const url = `${BASE_URL}/AE_SAL/ChkEditor?User=${WebUser}`;
+        fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+            .then(response => response.json())
+            .then(responseData => {
+                if (responseData.resultCode === '000') {
+                    ChkRole = responseData.objResult;
+                    if (ChkRole === 'Y') {
+                        CanEditor = 'Y';
+                    }
+                    else {
+                        CanEditor = 'N';
+                    }
+                }
+                
+            })
+            .catch(error => {
+                alert('角色辨別失敗，請稍後再試。');
+            })
     }
 </script>
