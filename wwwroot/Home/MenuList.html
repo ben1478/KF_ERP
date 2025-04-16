@@ -102,7 +102,9 @@
                                 <td width="13%" align="center">
                                     <input type="button" name="add" value="個人訊息管理" onclick="openMseeage();">
                                 </td>
-                                <td width="13%" align="center"></td>
+                                <td width="13%" align="center">
+                                    <input type="button" name="add" value="提前結清試算" onclick="openRcSettle();">
+                                </td>
                                 <td width="13%" align="center"></td>
                             </tr>
                             <tr>
@@ -220,6 +222,10 @@
 
     function openComplaint_LQuery() {
         window.open(`/SAL/Compl_list.html?User=${WebUser}&U_BC=${WebBC}`, 'list', 'scrollbars=yes,resizable=yes,width=1300,height=500,left=250,top=100')
+    }
+
+    function openRcSettle() {
+        window.open(`/ACC/RcSettle_M_list.html?PM_U_num=${WebUser}&U_BC=${WebBC}`, 'list', 'scrollbars=yes,resizable=yes,width=1000,height=500,left=250,top=100')
     }
 
     function openLogout() {

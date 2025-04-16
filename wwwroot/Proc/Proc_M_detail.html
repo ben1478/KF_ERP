@@ -357,7 +357,7 @@
                 PD_Company_name: PD_Company_name_input.value,
                 PD_Univalent: PD_Univalent_input.value,
                 PD_Amt: PD_Amt_input.value,
-                PD_Est_Cost: PD_Est_Cost_input ? PD_Est_Cost_input.value : ''
+                PD_Est_Cost: PD_Est_Cost_input && PD_Est_Cost_input.value.trim() !== '' ? PD_Est_Cost_input.value : 0
             });
         }
         
