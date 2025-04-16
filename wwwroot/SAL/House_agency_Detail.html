@@ -92,8 +92,8 @@
                 <td>對保處理進度</td>
                 <td align="left">
                     <div id="divCheck_process_type">
-                        <input type="radio" name="check_process_type" value="N" />尚未對保
-                        <input type="radio" name="check_process_type" value="Y" />對保完成
+                        <input type="radio" id="check_process_type" name="check_process_type" value="N" />尚未對保
+                        <input type="radio" id="check_process_type" name="check_process_type" value="Y" />對保完成
                     </div>
                     <label id="check_process_date"></label>
                 </td>
@@ -336,6 +336,9 @@
                 
                 const divCheck_process_type = document.getElementById('divCheck_process_type');
                 divCheck_process_type.style.display = 'none';
+                
+                const cts = document.getElementsByName('close_type');
+                cts.forEach(ct => ct.style.accentColor = "blue");
                 break;
             case 'check_process_name': //對保人員:
                 document.getElementById('lb_fun').innerHTML = `委對單 - 分配對保人員`;
@@ -357,7 +360,9 @@
                 setReadOnlyMode('Y');
 
                 setOneReadOnlyMode('check_process_type', 'N'); // Name ,N：顯示/Y:隱藏
-                
+                const cpts = document.getElementsByName('check_process_type');
+                cpts.forEach(cpt => cpt.style.accentColor = "blue");
+
                 setOneReadOnlyMode('check_process_note', 'N'); // Name ,N：顯示/Y:隱藏
                 document.getElementById('lbCheck_process_note').style.visibility = "hidden";
                 document.getElementById('set_process_date').style.visibility = "hidden";
@@ -415,6 +420,7 @@
             inputs.forEach(input => {
                 input.removeAttribute('readonly');
                 input.removeAttribute('disabled');
+                
             });
         }
     }
