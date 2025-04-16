@@ -84,7 +84,7 @@
                 <td align="left">
                     <input type="hidden" name="check_process_num" id="U_num" value="">
                     <input type="text" name="check_process_name" id="U_name" size="10" maxlength="10" class="box" value="" readonly="">
-                    <input type="button" value="..." name="_select_user_one" onclick="openUserOne('appUser')">
+                    <input type="button" value="..." id="btCheck_process_num" name="_select_user_one" onclick="openUserOne('appUser')">
                     <label id="set_process_date"></label>
                 </td>
             </tr>
@@ -92,8 +92,8 @@
                 <td>對保處理進度</td>
                 <td align="left">
                     <div id="divCheck_process_type">
-                        <input type="radio" name="check_process_type" value="N" />尚未對保
-                        <input type="radio" name="check_process_type" value="Y" />對保完成
+                        <input type="radio" id="check_process_type" name="check_process_type" value="N" />尚未對保
+                        <input type="radio" id="check_process_type" name="check_process_type" value="Y" />對保完成
                     </div>
                     <label id="check_process_date"></label>
                 </td>
@@ -107,7 +107,7 @@
                 </td>
             </tr>
             <tr class="c12-k" bgcolor="#FFFFFF" id="tr_close_type" height="25" align="center">
-                <td align="left">是否結案</td>
+                <td>是否結案</td>
                 <td align="left">
                     <input type="radio" name="close_type" value="N" />未結案
                     <input type="radio" name="close_type" value="Y" />已結案 ／ 日期：
@@ -320,7 +320,10 @@
                 document.getElementById('lb_fun').innerHTML = `委對單 - 新增`;
                 savebox.value = "確定送出";
                 
-                HiddenMode(false); // 隱藏：'none'/ 顯示:'table-row';
+                HiddenMode(); // 隱藏：'none'/ 顯示:'table-row';
+                const tr_check_process_num = document.getElementById('tr_check_process_num');
+                tr_check_process_num.style.display = 'none';
+
                 break;
             case 'Upd': // 修改:
                 //不可修改對保處理進度(check_process_date)/對保說明(check_process_note)
@@ -328,11 +331,26 @@
                 
                 savebox.value = "確定修改";
                 document.getElementById('lb_fun').innerHTML = `委對單 - 對保人員處理`;
-                document.getElementById('tr_close_type').style.display = 'none';
+                document.getElementById('tr_close_type').style.display = 'table-row'; // 顯示:是否結案 < tr >
                 document.getElementById('check_process_note').style.display = 'none'; //visibility = 'hidden'; // 會保留原字元位置
                 
                 const divCheck_process_type = document.getElementById('divCheck_process_type');
                 divCheck_process_type.style.display = 'none';
+                
+                const cts = document.getElementsByName('close_type');
+                cts.forEach(ct => ct.style.accentColor = "blue");
+                break;
+            case 'check_process_name': //對保人員:
+                document.getElementById('lb_fun').innerHTML = `委對單 - 分配對保人員`;
+                HiddenMode(); // 隱藏：'none'/ 顯示:'table-row';
+
+                 //隱藏:對保人員.分配日期 set_process_date
+                 document.getElementById('set_process_date').style.visibility = "hidden";
+                 setReadOnlyMode('Y');
+                 setOneReadOnlyMode('check_process_name', 'N'); // Name ,N：顯示/Y:隱藏
+                 setOneReadOnlyMode('btnSave', 'N'); // Name ,N：顯示/Y:隱藏
+                 document.getElementById('btCheck_process_num').removeAttribute('readonly');
+                 document.getElementById('btCheck_process_num').removeAttribute('disabled');
                 break;
             case 'check_process_type': //對保處理進度:
                 //可修改：對保處理進度/對保備註
@@ -342,9 +360,13 @@
                 setReadOnlyMode('Y');
 
                 setOneReadOnlyMode('check_process_type', 'N'); // Name ,N：顯示/Y:隱藏
-                
+                const cpts = document.getElementsByName('check_process_type');
+                cpts.forEach(cpt => cpt.style.accentColor = "blue");
+
                 setOneReadOnlyMode('check_process_note', 'N'); // Name ,N：顯示/Y:隱藏
                 document.getElementById('lbCheck_process_note').style.visibility = "hidden";
+                document.getElementById('set_process_date').style.visibility = "hidden";
+                
                 check_process_date.style.display = "none";
                 document.getElementById('tr_close_type').style.display = 'none';
                 setOneReadOnlyMode('btnSave', 'N'); // Name ,N：顯示/Y:隱藏
@@ -354,8 +376,7 @@
 
     function HiddenMode() {
         let status = 'none'; // 隱藏：'none'/ 顯示:'table-row';
-        const tr_check_process_num = document.getElementById('tr_check_process_num');
-        tr_check_process_num.style.display = status;
+        
 
         const tr_check_process_note = document.getElementById('tr_check_process_note');
         tr_check_process_note.style.display = status; 
@@ -386,7 +407,10 @@
             //buttons.forEach(button => {
             //    button.setAttribute('disabled', true);
             //});
-            $('textarea#AG_note').prop("readOnly", true);
+            //$('textarea#AG_note').prop("readOnly", true);
+            const txAG_note = document.getElementById('AG_note');
+            txAG_note.readOnly = true;
+            txAG_note.style.backgroundColor='#EFEFEF4D';
         }
     }
 
@@ -396,6 +420,7 @@
             inputs.forEach(input => {
                 input.removeAttribute('readonly');
                 input.removeAttribute('disabled');
+                
             });
         }
     }
