@@ -222,44 +222,42 @@
         window.open(`Debt_Certificate_Detail.html?Id=${encryptedID}&User=${encryptedWebUser}`, '_blank', 'scrollbars=yes,resizable=yes,top=100,width=800,height=500');
     }
 
-     function exportToExcel() {
-	var table = document.getElementById('MainTable');
+    function exportToExcel() {
+	    var table = document.getElementById('MainTable');
 
-	// 複製表格，並移除後面兩行
-	var clonedTable = table.cloneNode(true);
-	var rowCount = clonedTable.rows.length;
+	    // 複製表格，並移除後面兩行
+	    var clonedTable = table.cloneNode(true);
+	    var rowCount = clonedTable.rows.length;
   
-	for (var i = rowCount - 1; i >= rowCount - 1; i--) {
-		clonedTable.deleteRow(i);
-	}
-	for (var i = 0; i < clonedTable.rows.length; i++) {
-		//alert(clonedTable.rows[i].cells[8].textContent)
-		var row = clonedTable.rows[i];
-		row.deleteCell(7);
-		row.deleteCell(7);
-		row.deleteCell(7);
-	}
+	    for (var i = rowCount - 1; i >= rowCount - 1; i--) {
+		    clonedTable.deleteRow(i);
+	    }
+	    for (var i = 0; i < clonedTable.rows.length; i++) {
+		    alert(clonedTable.rows[i].cells[8].textContent)
+		    var row = clonedTable.rows[i];
+		    //row.deleteCell(7);
+	    }
 	
-	$('#MainTable').after(clonedTable);
+	    $('#MainTable').after(clonedTable);
 
-	// 將複製的表格的 ID 設為 'tbExcel'
-	$(clonedTable).attr('id', 'tbExcel');
+	    // 將複製的表格的 ID 設為 'tbExcel'
+	    $(clonedTable).attr('id', 'tbExcel');
 
-	// 隱藏新增的表格
-	$(clonedTable).hide();
-	var fileNa=getCurrentDateTime();
-		$("#tbExcel").table2excel({
-		// exclude CSS class
-		exclude: ".ExHead ",
-		name: "Worksheet Name",
-		filename: "客訴資料-"+fileNa, //do not include extension
-		fileext: ".xls", // file extension
-		TextIdx: [4,5,6]
-	}); 
+	    // 隱藏新增的表格
+	    $(clonedTable).hide();
+	    var fileNa=getCurrentDateTime();
+		    $("#tbExcel").table2excel({
+		    // exclude CSS class
+		    exclude: ".ExHead ",
+		    name: "Worksheet Name",
+		    filename: "債權憑證管理-"+fileNa, //do not include extension
+		    fileext: ".xls", // file extension
+		    TextIdx: [4,5,6]
+	    }); 
 
-	// 刪除並移除新增的表格
-	$("#tbExcel").remove();
-}
+	    // 刪除並移除新增的表格
+	    $("#tbExcel").remove();
+    }
 
     function getCurrentDateTime() {
           var currentDate = new Date();
