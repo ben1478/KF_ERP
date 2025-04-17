@@ -1,0 +1,253 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+	<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+	<link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+	<script type="text/javascript" src="../tool_js/jquery.table2excel.js"></script>
+	<link href="../_include/main.css" rel="stylesheet" type="text/css">
+	<script src="../Base.js"></script>
+	<title>作業平台</title>
+</head>
+<body>
+	<table width="1180" border="0" cellspacing="0" cellpadding="0">
+		<tbody>
+			<tr>
+				<td align="left" valign="top">
+					<table width="100%" border="0" cellspacing="0" cellpadding="0">
+						<tbody>
+							<tr>
+								<td width="20">　</td>
+								<td width="200" height="24">　<span class="c14k">　<strong>資產數據分析</strong></span></td>
+							</tr>
+							<tr>
+								<td>　</td>
+								<td class="c12-k">
+									<input type="checkbox" checked="" name="court_sale" id="court_sale" value="1">法拍結案
+									<input type="submit" name="submit" value="查詢" onclick="fetchData();">
+									<input type="button" value="匯出Excel" name="btnExcel" onclick="exportToExcel()">
+									<input type="button" value="匯出Excel(明細資料)" name="btnExcel" onclick="exportToExcel_Dtl()">
+								</td>
+							</tr>
+						</tbody>
+					</table>
+				</td>
+			</tr>
+			<tr>
+				<td align="center" valign="top">
+
+					撥款總金額：1,769,030,000 <br>
+					<table width="1180" border="0" cellspacing="0" cellpadding="0">
+						<tbody>
+							<tr>
+								<td valign="top" background="../image/form_04.gif">　</td>
+								<td align="left" valign="top" background="../image/form_05.gif">
+									<table width="1150" border="0" cellspacing="0" cellpadding="1">
+										<tbody>
+											<tr>
+												<td height="100" align="center" valign="top">
+													<table width="1180" id="MainTable" border="0" cellpadding="4" cellspacing="1" bgcolor="#666666">
+														<thead>
+															<tr align="center" bgcolor="#CCCCFF" class="c12-k">
+																<td width="50">逾放期數</td>
+																<td width="80">放款金額</td>
+																<td width="90">件數</td>
+																<td width="30">逾放金額</td>
+																<td width="70">逾放比%</td>
+															</tr>
+														</thead>
+														<tbody>
+															<tr align="center" class="c12-k" bgcolor="#FFFFFF" onmouseover="this.style.background='#FFFF66';" onmouseout="this.style.background='#FFFFFF'; " style="background: rgb(255, 255, 255);">
+															</tr>
+															<tr align="center" class="c12-k" bgcolor="#FFFFFF" onmouseover="this.style.background='#FFFF66';" onmouseout="this.style.background='#FFFFFF'; " style="background: rgb(255, 255, 255);">
+															</tr>
+															<tr align="center" height="30" bgcolor="#CCCCFF">
+																<td class="c12-k" colspan="16">
+																</td>
+															</tr>
+														</tbody>
+													</table>
+													<br>
+													<table width="1180" border="0" style="display:none" cellspacing="0" cellpadding="0">
+														<tbody>
+															<tr>
+																<td valign="top">　</td>
+																<td align="left" valign="top">
+																	<table width="1150" border="0" cellspacing="0" cellpadding="1">
+																		<tbody>
+																			<tr>
+																				<td height="100" align="center" valign="top">
+
+																					<table id="MainTable_Dtl" border="0" cellpadding="4" cellspacing="1" bgcolor="#666666">
+																						<thead>
+																							<tr align="center" bgcolor="#CCCCFF" class="c12-k">
+																								<td width="80">逾放期數</td>
+																								<td width="80">放款金額</td>
+																								<td width="80">客戶名稱</td>
+																								<td width="30">延滯天數</td>
+																								<td width="80">逾放金額</td>
+																								<td width="150">備註</td>
+																							</tr>
+																						</thead>
+																						<tbody>
+																							<tr align="center" class="c12-k" bgcolor="#FFFFFF" onmouseover="this.style.background='#FFFF66';" onmouseout="this.style.background='#FFFFFF'; " style="background: rgb(255, 255, 255);">
+																							</tr>
+																							<tr align="center" class="c12-k" bgcolor="#FFFFFF" onmouseover="this.style.background='#FFFF66';" onmouseout="this.style.background='#FFFFFF'; " style="background: rgb(255, 255, 255);">
+																							</tr>
+																							<tr align="center" height="30" bgcolor="#CCCCFF">
+																								<td class="c12-k" colspan="16">
+																								</td>
+																							</tr>
+																						</tbody>
+																					</table>
+																				</td>
+																			</tr>
+																		</tbody>
+																	</table>
+																</td>
+															</tr>
+														</tbody>
+													</table>
+												</td>
+											</tr>
+										</tbody>
+									</table>
+								</td>
+							</tr>
+						</tbody>
+					</table>
+				</td>
+			</tr>
+		</tbody>
+	</table>
+</body>
+</html>
+<script>
+	const Params = getQueryParams();
+    let WebUser = Params.WebUser;
+    let WebBC = Params.WebBC;
+
+    const itemsPerPage = 20;  
+    let currentPage = 1;
+    let data = []; 
+
+    fetchData();
+
+    function fetchData() {
+        
+        let court_sale = document.querySelector('input[name="court_sale"]:checked') ? "1" : "";
+        const url = `${BASE_URL}/AE_ACC/RC_Excess_LQuery?Forec=${court_sale}`;
+
+        fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+            .then(response => response.json())
+            .then(responseData => {
+                if (responseData.resultCode == "000") {
+                    data = JSON.parse(responseData.objResult);
+                    showPage(currentPage);
+                    
+                } else {
+                    alert(response.resultMsg);
+                }
+            })
+            .catch(error => {
+				console.log(`API 請求失敗: error=${error}`);
+                alert('API 請求失敗:', error);
+            });
+    }
+
+   
+	function showPage(page) {
+        
+
+        const tbody = document.querySelector('#MainTable tbody');
+        tbody.innerHTML = '';
+
+        const startIndex = (page - 1) * itemsPerPage;
+        const endIndex = Math.min(startIndex + itemsPerPage, data.length);
+        const pageData = data.slice(startIndex, endIndex);
+
+        for (let item of pageData) {
+            const row = document.createElement('tr');
+            row.setAttribute('align', 'center');
+            row.setAttribute('class', 'c12-k');
+            row.setAttribute('bgcolor', '#FFFFFF');
+            row.setAttribute('onmouseover', "this.style.background='#FCFCC0';");
+            row.setAttribute('onmouseout', "this.style.background='#FFFFFF';");
+
+            const columnOrder = ['diffType', 'AmtTypeDesc', 'Count', 'amount_total', 'Rate'];
+
+            for (let key of columnOrder) {
+                const cell = document.createElement('td');
+                switch (key) {
+                    case 'Count':
+                        cell.textContent = item[key];
+						row.appendChild(cell);
+                        break;
+                    default:
+                        cell.textContent = item[key] || '';
+                        row.appendChild(cell);
+                }
+            }
+            
+            tbody.appendChild(row);
+        }
+    }
+
+	function exportToExcel() {
+	    var table = document.getElementById('MainTable');
+
+	    // 複製表格，並移除後面兩行
+	    var clonedTable = table.cloneNode(true);
+	    var rowCount = clonedTable.rows.length;
+  
+	    for (var i = rowCount - 1; i >= rowCount - 1; i--) {
+		    clonedTable.deleteRow(i);
+	    }
+	    for (var i = 0; i < clonedTable.rows.length; i++) {
+		    //alert(clonedTable.rows[i].cells[8].textContent)
+		    var row = clonedTable.rows[i];
+		    //row.deleteCell(9);
+		    //row.deleteCell(9);
+	    }
+	
+	    $('#MainTable').after(clonedTable);
+
+	    // 將複製的表格的 ID 設為 'tbExcel'
+	    $(clonedTable).attr('id', 'tbExcel');
+
+	    // 隱藏新增的表格
+	    $(clonedTable).hide();
+	    var fileNa=getCurrentDateTime();
+		    $("#tbExcel").table2excel({
+		    // exclude CSS class
+		    exclude: ".ExHead ",
+		    name: "Worksheet Name",
+		    filename: "介紹人佣金表-"+fileNa, //do not include extension
+		    fileext: ".xls", // file extension
+		    TextIdx: [4,5,6]
+	    }); 
+
+	    // 刪除並移除新增的表格
+	    $("#tbExcel").remove();
+    }
+
+	function getCurrentDateTime() {
+      var currentDate = new Date();
+
+      var year = currentDate.getFullYear();
+      var month = ('0' + (currentDate.getMonth() + 1)).slice(-2);
+      var day = ('0' + currentDate.getDate()).slice(-2);
+      var hours = ('0' + currentDate.getHours()).slice(-2);
+      var minutes = ('0' + currentDate.getMinutes()).slice(-2);
+
+      var formattedDateTime = year + month + day + hours + minutes;
+      return formattedDateTime;
+    }
+</script>	
