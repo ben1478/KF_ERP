@@ -1,0 +1,173 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <link href="../_include/main.css" rel="stylesheet" type="text/css">
+    <script src="../Base.js"></script>
+    <title>作業平台</title>
+</head>
+<body>
+    <table width="650" border="0" cellspacing="1" cellpadding="2" bgcolor="#999999">
+        <tbody>
+            <tr class="c12-k" bgcolor="#CCCCFF">
+                <td colspan="2" align="center"><span class="c14k">債權憑證資料修改</span></td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td width="150" align="right" bgcolor="#CCCCFF">客戶名稱</td>
+                <td align="left">
+                    <input type="text" id="CS_name" name="CS_name" size="20" maxlength="20" class="box" value="" required>
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td align="right" bgcolor="#CCCCFF">身分證字號</td>
+                <td align="left">
+                    <input type="text" id="CS_PID" name="CS_PID" size="20" maxlength="10" class="box" value="">
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td align="right" bgcolor="#CCCCFF">貸款金額</td>
+                <td align="left"><input type="text" id="loan_amount" name="loan_amount" size="20" maxlength="50" class="box" value=""></td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td align="right" bgcolor="#CCCCFF">憑證起始時間</td>
+                <td align="left">
+                    <input type="text" name="certificate_date_S" size="20" maxlength="10" class="datepickerTW" value="" style="width:150px;">
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td align="right" bgcolor="#CCCCFF">憑證到期時間</td>
+                <td align="left">
+                    <input type="text" name="certificate_date_E" size="20" maxlength="10" class="datepickerTW" value="" style="width:150px;">
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td align="right" bgcolor="#CCCCFF">備註</td>
+                <td align="left"><input type="text" id="Remark" name="Remark" size="80" class="box" value=""></td>
+            </tr>
+            <tr class="c12-k" bgcolor="#CCCCFF" height="30">
+                <td colspan="2" align="center">
+                    <input type="button" name="btnSave" value="存檔" onclick="saveData();" />
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</body>
+</html>
+<script>
+    let Params = new URLSearchParams(window.location.search);
+    let Id = decryptParameter(Params.get('Id'));
+    let WebUser = decryptParameter(Params.get('User'));
+
+    let ChkRole;
+    dateTW();
+    fetchData();
+   
+    function fetchData() {
+        
+        if (Id !== 'add') {
+            const url = `${BASE_URL}/AE_ACC/Debt_Certificate_DetQuery?PID=${Id}`;
+            fetch(url, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+                .then(response => response.json())
+                .then(response => {
+                    if (response.resultCode === '000') {
+                        const data = JSON.parse(response.objResult)[0];
+                        $("input[name='CS_name']").val(data.cs_name);
+                        $("input[name='CS_PID']").val(data.CS_PID);
+                        $("input[name='loan_amount']").val(data.loan_amount);
+                        $("input[name='certificate_date_S']").val(data.str_certificate_date_S);
+                        $("input[name='certificate_date_E']").val(data.str_certificate_date_E);
+                        $("input[name='Remark']").val(data.Remark);
+                    } else {
+                        alert(response.resultMsg);
+                    }
+                })
+                .catch(error => {
+                    alert('API 請求失敗:', error);
+                });
+
+        }
+    }
+
+    
+
+    function saveData() {
+
+        
+
+        let formData = {
+            cs_name: $("input[name='CS_name']").val(),
+            CS_PID: $("input[name='CS_PID']").val(),
+            loan_amount: $("input[name='loan_amount']").val(),
+            str_certificate_date_S: $("input[name='certificate_date_S']").val(),
+            str_certificate_date_E: $("input[name='certificate_date_E']").val(),
+            Remark: $("input[name='Remark']").val()
+            //add_num: WebUser,
+            //edit_num: WebUser 
+        };
+
+        if (Id === 'add') {
+
+            const url = `${BASE_URL}/AE_ACC/Debt_Certificate_DetIns`;
+
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'include',
+                body: JSON.stringify(formData)
+            })
+                .then(response => response.json())
+                .then(response => {
+                    if (response.resultCode === '000') {
+                        alert('新增成功');
+                        window.close();
+                        window.opener.location.reload();
+                    } else {
+                        alert(data.resultMsg);
+                    }
+                })
+                .catch(error => {
+                    alert('請求失敗，請稍後再試。');
+                });
+        } else {
+            const url = `${BASE_URL}/AE_ACC/Debt_Certificate_DetUpd`;
+
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'include',
+                body: JSON.stringify(formData)
+            })
+                .then(response => response.json())
+                .then(response => {
+                    if (response.resultCode === '000') {
+                        alert('修改成功');
+                        window.close();
+                        if (window.opener) {
+                            window.opener.location.reload();
+                        }
+                        
+                    } else {
+                        alert(data.resultMsg);
+                    }
+                })
+                .catch(error => {
+                    alert('請求失敗，請稍後再試。');
+                });
+        }
+
+    }
+
+</script>
