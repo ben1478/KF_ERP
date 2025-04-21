@@ -283,12 +283,30 @@ function DownloadFile(upload_id) {
         });
 }
 
-function convertToROCDate(berDate) {
-    let aftday = new Date(berDate);
+function convertToROCDate(WestDate) {
+    let aftday = new Date(WestDate);
     let yearROC = aftday.getFullYear() - 1911;
     let month = aftday.getMonth() + 1;
     let day = aftday.getDate();
     return `${yearROC}-${month}-${day}`;
+}
+
+function convertROCtoWesternDate(rocDate) {
+    const parts = rocDate.split('-');
+    const rocYear = parseInt(parts[0], 10);
+    const month = parseInt(parts[1], 10);
+    const day = parseInt(parts[2], 10);
+
+    const westernYear = rocYear + 1911;
+
+    return westernYear + '/' + ('0' + month).slice(-2) + '/' + ('0' + day).slice(-2);
+}
+
+function convertROCtoShow(rocDate) {
+    const [rocYear, month, day] = rocDate.split("/");
+    const westernYear = parseInt(rocYear) + 1911;
+
+    return `${westernYear}/${month}/${day}`;
 }
 
 function DeleteFile(upload_id, WebUser) {

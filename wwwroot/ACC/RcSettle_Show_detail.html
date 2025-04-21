@@ -1,0 +1,360 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script src="../Base.js"></script>
+    <title>作業平台</title>
+</head>
+<body>
+    <table width="770" border="0" cellspacing="1" cellpadding="3" bgcolor="#666666">
+        <tbody>
+            <tr class="14-k" bgcolor="#FFFFFF" height="25" align="center">
+                <td colspan="2">提前還款結清記錄 <input type="hidden" id="cs_name" name="cs_name"/></td>               
+            </tr>
+            <tr class="12" bgcolor="#FFFF66" height="25" align="center">
+                <td>清償基準日</td>
+                <td bgcolor="#FFFFFF" align="left" colspan="1">
+                    <input type="text" class="datepickerTW" value="" id="date_begin_settle" name="date_begin_settle" size="10" maxlength="10" style="width:80px;">
+                </td>
+            </tr>
+            <tr class="12" bgcolor="#FFFF66" height="25" align="center">
+                <td>提前結清備註</td>
+                <td bgcolor="#FFFFFF" align="left" colspan="1">
+                    <textarea name="RCM_note" cols="34" rows="5"></textarea>
+                </td>
+            </tr>
+            <tr class="12" bgcolor="#FFFF66" height="25" align="center">
+                <td>預計違約金利率</td>
+                <td bgcolor="#FFFFFF" align="left" colspan="1">
+                    <input type="text" class="text_box_1" id="Breach_rate" name="Breach_rate" size="5" maxlength="5" style="width:80px;" value="13" onchange="updateSettRate()"> %
+                </td>
+            </tr>
+            <tr class="12" bgcolor="#FFFF66" height="25" align="center">
+                <td>利息起訖日</td>
+                <td bgcolor="#FFFFFF" align="left" colspan="1">
+                    <input type="text" class="datepickerTW" id="Breach_date_s" name="Breach_date_s" size="10" maxlength="10" style="width:80px;">
+                    ~
+                    <input type="text" class="datepickerTW" id="Breach_date_e" name="Breach_date_e" size="10" maxlength="10" style="width:80px;">
+                </td>
+            </tr>
+            <tr class="12" bgcolor="#FFFF66" height="25" align="center">
+                <td>清償明細</td>
+                <td bgcolor="#FFFFFF" style="text-align: left;">
+                    結清本金：<span id="RP_AMT"></span><br>
+                    預計違約金：<span id="BreakAmt_display"></span>(結清本金*<span id="rate_display">13</span>%)<br>
+                    <span id="isFisrt_show" style="display: none;">扣除首期月付金：-<span id="amount_per_month"></span><br></span>
+                    利息：<span id="interestAMT_display"></span><br>
+                    計息公式：(<span name="interest_display"></span>/30)*<span name="interestDay"></span>(<span name="date_s_display"></span>~<span name="date_e_display"></span>)<br>
+                    計息金額：<span name="interest_display"></span>	　計息天數：<span name="interestDay"></span>	   <br>
+                    利息起算日：<span name="date_s_display"></span>~<span name="date_e_display"></span><br>
+                </td>
+            </tr>
+            <tr class="12" bgcolor="#FFFF66" height="25" align="center">
+                <td>實際違約金</td>
+                <td bgcolor="#FFFFFF" align="left" colspan="1">
+                    <input type="text" class="text_box_1" id="Break_AMT" name="Break_AMT" size="10" maxlength="10" style="width:80px;" onchange="sumTotalSettAmt();">
+                </td>
+            </tr>
+            <tr class="12" bgcolor="#FFFF66" height="25" align="center" id="trDelayMoney" style="display: none;">
+                <td>延滯總利息</td>
+                <td bgcolor="#FFFFFF" align="left" colspan="1">
+                    <input type="text" class="text_box_1" id="Delay_AMT" name="Delay_AMT" size="10" maxlength="10" style="width:80px;" onchange="sumTotalSettAmt();">
+                </td>
+            </tr>
+            <tr class="12" bgcolor="#FFFF66" height="25" align="center">
+                <td>清償金額</td>
+                <td bgcolor="#FFFFFF" align="left" colspan="1">
+                    <span id="spTot_Break_AMT"></span>
+                    <input type="hidden" name="Tot_Break_AMT" id="Tot_Break_AMT">
+                    (<span id="Tot_Break_AMT_DESC"><span id="spBreak_AMT"></span><span id="spDelay_AMT"></span></span>)
+                </td>
+            </tr>
+            <tr class="14-k" bgcolor="#FFFFFF" height="35" align="center">
+                <td align="center" colspan="2">
+                    <input type="button" value="列印結清明細" onclick="printSettle();">
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</body>
+</html>
+<script>
+    let Params = new URLSearchParams(window.location.search);
+    let RCM_Number = decryptParameter(Params.get('RCM_ID'));
+
+    let RP_AMT;
+    let isFirst = "N";
+    let amount_per_month = 0;
+    let interestAmt = 0;
+    let TotalSettAmt = 0;
+
+    dateTW();
+    fetchData();
+    
+    function fetchData() {
+        const url = `${BASE_URL}/AE_ACC/Settle_Show_SQuery?RCM_ID=${RCM_Number}`;
+
+        fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+            .then(response => response.json())
+            .then(responseData => {
+                if (responseData.resultCode === '000') {
+                    const data = JSON.parse(responseData.objResult);
+                    RP_AMT = data[0].RP_AMT;
+                    isFirst = data[0].isFirst;
+                    document.getElementById("RP_AMT").innerText = data[0].RP_AMT.toLocaleString();
+                    document.getElementById("BreakAmt_display").innerText = data[0].Break_AMT.toLocaleString();
+                    document.getElementById("interestAMT_display").innerText = data[0].interest_AMT.toLocaleString();
+                    let interests = document.getElementsByName("interest_display");
+                    interests.forEach(interset => {
+                        interset.innerText = data[0].interest.toLocaleString();
+                    })
+                    let spans = document.getElementsByName("interestDay");
+                    spans.forEach(span => {
+                        span.innerText = data[0].interestDay;
+                    })
+                    let S_dates = document.getElementsByName("date_s_display");
+                    S_dates.forEach(date => {
+                        date.innerText = data[0].RC_date;
+                    })
+                    let E_dates = document.getElementsByName("date_e_display");
+                    E_dates.forEach(date => {
+                        date.innerText = data[0].OffDate;
+                    })
+                    $("input[name='Break_AMT']").val(data[0].Break_AMT);
+                    $("input[name='Delay_AMT']").val(data[0].Delay_AMT);
+                    $("input[name='Breach_date_s']").val(convertToROCDate(data[0].RC_date));
+                    $("input[name='Breach_date_e']").val(convertToROCDate(data[0].OffDate));
+                    $("input[name='cs_name']").val(data[0].CS_name);
+                    isFirst = data[0].isFirst;
+                    if (isFirst === 'Y') {
+                        document.getElementById("isFisrt_show").style.display = 'inline';
+                        document.getElementById("trDelayMoney").style.display = 'none';
+                        document.getElementById("amount_per_month").innerText = data[0].amount_per_month.toLocaleString();
+                        amount_per_month = data[0].amount_per_month;
+                    } else {
+                        document.getElementById("isFisrt_show").style.display = 'none';
+                        document.getElementById("trDelayMoney").style.display = 'table-row';
+                    }
+                    sumTotalSettAmt();
+                }
+            })
+            .catch(error => {
+                alert('請求失敗，請稍後再試。');
+            })
+    }
+
+    function updateSettRate() {
+        const rateInput = document.getElementById('Breach_rate').value;
+        const rate = parseFloat(rateInput);
+
+        if (!isNaN(rate)) {
+            document.getElementById('rate_display').textContent = rateInput;
+        } else {
+            document.getElementById('rate_display').textContent = '13';
+            document.getElementById('Breach_rate').value = 13;
+        }
+
+	    var Break_AMT = Math.ceil(RP_AMT * (rateInput / 100));
+
+        if (!isNaN(rate)) {
+            document.getElementById('BreakAmt_display').textContent = Break_AMT.toLocaleString();
+            document.getElementById('Break_AMT').value = Break_AMT;
+            sumTotalSettAmt();
+        }
+    }
+
+    $('.datepickerTW').datepickerTW({
+        changeYear: true,
+        changeMonth: true,
+        dateFormat: 'yy-mm-dd',
+        onSelect: function (dateText, inst) {
+            if (inst.input.attr('id') === 'Breach_date_s') {
+                calculateDays();
+
+            } else if (inst.input.attr('id') === 'Breach_date_e') {
+                calculateDays();
+                updateDelayAMT();
+            }
+        }
+    });
+
+    function calculateDays() {
+        const dateStart = document.getElementById("Breach_date_s").value;
+        const dateEnd = document.getElementById("Breach_date_e").value;
+
+        if (dateStart && dateEnd) {
+            const startDateConverted = convertROCtoWesternDate(dateStart);
+            const endDateConverted = convertROCtoWesternDate(dateEnd);
+
+            const start = new Date(startDateConverted);
+            const end = new Date(endDateConverted);
+
+            let differenceInDays;
+
+            //如果是「同日、相差一個月」→ 固定算 30 天
+            const isSameDay = start.getDate() === end.getDate();
+            const isOneMonthApart =
+                (end.getFullYear() - start.getFullYear()) * 12 +
+                (end.getMonth() - start.getMonth()) === 1;
+
+            if (isSameDay && isOneMonthApart) {
+                differenceInDays = 30;
+            } else {
+                const differenceInTime = end.getTime() - start.getTime();
+                differenceInDays = differenceInTime / (1000 * 3600 * 24);
+                differenceInDays = Math.round(differenceInDays); // 四捨五入成整數
+            }
+
+            document.querySelectorAll('[name="interestDay"]').forEach(function (element) {
+                element.textContent = differenceInDays;
+            });
+
+            updateInterestAMT(differenceInDays);
+        } else {
+            document.querySelectorAll('[name="interestDay"]').forEach(function (element) {
+                element.textContent = "??";
+            });
+        }
+    }
+
+    function updateInterestAMT(differenceInDays)
+    {
+        var interest = parseFloat((document.getElementsByName('interest_display')[0].textContent).replace(/,/g, ''));
+	    var interestAmt = Math.ceil((interest / 30).toFixed(10) * differenceInDays);
+        document.getElementById("interestAMT_display").innerText = interestAmt.toLocaleString();
+        $('#interest_AMT').val(interestAmt);
+        sumTotalSettAmt();
+    }
+
+    function updateDelayAMT() {
+        const endDateConverted = convertROCtoWesternDate(document.getElementById("Breach_date_e").value);
+
+        const url = `${BASE_URL}/AE_ACC/GetDelayAMT?RCM_id=${RCM_Number}&RC_date_E=${endDateConverted}`;
+
+        fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                if (data.resultCode === "000") {
+                    try {
+                        const objResult = JSON.parse(data.objResult);
+                        document.getElementById('Delay_AMT').value = objResult[0].Delay_AMT;
+                        sumTotalSettAmt();
+                    } catch (e) {
+                        console.error("Error parsing objResult:", e);
+                    }
+                } else {
+                    console.error("Error:", data.resultMsg);
+                }
+            })
+            .catch(error => console.error("Fetch error:", error));
+    }
+
+    function sumTotalSettAmt() {
+        interestAmt = parseFloat((document.getElementById("interestAMT_display").textContent).replace(/,/g, ''));
+
+        if (isFirst === "Y") {
+            TotalSettAmt = RP_AMT + parseFloat($('#Break_AMT').val() || 0) + interestAmt - amount_per_month;
+            document.getElementById('Tot_Break_AMT').value = TotalSettAmt;
+            document.getElementById('spTot_Break_AMT').textContent = TotalSettAmt.toLocaleString();
+            document.getElementById('Tot_Break_AMT_DESC').textContent = RP_AMT.toLocaleString() + "+" + $('#Break_AMT').val().toLocaleString() + "+" + interestAmt.toLocaleString() + "-" + amount_per_month.toLocaleString();
+        }
+        else {
+            TotalSettAmt = RP_AMT + parseFloat($('#Break_AMT').val() || 0) + parseFloat($('#Delay_AMT').val() || 0) + interestAmt;
+            document.getElementById('Tot_Break_AMT').value = TotalSettAmt;
+            document.getElementById('spTot_Break_AMT').textContent = TotalSettAmt.toLocaleString();
+            document.getElementById('Tot_Break_AMT_DESC').textContent = RP_AMT.toLocaleString() + "+" + parseFloat($('#Break_AMT').val() || 0).toLocaleString() + "+" + interestAmt.toLocaleString() + "+" + parseFloat($('#Delay_AMT').val() || 0).toLocaleString();
+        }
+    }
+
+    function printSettle() {
+        const content = `
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>列印報表</title>
+    <style>
+        @page {
+            margin: 0;
+        }
+        body {
+            margin: 0;
+            padding: 0;
+        }
+        .print-box {
+            position: absolute;
+            top: 50px;
+            left: 50px;
+            right: 50px;
+            bottom: 50px;
+            border: 2px solid #000;
+            padding: 20px;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+            font-size: 16px;
+        }
+
+        h2, h6 {
+            text-align: center;
+            margin: 0 0 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="print-box">
+        <h2>國峯租賃股份有限公司</h2>
+        <h6>清償明細</h6>
+        <div style="margin-bottom: 10px;margin-left: 90px;">
+            <span>客戶姓名:${$('#cs_name').val()}</span>
+        </div>
+        <div style="margin-bottom: 10px;margin-left: 390px;">
+            <span>清償基準日:${document.getElementById("Breach_date_e").value.replaceAll("-", "/")}</span>
+        </div>
+        <div style="margin-bottom: 10px;margin-left: 350px;">
+            <span><b>清償金額: <span style="border-bottom: 1px solid black;">${TotalSettAmt.toLocaleString() }元</span></b></span>
+        </div>
+        <div style="margin-bottom: 10px;margin-left: 120px;">
+            <span><b>結清本金:${RP_AMT.toLocaleString()}元</b></span><br>
+            <span><b>違約金:${parseFloat($('#Break_AMT').val() || 0).toLocaleString()}元(${$('#Breach_rate').val() }%)</b></span><br>
+            <span><b>利息:${interestAmt.toLocaleString()}元(${document.getElementsByName("interest_display")[0].textContent}/30*${document.getElementsByName("interestDay")[0].textContent}_${document.getElementById("Breach_date_s").value.split("-").slice(1).join("/")}~${document.getElementById("Breach_date_e").value.split("-").slice(1).join("/") }</b></sapn><br>
+            <span><b>延滯利息：${parseFloat(document.getElementById("Delay_AMT").value || 0).toLocaleString() }</b></span>
+        </div>
+        <br>
+        <br>
+        <span style="margin-left: 50px;">匯款完成後請務必傳真水單且註明<span style="border-bottom: 1px solid black;">清償:${$('#cs_name').val()}</span>相關資訊並來電告知，以便於沖帳，因ACH取消扣款需3個工作天以上，若來不及取消，則請自行存入款項，待作業完成後再退還款項予發票人。</span>
+        <br>
+        <br>
+        <span><b>◆清償金額請匯入本公司帳號</b></span><br><br>
+        <div style="margin-left: 140px;">
+            <span style="display: block; margin: 1px 0;">上海銀行 城中分行 0110060</span><br>
+            <span style="display: block; margin: 1px 0;">帳號:06102000099866</span><br>
+            <span style="display: block; margin: 1px 0;">戶名:國峯租賃股份有限公司</span><br>
+            <span style="display: block; margin: 1px 0;">匯完款請傳真:02-2313-1218</span><br>
+            <span style="display: block; margin: 1px 0;">電話:02-2313-1268</span>
+        </div>
+        <br>
+        <span style="margin-left: 50px;">本公司清償證明製作時間為三天以上，不便之處敬請原諒</span>
+    </div>
+</body>
+</html>
+`;
+        const printWindow = window.open('', '', 'height=600,width=800');
+        printWindow.document.write(content);
+        printWindow.document.close();
+        printWindow.focus();
+
+        setTimeout(() => {
+            printWindow.print();
+            printWindow.close();
+        }, 500);
+    }
+
+</script>
