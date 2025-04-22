@@ -112,7 +112,12 @@
                     isFirst = data[0].isFirst;
                     document.getElementById("RP_AMT").innerText = data[0].RP_AMT.toLocaleString();
                     document.getElementById("BreakAmt_display").innerText = data[0].Break_AMT.toLocaleString();
-                    document.getElementById("interestAMT_display").innerText = data[0].interest_AMT.toLocaleString();
+                    if (data[0].interest_AMT === 0) {
+                        document.getElementById("interestAMT_display").innerText = (Math.ceil((data[0].interest / 30) * data[0].interestDay)).toLocaleString();
+                    } else {
+                        document.getElementById("interestAMT_display").innerText = data[0].interest_AMT.toLocaleString();
+                    }
+                    
                     let interests = document.getElementsByName("interest_display");
                     interests.forEach(interset => {
                         interset.innerText = data[0].interest.toLocaleString();
@@ -229,7 +234,7 @@
     function updateInterestAMT(differenceInDays)
     {
         var interest = parseFloat((document.getElementsByName('interest_display')[0].textContent).replace(/,/g, ''));
-	    var interestAmt = Math.ceil((interest / 30).toFixed(10) * differenceInDays);
+	    var interestAmt = Math.ceil((interest / 30) * differenceInDays);
         document.getElementById("interestAMT_display").innerText = interestAmt.toLocaleString();
         $('#interest_AMT').val(interestAmt);
         sumTotalSettAmt();
