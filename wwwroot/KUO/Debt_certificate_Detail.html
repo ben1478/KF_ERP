@@ -11,37 +11,37 @@
     <title>作業平台</title>
 </head>
 <body>
-    <table width="650" border="0" cellspacing="1" cellpadding="2" bgcolor="#999999">
+    <table width="700" border="0" cellspacing="1" cellpadding="2" bgcolor="#999999">
         <tbody>
             <tr class="c12-k" bgcolor="#CCCCFF">
                 <td colspan="2" align="center"><span class="c14k">債權憑證資料修改</span></td>
             </tr>
             <tr class="c12-k" bgcolor="#FFFFFF">
-                <td width="150" align="right" bgcolor="#CCCCFF">客戶名稱</td>
+                <td align="right" bgcolor="#CCCCFF">客戶名稱</td>
                 <td align="left">
-                    <input type="text" id="CS_name" name="CS_name" size="20" maxlength="20" class="box" value="" required>
+                    <input type="text" id="CS_name" name="CS_name" size="40" maxlength="20" class="box" value="" required>
                 </td>
             </tr>
             <tr class="c12-k" bgcolor="#FFFFFF">
                 <td align="right" bgcolor="#CCCCFF">身分證字號</td>
                 <td align="left">
-                    <input type="text" id="CS_PID" name="CS_PID" size="20" maxlength="10" class="box" value="">
+                    <input type="text" id="CS_PID" name="CS_PID" size="20" maxlength="10" class="box" value="" required>
                 </td>
             </tr>
             <tr class="c12-k" bgcolor="#FFFFFF">
                 <td align="right" bgcolor="#CCCCFF">貸款金額</td>
-                <td align="left"><input type="text" id="loan_amount" name="loan_amount" size="20" maxlength="50" class="box" value=""></td>
+                <td align="left"><input type="text" id="loan_amount" name="loan_amount" size="20" maxlength="50" class="box" value="" required></td>
             </tr>
             <tr class="c12-k" bgcolor="#FFFFFF">
-                <td align="right" bgcolor="#CCCCFF">憑證起始時間</td>
-                <td align="left">
-                    <input type="text" name="certificate_date_S" size="20" maxlength="10" class="datepickerTW" value="" style="width:150px;">
+                <td width="300" align="right" bgcolor="#CCCCFF">憑證起始時間</td>
+                <td width="400" align="left">
+                    <input type="text" id="certificate_date_S" name="certificate_date_S" size="20" maxlength="10" class="datepickerTW" value="" style="width:150px;" required>
                 </td>
             </tr>
             <tr class="c12-k" bgcolor="#FFFFFF">
                 <td align="right" bgcolor="#CCCCFF">憑證到期時間</td>
                 <td align="left">
-                    <input type="text" name="certificate_date_E" size="20" maxlength="10" class="datepickerTW" value="" style="width:150px;">
+                    <input type="text" id="certificate_date_E" name="certificate_date_E" size="20" maxlength="10" class="datepickerTW" value="" style="width:150px;">
                 </td>
             </tr>
             <tr class="c12-k" bgcolor="#FFFFFF">
@@ -69,7 +69,7 @@
     function fetchData() {
         
         if (Id !== 'add') {
-            const url = `${BASE_URL}/AE_ACC/Debt_Certificate_DetQuery?PID=${Id}`;
+            const url = `${BASE_URL}/AE_ACC/Debt_Certificate_DetQuery?DebtID=${Id}`;
             fetch(url, {
                 method: 'GET',
                 headers: {
@@ -101,17 +101,39 @@
 
     function saveData() {
 
+        var inputs = document.querySelectorAll('input[required]');
         
+        let isValid = true;
+        for (var i = 0; i < inputs.length; i++) {
+            var input = inputs[i];
+            if (!input.value.trim()) {
+                alert("必填請輸入");
+                isValid = false;
+                break;
+            }
+        }
+
+        // let csPID = $("input[name='CS_PID']").val();
+        // let isCSPID = checkBasic(csPID);
+        // if(isCSPID === false)
+        // {
+        //     alert("身份證格式錯誤");
+        // }
+        // isValid = isValid && isCSPID;
+        if (!isValid) {
+            return;
+        }
 
         let formData = {
+            Debt_ID:Id,
             cs_name: $("input[name='CS_name']").val(),
             CS_PID: $("input[name='CS_PID']").val(),
             loan_amount: $("input[name='loan_amount']").val(),
             str_certificate_date_S: $("input[name='certificate_date_S']").val(),
             str_certificate_date_E: $("input[name='certificate_date_E']").val(),
-            Remark: $("input[name='Remark']").val()
-            //add_num: WebUser,
-            //edit_num: WebUser 
+            Remark: $("input[name='Remark']").val(),
+            add_num: WebUser,
+            edit_num: WebUser 
         };
 
         if (Id === 'add') {
@@ -168,6 +190,100 @@
                 });
         }
 
+    }
+
+    function convertDate(dateString,YearType) 
+    {  
+
+        var parts = dateString.split('-');
+        var year = parseInt(parts[0])
+	    if (YearType=="ROC")
+	    {
+		    year = parseInt(year) - 1911; 
+	    }
+	    else
+	    {
+		    year = parseInt(year) + 1911; 
+	    }
+	
+        var month = parseInt(parts[1]);
+        var day = parseInt(parts[2]);
+	    return year + "-" + String(month).padStart(2,"0") + "-" + String(day).padStart(2,"0");
+    }
+
+    function DateAdd(dateString) 
+    {
+        var date = new Date(dateString);
+        date.setFullYear(date.getFullYear() + 3);
+        date.setDate(date.getDate() - 1);
+        var resultDateString = date.getFullYear() + "-" + (date.getMonth() + 1) + "-" + date.getDate();
+        return resultDateString;
+    }
+
+    $('.datepickerTW').datepickerTW({
+        changeYear: true,
+        changeMonth: true,
+        dateFormat: 'yy-mm-dd',
+        onSelect: function (dateText, inst) {
+            if (inst.input.attr('id') === 'certificate_date_S') {
+        	    var resultROC = convertDate(DateAdd(dateText),"ROC")
+	            $("#certificate_date_E").val(resultROC);
+            } 
+        }
+    });
+
+
+    function checkBasic(code) {
+      let result =
+        checkLength(code) &&
+        checkDigit(code) &&
+        checkGender(parseInt(code.substring(1, 2)));
+
+      console.log(`check basic: ${result}`);
+      return result;
+    }
+
+    function checkLength(code) {
+      let r = false;
+      if (code.length === 10) r = true;
+
+      console.log(`check legnth:${r} `);
+
+      return r;
+    }
+
+    function checkDigit(code) {
+      const testStr = code.substring(1);
+      for (let i = 0; i < testStr.length; i++) {
+        if (isNaN(testStr.charAt(i))) {
+          console.log(
+            `Check digit false. ${testStr.charAt(i)} is ${!isNaN(
+              testStr.charAt(i)
+            )}`
+          );
+
+          return false;
+        }
+      }
+
+      return true;
+    }
+
+    function checkGender(code) {
+      const genderArr = [
+        1, //男
+        2, //女
+        8, //外來人口-男
+        9, //外來人口-女
+      ];
+
+      if (genderArr.includes(code)) {
+        console.log("check Gender: true");
+        return true;
+      }
+      console.log("check Gender: false");
+
+      return false;
     }
 
 </script>
