@@ -181,18 +181,17 @@
                 "../images/delete.png",
                 "刪除",
                 function () {
-                    
-                        // let formData = {
-                        //     DebtID: Id
-                        // };
-                        const url = `${BASE_URL}/AE_ACC/Debt_Certificate_DetDel?DebtID=${Id}`;
+                        const url = `${BASE_URL}/AE_ACC/Debt_Certificate_DetDel?DebtID=${Id}&del_num=${WebUser}`;
+                        let formData = {
+                            Debt_ID:Id
+                        };
                         fetch(url, {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json'
                             },
-                            credentials: 'include'
-                            // ,body: JSON.stringify(formData)
+                            credentials: 'include',
+                            body: JSON.stringify(formData)
                         })
                             .then(response => response.json())
                             .then(responseData => {
@@ -222,6 +221,7 @@
     }
 
     function exportToExcel() {
+
 	    var table = document.getElementById('MainTable');
 
 	    // 複製表格，並移除後面兩行
@@ -232,9 +232,10 @@
 		    clonedTable.deleteRow(i);
 	    }
 	    for (var i = 0; i < clonedTable.rows.length; i++) {
-		    alert(clonedTable.rows[i].cells[8].textContent)
+		    console.log(`clonedTable.rows[i].cells[8].textContent=${clonedTable.rows[i].cells[8].textContent}`);
 		    var row = clonedTable.rows[i];
-		    //row.deleteCell(7);
+		    row.deleteCell(8);
+            row.deleteCell(7);
 	    }
 	
 	    $('#MainTable').after(clonedTable);
