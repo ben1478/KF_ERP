@@ -1,0 +1,534 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script type="text/javascript" src="../tool_js/jquery.table2excel.js"></script>
+    <link href="../_include/main.css" rel="stylesheet" type="text/css">
+    <script src="../Base.js"></script>
+    <title>作業平台</title>
+</head>
+<body>
+    <table border="0" width="100%">
+        <tbody>
+            <tr>
+                <td width="20">　</td>
+                <td width="230" height="24" background="../../image/title-bk.gif">
+                    <span class="c14k"><strong>應收帳款-逾放比</strong></span>
+                </td>
+                <td width="770"></td>
+            </tr>
+            <tr class="c12-k">
+                <td></td>
+                <td colspan="2">
+                    <table border="0" with="100%" id="table1">
+                        <tr class="c12-k">
+                            <td colspan="4" align="left" width="80%">
+                                逾放天數：
+                                <select name="overDay" id="overDay" class="">
+                                    <option value="30">30天以上</option>
+                                    <option value="60" selected="">60天以上</option>
+                                    <option value="90">90天以上</option>
+                                </select>
+                            </td>
+                        </tr>
+                        <tr class="c12-k">
+                            <td>
+                                <input type="button" value="查詢" onclick="fetchData();" />
+                                <input type="button" value="匯出Excel" name="btnExcel" onclick="exportToExcel()">
+                            </td>
+                            <td>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    
+    <table width="1050" border="0" cellspacing="0" cellpadding="0">
+        <tbody>
+            <tr>
+                <td valign="top"> </td>
+                <td align="center" valign="top">
+                    <table id="MainTable" width="1050" border="0" cellpadding="4" cellspacing="1" bgcolor="#666666">
+                        <thead>
+                            <tr align="center" bgcolor="#CCCCFF" class="c12-k">
+                                <td width="50">序</td>
+                                <td width="50">區域</td>
+                                <td width="80">業務</td>
+                                <td width="90">總件數</td>
+                                <td width="30">總金額</td>
+                                <td width="30">逾期件數</td>
+                                <td width="70">逾期金額</td>
+                                <td width="70">逾放比%</td>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr align="center" class="c12-k" bgcolor="#FFFFFF" onmouseover="this.style.background='#FFFF66';" onmouseout="this.style.background='#FFFFFF'; " style="background: rgb(255, 255, 255);">
+                            </tr>
+                            <tr align="center" class="c12-k" bgcolor="#FFFFFF" onmouseover="this.style.background='#FFFF66';" onmouseout="this.style.background='#FFFFFF'; " style="background: rgb(255, 255, 255);">
+                            </tr>
+                            <tr align="center" height="30" bgcolor="#CCCCFF">
+                                <td class="c12-k" colspan="16">
+                                </td>
+                            </tr>
+                        </tbody>
+                        <tfoot>
+                            <tr align="center" height="15" bgcolor="#CCCCFF">
+                                <td class="c12-k" colspan="15">
+                                    <font color="#000080">
+                                        <label id="CountRows"></label>
+                                    </font>
+                                </td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                    <div id="pagination"></div>
+                </td>
+            </tr>
+            <tr>
+                <td></td>
+                <td>
+                    <table id="AreaTable" border="0" cellpadding="4" cellspacing="1" bgcolor="#666666">
+                        <tbody>
+                            <tr align="center" bgcolor="#CCCCFF" class="c12-k">
+                                <td width="50">序</td>
+                                <td width="130">區域</td>
+                                <td width="30">總件數</td>
+                                <td width="30">總金額</td>
+                                <td width="30">逾期案件</td>
+                                <td width="30">逾放金額</td>
+                                <td width="30">逾放比%</td>
+                                <td width="70">結清件數</td>
+                                <td width="70">結清金額</td>
+                            </tr>
+
+                            <tr align="center" class="c12-k" bgcolor="#fff">
+                                <td width="50">1</td>
+                                <td width="50">台北一</td>
+                                <td width="50">93</td>
+                                <td>163,100,000</td>
+                                <td width="50">6</td>
+                                <td>11,000,000</td>
+                                <td width="50">6.74%</td>
+                                <td>93</td>
+                                <td>182,100,000</td>
+                            </tr>
+
+                            <tr align="center" class="c12-k" bgcolor="#fff">
+                                <td width="50">2</td>
+                                <td width="50">台北二</td>
+                                <td width="50">33</td>
+                                <td>56,700,000</td>
+                                <td width="50">3</td>
+                                <td>5,500,000</td>
+                                <td width="50">9.7%</td>
+                                <td>63</td>
+                                <td>139,650,000</td>
+                            </tr>
+
+                            <tr align="center" class="c12-k" bgcolor="#fff">
+                                <td width="50">3</td>
+                                <td width="50">新北</td>
+                                <td width="50">25</td>
+                                <td>35,100,000</td>
+                                <td width="50">0</td>
+                                <td>0</td>
+                                <td width="50">0%</td>
+                                <td>53</td>
+                                <td>77,850,000</td>
+                            </tr>
+
+                            <tr align="center" class="c12-k" bgcolor="#fff">
+                                <td width="50">4</td>
+                                <td width="50">台中</td>
+                                <td width="50">43</td>
+                                <td>79,900,000</td>
+                                <td width="50">4</td>
+                                <td>8,600,000</td>
+                                <td width="50">10.76%</td>
+                                <td>69</td>
+                                <td>120,150,000</td>
+                            </tr>
+
+                            <tr align="center" class="c12-k" bgcolor="#fff">
+                                <td width="50">5</td>
+                                <td width="50">高雄</td>
+                                <td width="50">48</td>
+                                <td>66,100,000</td>
+                                <td width="50">0</td>
+                                <td>0</td>
+                                <td width="50">0%</td>
+                                <td>104</td>
+                                <td>144,500,000</td>
+                            </tr>
+
+                            <tr align="center" class="c12-k" bgcolor="#fff">
+                                <td width="50">6</td>
+                                <td width="50">台南</td>
+                                <td width="50">52</td>
+                                <td>58,700,000</td>
+                                <td width="50">4</td>
+                                <td>7,300,000</td>
+                                <td width="50">12.44%</td>
+                                <td>88</td>
+                                <td>118,450,000</td>
+                            </tr>
+
+                            <tr align="center" class="c12-k" bgcolor="#fff">
+                                <td width="50">7</td>
+                                <td width="50">桃園</td>
+                                <td width="50">35</td>
+                                <td>60,400,000</td>
+                                <td width="50">7</td>
+                                <td>13,400,000</td>
+                                <td width="50">22.19%</td>
+                                <td>49</td>
+                                <td>99,800,000</td>
+                            </tr>
+
+                            <tr align="center" class="c12-k" bgcolor="#fff">
+                                <td width="50">8</td>
+                                <td width="50">數位行銷部</td>
+                                <td width="50">74</td>
+                                <td>149,669,217</td>
+                                <td width="50">4</td>
+                                <td>8,000,000</td>
+                                <td width="50">5.35%</td>
+                                <td>74</td>
+                                <td>201,660,000</td>
+                            </tr>
+
+                            <tr align="center" class="c12-k" bgcolor="#fff">
+                                <td width="50">9</td>
+                                <td width="50">湧立</td>
+                                <td width="50">1</td>
+                                <td>15,000,000</td>
+                                <td width="50">1</td>
+                                <td>15,000,000</td>
+                                <td width="50">100%</td>
+                                <td>2</td>
+                                <td>2,900,000</td>
+                            </tr>
+
+                        </tbody>
+                    </table>
+                </td>
+            </tr>
+            <tr>
+                <td></td>
+                <td>&nbsp;</td>
+            </tr>
+            <tr>
+                <td></td>
+                <td>
+                    <table id="CaseTable" border="0" cellpadding="4" cellspacing="1" bgcolor="#666666">
+                        <tbody>
+                            <tr align="center" bgcolor="#CCCCFF" class="c12-k">
+                                <td width="50">序</td>
+                                <td width="130">專案名稱</td>
+                                <td width="30">總件數</td>
+                                <td width="30">總金額</td>
+                                <td width="30">逾期案件</td>
+                                <td width="30">逾放金額</td>
+                                <td width="30">逾放比%</td>
+                                <td width="70">結清件數</td>
+                                <td width="70">結清金額</td>
+                            </tr>
+
+                            <tr align="center" class="c12-k" bgcolor="#fff">
+                                <td width="50">1</td>
+                                <td width="50">國峯一般專案</td>
+                                <td width="50">318</td>
+                                <td>554,819,217</td>
+                                <td width="50">25</td>
+                                <td>61,500,000</td>
+                                <td width="50">11.08%</td>
+                                <td>543</td>
+                                <td>925,210,000</td>
+                            </tr>
+
+                            <tr align="center" class="c12-k" bgcolor="#fff">
+                                <td width="50">2</td>
+                                <td width="50">國峯金便利專案</td>
+                                <td width="50">27</td>
+                                <td>65,050,000</td>
+                                <td width="50">0</td>
+                                <td>0</td>
+                                <td width="50">0%</td>
+                                <td>6</td>
+                                <td>21,000,000</td>
+                            </tr>
+
+                            <tr align="center" class="c12-k" bgcolor="#fff">
+                                <td width="50">3</td>
+                                <td width="50">國峯借新還舊專案</td>
+                                <td width="50">1</td>
+                                <td>3,700,000</td>
+                                <td width="50">1</td>
+                                <td>3,700,000</td>
+                                <td width="50">100%</td>
+                                <td>2</td>
+                                <td>26,500,000</td>
+                            </tr>
+
+                            <tr align="center" class="c12-k" bgcolor="#fff">
+                                <td width="50">4</td>
+                                <td width="50">國峯短約專案</td>
+                                <td width="50">1</td>
+                                <td>2,000,000</td>
+                                <td width="50">0</td>
+                                <td>0</td>
+                                <td width="50">0%</td>
+                                <td>14</td>
+                                <td>50,900,000</td>
+                            </tr>
+
+                            <tr align="center" class="c12-k" bgcolor="#fff">
+                                <td width="50">5</td>
+                                <td width="50">國峯新鑫加乘專案</td>
+                                <td width="50">44</td>
+                                <td>13,200,000</td>
+                                <td width="50">1</td>
+                                <td>300,000</td>
+                                <td width="50">2.27%</td>
+                                <td>6</td>
+                                <td>1,800,000</td>
+                            </tr>
+
+                            <tr align="center" class="c12-k" bgcolor="#fff">
+                                <td width="50">6</td>
+                                <td width="50">國峯新鑫直核專案</td>
+                                <td width="50">2</td>
+                                <td>3,500,000</td>
+                                <td width="50">0</td>
+                                <td>0</td>
+                                <td width="50">0%</td>
+                                <td>1</td>
+                                <td>1,000,000</td>
+                            </tr>
+
+                            <tr align="center" class="c12-k" bgcolor="#fff">
+                                <td width="50">7</td>
+                                <td width="50">國峯優息專案</td>
+                                <td width="50">3</td>
+                                <td>24,600,000</td>
+                                <td width="50">0</td>
+                                <td>0</td>
+                                <td width="50">0%</td>
+                                <td>3</td>
+                                <td>38,500,000</td>
+                            </tr>
+
+                            <tr align="center" class="c12-k" bgcolor="#fff">
+                                <td width="50">8</td>
+                                <td width="50">國峯優質專案</td>
+                                <td width="50">8</td>
+                                <td>17,800,000</td>
+                                <td width="50">2</td>
+                                <td>3,300,000</td>
+                                <td width="50">18.54%</td>
+                                <td>4</td>
+                                <td>7,200,000</td>
+                            </tr>
+
+                        </tbody>
+                    </table>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</body>
+</html>
+<script>
+    const Params = getQueryParams();
+    let WebUser = Params.WebUser;
+    let WebBC = Params.WebBC;
+
+    const itemsPerPage = 20;  
+    let currentPage = 1;
+    let data = []; 
+
+    fetchData();
+
+
+    function fetchData() {
+        
+        let overDay = document.getElementById('overDay').value;
+        const url = `${BASE_URL}/AE_ACC/RC_Over_Rel_LQuery?overDay=${overDay}`;
+
+        fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+            .then(response => response.json())
+            .then(responseData => {
+                if (responseData.resultCode == "000") {
+                    data = JSON.parse(responseData.objResult);
+                    showPage(currentPage);
+                    createPagination();
+                } else {
+                    alert(response.resultMsg);
+                }
+            })
+            .catch(error => {
+                alert('API 請求失敗:', error);
+            });
+    }
+
+    function showPage(page) {
+        document.getElementById('CountRows').innerHTML = `筆數:${data.length}`;
+        const tbody = document.querySelector('#MainTable tbody');
+        tbody.innerHTML = '';
+
+        const startIndex = (page - 1) * itemsPerPage;
+        const endIndex = Math.min(startIndex + itemsPerPage, data.length);
+        const pageData = data.slice(startIndex, endIndex);
+
+        for (let item of pageData) {
+            const row = document.createElement('tr');
+            row.setAttribute('align', 'center');
+            row.setAttribute('class', 'c12-k');
+            row.setAttribute('bgcolor', '#FFFFFF');
+            row.setAttribute('onmouseover', "this.style.background='#FCFCC0';");
+            row.setAttribute('onmouseout', "this.style.background='#FFFFFF';");
+
+            const columnOrder = ['BC_name', 'u_name', 'TOT_Count', 'amount_total', 'OV_Count', 'OV_total', 'OV_Rate'];
+
+            const serialCell = document.createElement('td');
+            serialCell.textContent = startIndex + pageData.indexOf(item) + 1;
+            row.appendChild(serialCell);
+
+
+            for (let key of columnOrder) {
+                const cell = document.createElement('td');
+                switch (key) {
+                    default:
+                        cell.textContent = item[key] || '';
+                        row.appendChild(cell);
+                }
+            }
+            
+            tbody.appendChild(row);
+        }
+    }
+
+    function fetchDataArea() {
+        
+        let overDay = document.getElementById('overDay').value;
+        const url = `${BASE_URL}/AE_ACC/RC_Over_Rel_Area_LQuery?overDay=${overDay}`;
+
+        fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+            .then(response => response.json())
+            .then(responseData => {
+                if (responseData.resultCode == "000") {
+                    data = JSON.parse(responseData.objResult);
+                    showPageArea(currentPage);
+                    
+                } else {
+                    alert(response.resultMsg);
+                }
+            })
+            .catch(error => {
+                alert('API 請求失敗:', error);
+            });
+    }
+
+    function showPageArea(page) {
+        
+        const tbody = document.querySelector('#AreaTable tbody');
+        tbody.innerHTML = '';
+
+        const startIndex = (page - 1) * itemsPerPage;
+        const endIndex = Math.min(startIndex + itemsPerPage, data.length);
+        const pageData = data.slice(startIndex, endIndex);
+
+        for (let item of pageData) {
+            const row = document.createElement('tr');
+            row.setAttribute('align', 'center');
+            row.setAttribute('class', 'c12-k');
+            row.setAttribute('bgcolor', '#FFFFFF');
+            row.setAttribute('onmouseover', "this.style.background='#FCFCC0';");
+            row.setAttribute('onmouseout', "this.style.background='#FFFFFF';");
+
+            const columnOrder = ['BC_name', 'TOT_Count', 'amount_total', 'OV_Count', 'OV_total', 'OV_Rate'];
+
+            const serialCell = document.createElement('td');
+            serialCell.textContent = startIndex + pageData.indexOf(item) + 1;
+            row.appendChild(serialCell);
+
+
+            for (let key of columnOrder) {
+                const cell = document.createElement('td');
+                switch (key) {
+                    default:
+                        cell.textContent = item[key] || '';
+                        row.appendChild(cell);
+                }
+            }
+            
+            tbody.appendChild(row);
+        }
+    }
+
+    function exportToExcel() {
+	    var table = document.getElementById('MainTable');
+
+	    // 複製表格，並移除後面兩行
+	    var clonedTable = table.cloneNode(true);
+	    var rowCount = clonedTable.rows.length;
+  
+	    for (var i = rowCount - 1; i >= rowCount - 1; i--) {
+		    clonedTable.deleteRow(i);
+	    }
+	    for (var i = 0; i < clonedTable.rows.length; i++) {
+		    alert(clonedTable.rows[i].cells[8].textContent)
+		    var row = clonedTable.rows[i];
+		    //row.deleteCell(7);
+	    }
+	
+	    $('#MainTable').after(clonedTable);
+
+	    // 將複製的表格的 ID 設為 'tbExcel'
+	    $(clonedTable).attr('id', 'tbExcel');
+
+	    // 隱藏新增的表格
+	    $(clonedTable).hide();
+	    var fileNa=getCurrentDateTime();
+		    $("#tbExcel").table2excel({
+		    // exclude CSS class
+		    exclude: ".ExHead ",
+		    name: "Worksheet Name",
+		    filename: "應收帳款-逾放比-"+fileNa, //do not include extension
+		    fileext: ".xls", // file extension
+		    TextIdx: [4,5,6]
+	    }); 
+
+	    // 刪除並移除新增的表格
+	    $("#tbExcel").remove();
+    }
+
+    function getCurrentDateTime() {
+          var currentDate = new Date();
+
+          var year = currentDate.getFullYear();
+          var month = ('0' + (currentDate.getMonth() + 1)).slice(-2);
+          var day = ('0' + currentDate.getDate()).slice(-2);
+          var hours = ('0' + currentDate.getHours()).slice(-2);
+          var minutes = ('0' + currentDate.getMinutes()).slice(-2);
+
+          var formattedDateTime = year + month + day + hours + minutes;
+          return formattedDateTime;
+        }
+</script>

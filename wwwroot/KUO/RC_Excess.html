@@ -5,6 +5,7 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 	<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+	<script type="text/javascript" src="../tool_js/jquery.blockUI.js"></script>
 	<link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
 	<script type="text/javascript" src="../tool_js/jquery.table2excel.js"></script>
 	<link href="../_include/main.css" rel="stylesheet" type="text/css">
@@ -12,6 +13,15 @@
 	<title>作業平台</title>
 </head>
 <body>
+	<style type="text/css">
+		#MainTable td.Link {
+			text-decoration: underline;
+			font-weight: bold;
+			color: blue;
+			cursor: pointer;
+		}
+	</style>
+
 	<table width="1180" border="0" cellspacing="0" cellpadding="0">
 		<tbody>
 			<tr>
@@ -28,7 +38,7 @@
 									<input type="checkbox" checked="" name="court_sale" id="court_sale" value="1">法拍結案
 									<input type="submit" name="submit" value="查詢" onclick="fetchData();">
 									<input type="button" value="匯出Excel" name="btnExcel" onclick="exportToExcel()">
-									<input type="button" value="匯出Excel(明細資料)" name="btnExcel" onclick="exportToExcel_Dtl()">
+									<input type="button" value="匯出Excel(明細資料)" name="btnExcel" onclick="exportToExcel_Dtl();">
 								</td>
 							</tr>
 						</tbody>
@@ -37,8 +47,7 @@
 			</tr>
 			<tr>
 				<td align="center" valign="top">
-
-					撥款總金額：1,769,030,000 <br>
+					撥款總金額：<label id="sumAmount_total"></label> <br>
 					<table width="1180" border="0" cellspacing="0" cellpadding="0">
 						<tbody>
 							<tr>
@@ -70,46 +79,7 @@
 														</tbody>
 													</table>
 													<br>
-													<table width="1180" border="0" style="display:none" cellspacing="0" cellpadding="0">
-														<tbody>
-															<tr>
-																<td valign="top">　</td>
-																<td align="left" valign="top">
-																	<table width="1150" border="0" cellspacing="0" cellpadding="1">
-																		<tbody>
-																			<tr>
-																				<td height="100" align="center" valign="top">
 
-																					<table id="MainTable_Dtl" border="0" cellpadding="4" cellspacing="1" bgcolor="#666666">
-																						<thead>
-																							<tr align="center" bgcolor="#CCCCFF" class="c12-k">
-																								<td width="80">逾放期數</td>
-																								<td width="80">放款金額</td>
-																								<td width="80">客戶名稱</td>
-																								<td width="30">延滯天數</td>
-																								<td width="80">逾放金額</td>
-																								<td width="150">備註</td>
-																							</tr>
-																						</thead>
-																						<tbody>
-																							<tr align="center" class="c12-k" bgcolor="#FFFFFF" onmouseover="this.style.background='#FFFF66';" onmouseout="this.style.background='#FFFFFF'; " style="background: rgb(255, 255, 255);">
-																							</tr>
-																							<tr align="center" class="c12-k" bgcolor="#FFFFFF" onmouseover="this.style.background='#FFFF66';" onmouseout="this.style.background='#FFFFFF'; " style="background: rgb(255, 255, 255);">
-																							</tr>
-																							<tr align="center" height="30" bgcolor="#CCCCFF">
-																								<td class="c12-k" colspan="16">
-																								</td>
-																							</tr>
-																						</tbody>
-																					</table>
-																				</td>
-																			</tr>
-																		</tbody>
-																	</table>
-																</td>
-															</tr>
-														</tbody>
-													</table>
 												</td>
 											</tr>
 										</tbody>
@@ -122,6 +92,8 @@
 			</tr>
 		</tbody>
 	</table>
+	<div id="tables-container">
+	</div>
 </body>
 </html>
 <script>
@@ -136,7 +108,6 @@
     fetchData();
 
     function fetchData() {
-        
         let court_sale = document.querySelector('input[name="court_sale"]:checked') ? "1" : "";
         const url = `${BASE_URL}/AE_ACC/RC_Excess_LQuery?Forec=${court_sale}`;
 
@@ -164,8 +135,6 @@
 
    
 	function showPage(page) {
-        
-
         const tbody = document.querySelector('#MainTable tbody');
         tbody.innerHTML = '';
 
@@ -173,7 +142,15 @@
         const endIndex = Math.min(startIndex + itemsPerPage, data.length);
         const pageData = data.slice(startIndex, endIndex);
 
+		let beforeRow; // 前筆(M1..M3) Group
+        let afterRow; //  後筆(M1..M3) Group
+		let rowscount = 0; // 前筆(M1..M3) Group 的筆數
+		let sumAmount_total=0; //逾放金額
+		let Forec = document.querySelector('input[name="court_sale"]:checked') ? "1" : "";
         for (let item of pageData) {
+
+			sumAmount_total = item['Tot_Amt'];// 逾放金額
+
             const row = document.createElement('tr');
             row.setAttribute('align', 'center');
             row.setAttribute('class', 'c12-k');
@@ -186,8 +163,28 @@
             for (let key of columnOrder) {
                 const cell = document.createElement('td');
                 switch (key) {
+					case 'diffType':
+						beforeRow = item[key];
+						if(beforeRow === afterRow)
+						{
+							rowscount = rowscount + 1;
+						} else {
+							//前後筆不相同時，合併前筆的row
+							cell.textContent = item[key];
+							row.appendChild(cell);
+							if(rowscount >0){
+								tbody.rows[ pageData.indexOf(item)-rowscount].cells[0].setAttribute('rowspan',rowscount);
+							}
+							rowscount = 1;
+						}
+						break;
                     case 'Count':
-                        cell.textContent = item[key];
+						// 開啟明細
+						let DiffType = item['diffType'];
+						let AmtType = item['AmtType'];
+						cell.setAttribute('class','Link');
+						cell.setAttribute('onclick',`getRC_Excess_Detail('${Forec}','${DiffType}', '${AmtType}')`);
+						cell.textContent = item[key];
 						row.appendChild(cell);
                         break;
                     default:
@@ -197,7 +194,10 @@
             }
             
             tbody.appendChild(row);
+			afterRow = beforeRow;
         }
+		tbody.rows[data.length-rowscount].cells[0].setAttribute('rowspan',rowscount);
+		document.getElementById('sumAmount_total').innerHTML = sumAmount_total.toLocaleString();
     }
 
 	function exportToExcel() {
@@ -250,4 +250,122 @@
       var formattedDateTime = year + month + day + hours + minutes;
       return formattedDateTime;
     }
+
+	function exportToExcel_Dtl() {
+
+        const url = `${BASE_URL}/AE_ACC/RC_Excess_Detail_Excel`;
+		let court_sale = document.querySelector('input[name="court_sale"]:checked') ? "1" : "";
+        const PT_Rpt_req = {
+            Forec: court_sale
+        };
+
+        $.ajax({
+            url: url,
+            method: 'POST',
+            xhrFields: {
+                responseType: 'blob'
+            },
+            data: JSON.stringify(PT_Rpt_req),
+            contentType: 'application/json',
+            success: function (response) {
+                const url = window.URL.createObjectURL(response);
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = url;
+                a.download = `資產數據分析(明細資料).xlsx`;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+            },
+            error: function (err) {
+                alert('Error generating file');
+            }
+        });
+    }
+
+	function getRC_Excess_Detail(Forec, DiffType, AmtType) {
+
+        const url = `${BASE_URL}/AE_ACC/RC_Excess_Detail_LQuery`;
+		let Receivable_Excess_req = {
+                            Forec: Forec,
+							DiffType:DiffType,
+							AmtType:AmtType
+                        };
+		console.log(`Receivable_Excess_req.DiffType=${Receivable_Excess_req.DiffType}`);
+
+        fetch(url, {
+            method: 'POST',
+            headers: {
+				'Content-Type': 'application/json'
+            },
+            credentials: 'include',
+            body: JSON.stringify(Receivable_Excess_req)
+        })
+            .then(response => response.json())
+            .then(responseData => {
+                if (responseData.resultCode === "000") {
+                    const data = JSON.parse(responseData.objResult);
+                    OpenDtl(data);
+                }
+            }).catch(error => {
+                console.error('載入選項時出錯:', error);
+            });
+    }
+
+	function OpenDtl(data)
+	{
+		var m_width="450PX";
+	
+		var Title="明細資料";
+		var m_Html = '<div style="width:'+ m_width +'"> ';
+		m_Html += ' <table style="width: 95%;margin:auto" border="1" id="Title" cellspacing="0" cellpadding="3" bgcolor=""> ';
+		m_Html += ' <tr bgcolor="#CCCCFF" height="35" align="center"> '; 
+		m_Html += '  <td >'+ Title +'</td> '; 
+		m_Html += '</tr> '; 
+		m_Html += '<tr><td> '; 
+		m_Html += '</td></tr> '; 
+		m_Html += '</table> ';
+		m_Html += '<table style="width: 95%;margin:auto" border="1" id="Title" cellspacing="0" cellpadding="3" bgcolor=""><thead><tr bgcolor="#CCCCFF" align="center"><td>序號</td><td>客戶姓名</td><td>逾放金額</td><td>延滯天數</td></tr></thead><tbody>';
+
+		// 模擬取得明細
+		//var LogHtml = `<table style="width: 95%;margin:auto" border="1" id="Title" cellspacing="0" cellpadding="3" bgcolor=""> <tbody><tr bgcolor="#CCCCFF" align="center"> 	 <td>序號</td> <td>客戶姓名</td><td>逾放金額</td><td>延滯天數</td> </tr> <tr>     <td> 1</td> <td> 唐詠權</td><td>2,900,000</td><td>45</td> </tr> <tr>     <td style="text-align:right">逾放總金額：</td><td colspan="3">2,900,000 </td> </tr> </tbody></table>`;;
+		
+		console.log(`data.length= ${data.length}`)
+		let index = 1;
+		let sumAmount_total = 0;
+
+		data.forEach((item) =>{
+			let trString  = item.court_sale === '1'? `<tr title=${item.RCM_note} style="background:#FFFF66">` : '<tr>';
+			
+			var LogHtml = `
+					 ${trString}
+						<td>${index}</td>
+						<td>${item.cs_name}</td>
+						<td>${item.amount_total.toLocaleString()}</td>
+						<td>${item.DiffDay}</td>
+					 </tr> `;
+					 
+					 m_Html += LogHtml;
+					 sumAmount_total += item.amount_total;
+					 index ++;
+				});
+
+		m_Html += `<tr><td style="text-align:right">逾放總金額：</td><td colspan="3">${sumAmount_total.toLocaleString()}</td></tr></tbody></table>`;
+		m_Html += '   </div>    ';
+		var OpenWidth=parseInt(m_width.toUpperCase().replace("PX", ""))+50+"px";
+		var m_themedCSS = {
+			width: OpenWidth,
+			top: '20%',
+			left: '30%',
+			};
+			$.blockUI({
+			onOverlayClick: $.unblockUI,
+			overlayCSS: { backgroundColor: "#FFF", opacity: 0.5, cursor: "default" },
+			theme: true,
+			title: Title, 
+			themedCSS:  m_themedCSS, 
+			message: m_Html
+		});
+	
+	}
 </script>	

@@ -148,7 +148,7 @@
             row.setAttribute('onmouseover', "this.style.background='#FCFCC0';");
             row.setAttribute('onmouseout', "this.style.background='#FFFFFF';");
 
-            const columnOrder = ['cs_name', 'CS_PID', 'str_loan_amount', 'str_certificate_date_S', 'str_certificate_date_E', 'Remark', 'Upd'];
+            const columnOrder = ['Debt_ID', 'cs_name', 'CS_PID', 'str_loan_amount', 'str_certificate_date_S', 'str_certificate_date_E', 'Remark', 'Upd'];
 
             const serialCell = document.createElement('td');
             serialCell.textContent = startIndex + pageData.indexOf(item) + 1;
@@ -159,8 +159,10 @@
             for (let key of columnOrder) {
                 const cell = document.createElement('td');
                 switch (key) {
+                    case 'Debt_ID':
+                        Id = item['Debt_ID'];
+                        break;
                     case 'Upd':
-                        Id = item['CS_PID'];
                         let encryptedId = encryptParameter(Id);
                         row.appendChild(createButtonCell(
                             "../images/edit.png",
@@ -179,20 +181,18 @@
                 "../images/delete.png",
                 "刪除",
                 function () {
-                    Id = item['CS_PID'];
-                    if (Id !== '') {
-                        let formData = {
-                            CS_PID: $("input[name='CS_PID']").val()
-                            //del_num: WebUser,
-                        };
-                        const url = `${BASE_URL}/AE_ACC/Debt_Certificate_DetDel?PID=${Id}`;
+                    
+                        // let formData = {
+                        //     DebtID: Id
+                        // };
+                        const url = `${BASE_URL}/AE_ACC/Debt_Certificate_DetDel?DebtID=${Id}`;
                         fetch(url, {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json'
                             },
-                            credentials: 'include',
-                            body: JSON.stringify(formData)
+                            credentials: 'include'
+                            // ,body: JSON.stringify(formData)
                         })
                             .then(response => response.json())
                             .then(responseData => {
@@ -207,7 +207,6 @@
                             .catch(error => {
                                 alert('刪除失敗，請洽資訊人員。');
                             })
-                    }
                 }
             ));
             
