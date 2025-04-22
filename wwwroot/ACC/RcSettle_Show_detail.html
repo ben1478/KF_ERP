@@ -211,7 +211,7 @@
             } else {
                 const differenceInTime = end.getTime() - start.getTime();
                 differenceInDays = differenceInTime / (1000 * 3600 * 24);
-                differenceInDays = Math.round(differenceInDays); // 四捨五入成整數
+                differenceInDays = Math.round(differenceInDays);
             }
 
             document.querySelectorAll('[name="interestDay"]').forEach(function (element) {
