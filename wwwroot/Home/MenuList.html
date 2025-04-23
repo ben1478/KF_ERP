@@ -165,6 +165,20 @@
                             </tr>
                             <tr>
                                 <td width="13%" align="center">
+                                    <input type="button" name="add" value="應收帳款-逾放比" onclick="openRC_Over_Rel_LQuery();">
+                                </td>
+                                <td width="13%" align="center"></td>
+                                <td width="13%" align="center"></td>
+                            </tr>
+                            <tr>
+                                <td width="13%" align="center">
+                                    <input type="button" name="add" value="應收帳款-本金餘額表" onclick="openRC_Repay_LQuery();">
+                                </td>
+                                <td width="13%" align="center"></td>
+                                <td width="13%" align="center"></td>
+                            </tr>
+                            <tr>
+                                <td width="13%" align="center">
                                     <input type="button" name="add" value="登出" onclick="openLogout();">
                                 </td>
                                 <td width="13%" align="center"></td>
@@ -253,12 +267,20 @@
                 window.open(`/KUO/RC_Excess.html?User=${WebUser}&U_BC=${WebBC}`, 'list', 'scrollbars=yes,resizable=yes,width=1300,height=500,left=250,top=100')
     }
     
+    function openRC_Over_Rel_LQuery(){
+                window.open(`/KUO/RC_over_release.html?User=${WebUser}&U_BC=${WebBC}`, 'list', 'scrollbars=yes,resizable=yes,width=1300,height=500,left=250,top=100')
+    }
     function openDebt_Certificate_DetQuery() {
         window.open(`/KUO/Debt_Certificate_List.html?User=${WebUser}&U_BC=${WebBC}`, 'list', 'scrollbars=yes,resizable=yes,width=1300,height=500,left=250,top=100')
+    }
+    
+    function openRC_Repay_LQuery() {
+        window.open(`/KUO/RC_repay.html?User=${WebUser}&U_BC=${WebBC}`, 'list', 'scrollbars=yes,resizable=yes,width=1300,height=500,left=250,top=100')
     }
     function openRcSettle() {
         window.open(`/ACC/RcSettle_Show_list.html?PM_U_num=${WebUser}&U_BC=${WebBC}`, 'list', 'scrollbars=yes,resizable=yes,width=1000,height=500,left=250,top=100')
     }
+
 
     function openLogout() {
         window.location.href = '/Login.html';

@@ -1,0 +1,552 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+	<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+	<script type="text/javascript" src="../tool_js/jquery.blockUI.js"></script>
+	<link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+	<script type="text/javascript" src="../tool_js/jquery.table2excel.js"></script>
+	<link href="../_include/main.css" rel="stylesheet" type="text/css">
+	<script src="../Base.js"></script>
+	<title>作業平台</title>
+</head>
+<body>
+	<style type="text/css">
+		#MainTable td.Link {
+			text-decoration: underline;
+			font-weight: bold;
+			color: blue;
+			cursor: pointer;
+		}
+	</style>
+
+	<table width="1180" border="0" cellspacing="0" cellpadding="0">
+		<tbody>
+			<tr>
+				<td align="left" valign="top">
+					<table width="100%" border="0" cellspacing="0" cellpadding="0">
+						<tbody>
+							<tr>
+								<td width="20">　</td>
+								<td width="200" height="24">　<span class="c14k">　<strong>應收帳款-本金餘額表</strong></span></td>
+							</tr>
+							<tr>
+								<td>　</td>
+								<td class="c12-k">
+									<select name="RC_dateS" id="RC_dateS">
+									</select>
+									~
+									<select name="RC_dateE" id="RC_dateE">
+									</select>
+									<input type="submit" name="submit" value="查詢" onclick="fetchData();">
+									<input type="button" value="匯出Excel" name="btnExcel" onclick="exportToExcel()">
+								</td>
+							</tr>
+						</tbody>
+					</table>
+				</td>
+			</tr>
+			<tr>
+				<td align="center" valign="top">
+					<table width="1180" border="0" cellspacing="0" cellpadding="0">
+						<tbody>
+							<tr>
+								<td valign="top" background="../image/form_04.gif">　</td>
+								<td align="left" valign="top" background="../image/form_05.gif">
+									<table width="1150" border="0" cellspacing="0" cellpadding="1">
+										<tbody>
+											<tr>
+												<td height="100" align="center" valign="top">
+													<table width="1180" id="MainTable" border="0" cellpadding="4" cellspacing="1" bgcolor="#666666">
+														<thead>
+															<tr align="center" bgcolor="#CCCCFF" class="c12-k"> 
+																<td width="50">序</td>
+																<td width="100">應繳年月</td>
+																<td width="100">總件數</td>
+																<td width="100">已繳件數</td>
+																<td width="100">未繳件數</td>
+																<td width="100">呆帳件數</td>
+																<td width="100">提前清償件數</td>
+																<td width="100">應收利息</td>
+																<td width="100">已收利息</td>
+																<td width="100">未收利息</td>
+																<td width="100">應償還本金</td>
+																<td width="100">已償還本金</td>
+																<td width="100">未償還本金</td>
+																<td width="100">呆帳金額</td>
+																<td width="100">提前清償金</td>
+																<td width="100">總本金餘額</td>
+															</tr>
+														</thead>
+														<tbody>
+															<tr align="center" class="c12-k" bgcolor="#FFFFFF" onmouseover="this.style.background='#FFFF66';" onmouseout="this.style.background='#FFFFFF'; " style="background: rgb(255, 255, 255);">
+															</tr>
+															<tr align="center" class="c12-k" bgcolor="#FFFFFF" onmouseover="this.style.background='#FFFF66';" onmouseout="this.style.background='#FFFFFF'; " style="background: rgb(255, 255, 255);">
+															</tr>
+															<tr align="center" height="30" bgcolor="#CCCCFF">
+																<td class="c12-k" colspan="16">
+																</td>
+															</tr>
+														</tbody>
+														<tfoot>
+														<tr align="center" bgcolor="#FFFFFF" class="c12-k" onmouseover="this.style.background='#FCFCC0';" onmouseout="this.style.background='#FFFFFF'; " style="background: rgb(247, 247, 247);"> 
+															<td colspan="7" style="text-align:right">總計：</td>
+															<td><label id='interest_T'></label></td>
+															<td><label id='interest'></label></td>
+															<td><label id='interest_U'></label></td>
+															<td><label id='Rmoney_T'></label></td>
+															<td><label id='Rmoney'></label></td>
+															<td><label id='Rmoney_U'></label></td>
+															<td><label id='RemainingPrincipal_BB'></label></td>
+															<td><label id='S_AMT'></label></td>
+															<td colspan="1" style="text-align:right">　</td>
+														</tr>
+
+														</tfoot>
+													</table>
+													
+												</td>
+											</tr>
+											<tr>
+												<td height="100" align="center" valign="top">
+													<div id="pagination"></div>
+												</td>
+											</tr>
+										</tbody>
+									</table>
+								</td>
+							</tr>
+						</tbody>
+					</table>
+				</td>
+			</tr>
+		</tbody>
+	</table>
+	<div id="tables-container">
+	</div>
+</body>
+</html>
+<script>
+	const Params = getQueryParams();
+    let WebUser = Params.WebUser;
+    let WebBC = Params.WebBC;
+
+    const itemsPerPage = 20;  
+    let currentPage = 1;
+    let data = []; 
+
+	loadYYYMMDown();
+
+	function loadYYYMMDown() {
+        const url = `${BASE_URL}/AE_ACC/GetRDYYYMM`;
+		let dateE = new Date();
+		let dateS = new Date();
+		dateS.setMonth(dateS.getMonth()-3);
+
+		//console.log(`dateS=${dateS}`);
+        fetch(url)
+        .then(response => response.json())
+        .then(data => {
+            if (data.resultCode === "000") {
+                const options = JSON.parse(data.objResult);
+				let nowSY = dateS.getFullYear();
+				let nowSM = String(dateS.getMonth()+1).padStart(2,'0');
+
+                const selectElementRC_dateS = document.getElementById('RC_dateS');
+                options['ROC_Date_S'].forEach(option => {
+					let ym = option.Gre_YYYYMM.split('-');
+					let isSelected = (nowSY == ym[0] && nowSM == ym[1]);
+					//console.log(`${isSelected} nowSY=${nowSY}-${nowSM} ym${ym[0]}-${ym[1]}`);
+
+                    if(isSelected)
+                    {
+                        selectElementRC_dateS.innerHTML = `<option value=${option.Gre_YYYYMM} selected>${option.ROC_YYYMM}</option>`;
+						
+                    }else{
+                        const optionElement = document.createElement('option');
+                        optionElement.value = option.Gre_YYYYMM; 
+                        optionElement.textContent = option.ROC_YYYMM;
+                        selectElementRC_dateS.appendChild(optionElement);
+                    }
+                });
+
+				let nowEY = dateE.getFullYear();
+				let nowEM = String(dateE.getMonth()+1).padStart(2,'0');
+				const selectElementRC_dateE = document.getElementById('RC_dateE');
+                options['ROC_Date_E'].forEach(option => {
+					let ym = option.Gre_YYYYMM.split('-');
+					let isSelected = (nowEY == ym[0] && nowEM == ym[1]);
+					console.log(`${isSelected} nowEY=${nowEY}-${nowEM} ym${ym[0]}-${ym[1]}`);
+					
+                    if(isSelected)
+                    {
+                        selectElementRC_dateE.innerHTML = `<option value=${option.Gre_YYYYMM} selected>${option.ROC_YYYMM}</option>`;
+                    }else{
+                        const optionElement = document.createElement('option');
+                        optionElement.value = option.Gre_YYYYMM; 
+                        optionElement.textContent = option.ROC_YYYMM;
+                        selectElementRC_dateE.appendChild(optionElement);
+                    }
+                });
+
+                fetchData();
+            } else {
+                alert('錯誤: ' + (data.resultMsg || '未知錯誤'));
+            }
+
+            
+        })
+        .catch(error => {
+            console.error('載入選項時出錯:', error);
+            alert('無法載入資料，請稍後再試。');
+        });
+
+    }
+
+    function fetchData() {
+        let DateS = document.getElementById('RC_dateS').value
+		let DateE = document.getElementById('RC_dateE').value
+        const url = `${BASE_URL}/AE_ACC/RC_Repay_LQuery?DateS=${DateS}&DateE=${DateE}`;
+
+        fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+            .then(response => response.json())
+            .then(responseData => {
+                if (responseData.resultCode == "000") {
+                    data = JSON.parse(responseData.objResult);
+                    showPage(currentPage);
+                    createPagination();
+                } else {
+                    alert(response.resultMsg);
+                }
+            })
+            .catch(error => {
+				console.log(`API 請求失敗: error=${error}`);
+                alert('API 請求失敗:', error);
+            });
+    }
+
+   
+	function showPage(page) {
+        const tbody = document.querySelector('#MainTable tbody');
+        tbody.innerHTML = '';
+
+        const startIndex = (page - 1) * itemsPerPage;
+        const endIndex = Math.min(startIndex + itemsPerPage, data.length);
+        const pageData = data.slice(startIndex, endIndex);
+		let interest_T = 0; //應收利息 str_interest_T
+		let interest = 0; //已收利息 str_interest
+		let interest_U = 0; //未收利息 str_interest_U
+		let Rmoney_T = 0; //應償還本金 str_Rmoney_T
+		let Rmoney = 0; //已償還本金 str_Rmoney
+		let Rmoney_U = 0; // 未償還本金 str_Rmoney_U
+		let RemainingPrincipal_BB =0; //呆帳金額 str_RemainingPrincipal_BB
+		let S_AMT = 0 //提前清償金 str_S_AMT
+
+        for (let item of pageData) {
+            const row = document.createElement('tr');
+            row.setAttribute('align', 'center');
+            row.setAttribute('class', 'c12-k');
+            row.setAttribute('bgcolor', '#FFFFFF');
+            row.setAttribute('onmouseover', "this.style.background='#FCFCC0';");
+            row.setAttribute('onmouseout', "this.style.background='#FFFFFF';");
+
+            const columnOrder = ['yyyMM', 'ToCount', 'YCount', 'NCount', 'BCount','SCount','str_interest_T','str_interest','str_interest_U','str_Rmoney_T','str_Rmoney','str_Rmoney_U','str_RemainingPrincipal_BB','str_S_AMT','str_RemainingPrincipal'];
+			
+			const serialCell = document.createElement('td');
+            serialCell.textContent = startIndex + pageData.indexOf(item) + 1;
+            row.appendChild(serialCell);
+            
+			for (let key of columnOrder) {
+                const cell = document.createElement('td');
+                switch (key) {
+					case 'YCount':
+						cell.textContent = item[key] || 0;
+                        row.appendChild(cell);
+						break;
+					case 'NCount': // 未繳件數.開啟明細
+						cell.setAttribute('class','Link');
+						cell.setAttribute('onclick',`GetNCount('${item['yyyMM']}')`);
+						cell.textContent = item[key] || 0;
+                        row.appendChild(cell);
+						break;
+                    case 'BCount':
+						cell.textContent = item[key] || 0;
+						row.appendChild(cell);
+                        break;
+					case 'SCount': // 提前清償件數.開啟明細
+						cell.setAttribute('class','Link');
+						cell.setAttribute('onclick',`GetSCount('${item['yyyMM']}')`);
+						cell.textContent = item[key] || 0;
+                        row.appendChild(cell);
+						break;
+					case 'str_interest_T':
+						interest_T = interest_T + parseInt(item[key].replace(/,/g, ''));
+						cell.textContent = item[key] || 0;
+						row.appendChild(cell);
+					case 'str_interest': //已收利息
+						interest = interest + parseInt(item[key].replace(/,/g, ''));
+						cell.textContent = item[key] || 0;
+						row.appendChild(cell);
+						break;
+					case 'str_interest_U': //未收利息
+						interest_U = interest_U + parseInt(item[key].replace(/,/g, ''));
+						cell.textContent = item[key] || 0;
+						row.appendChild(cell);
+						break;
+					case 'str_Rmoney_T': //應償還本金
+						Rmoney_T = Rmoney_T + parseInt(item[key].replace(/,/g, ''));
+						cell.textContent = item[key] || 0;
+						row.appendChild(cell);
+						break;						
+					case 'str_Rmoney': //已償還本金
+						Rmoney = Rmoney + parseInt(item[key].replace(/,/g, ''));
+						cell.textContent = item[key] || 0;
+						row.appendChild(cell);
+						break;		
+					case 'str_Rmoney_U': //未償還本金
+						Rmoney_U = Rmoney_U + parseInt(item[key].replace(/,/g, ''));
+						cell.textContent = item[key] || 0;
+						row.appendChild(cell);
+						break;			
+ 					case 'str_RemainingPrincipal_BB': //呆帳金額
+						RemainingPrincipal_BB = RemainingPrincipal_BB + parseInt(item[key].replace(/,/g, ''));
+						cell.textContent = item[key] || 0;
+						row.appendChild(cell);
+						break;
+ 					case 'str_S_AMT': //提前清償金
+						S_AMT = S_AMT + parseInt(item[key].replace(/,/g, ''));
+						cell.textContent = item[key] || 0;
+						row.appendChild(cell);
+						break;
+                    default:
+                        cell.textContent = item[key] || '';
+                        row.appendChild(cell);
+                }
+            }
+            
+            tbody.appendChild(row);
+        }
+		document.getElementById('interest_T').innerHTML = interest_T.toLocaleString();
+		document.getElementById('interest').innerHTML = interest.toLocaleString();
+		document.getElementById('interest_U').innerHTML = interest_U.toLocaleString();
+		document.getElementById('Rmoney_T').innerHTML = Rmoney_T.toLocaleString();
+		document.getElementById('Rmoney').innerHTML = Rmoney.toLocaleString();
+		document.getElementById('Rmoney_U').innerHTML = Rmoney_U.toLocaleString();
+		document.getElementById('RemainingPrincipal_BB').innerHTML = RemainingPrincipal_BB.toLocaleString();
+		document.getElementById('S_AMT').innerHTML = S_AMT.toLocaleString();
+    }
+
+	function getCurrentDateTime() {
+      var currentDate = new Date();
+
+      var year = currentDate.getFullYear();
+      var month = ('0' + (currentDate.getMonth() + 1)).slice(-2);
+      var day = ('0' + currentDate.getDate()).slice(-2);
+      var hours = ('0' + currentDate.getHours()).slice(-2);
+      var minutes = ('0' + currentDate.getMinutes()).slice(-2);
+
+      var formattedDateTime = year + month + day + hours + minutes;
+      return formattedDateTime;
+    }
+
+	function exportToExcel() {
+
+		let DateS = document.getElementById('RC_dateS').value
+		let DateE = document.getElementById('RC_dateE').value
+        const url = `${BASE_URL}/AE_ACC/RC_Repay_Excel?DateS=${DateS}&DateE=${DateE}`;
+		
+        $.ajax({
+            url: url,
+            method: 'POST',
+            xhrFields: {
+                responseType: 'blob'
+            },
+            contentType: 'application/json',
+            success: function (response) {
+                const url = window.URL.createObjectURL(response);
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = url;
+                a.download = `應收帳款-本金餘額表.xlsx`;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+            },
+            error: function (err) {
+                alert('Error generating file');
+            }
+        });
+    }
+
+	function GetNCount(RocDate) {
+		// type(N:未繳,B:呆帳,S:提前清償)
+		// date(2024-11)
+		let RocD = RocDate.split('-');
+		let date = `${parseInt(RocD[0])+1911}-${String(RocD[1].padStart(2,'0'))}`;
+        const url = `${BASE_URL}/AE_ACC/RC_Repay_Dateil_LQuery?type=N&date=${date}`;
+
+        fetch(url, {
+            method: 'Get',
+            headers: {
+				'Content-Type': 'application/json'
+            },
+            credentials: 'include'
+        })
+            .then(response => response.json())
+            .then(responseData => {
+                if (responseData.resultCode === "000") {
+                    const data = JSON.parse(responseData.objResult);
+                    OpenNCount(data);
+                }
+            }).catch(error => {
+                console.error('載入選項時出錯:', error);
+            });
+    }
+
+	function OpenNCount(data)
+	{
+		var m_width="450PX";
+	
+		var Title="明細資料";
+		var m_Html = '<div style="width:'+ m_width +'"> ';
+		m_Html += ' <table style="width: 95%;margin:auto" border="1" id="Title" cellspacing="0" cellpadding="3" bgcolor=""> ';
+		m_Html += ' <tr bgcolor="#CCCCFF" height="35" align="center"> '; 
+		m_Html += '  <td >'+ Title +'</td> '; 
+		m_Html += '</tr> '; 
+		m_Html += '<tr><td> '; 
+		m_Html += '</td></tr> '; 
+		m_Html += '</table> ';
+		m_Html += '<table style="width: 95%;margin:auto" border="1" id="Title" cellspacing="0" cellpadding="3" bgcolor=""><thead><tr bgcolor="#CCCCFF" align="center"><td>序</td><td>客戶姓名</td><td>期數</td><td>應繳款日</td><td>繳款日</td><td>應繳利息</td><td>應償還本金</td></tr></thead><tbody>';
+		
+		console.log(`data.length= ${data.length}`)
+		let index = 1;
+		let sumInterest = 0;
+		let sumRmoney = 0;
+		data.forEach((item) =>{
+			//let trString  = item.court_sale === '1'? `<tr title=${item.RCM_note} style="background:#FFFF66">` : '<tr>';
+			
+			var LogHtml = `
+					<tr> 
+						<td>${index}</td>
+						<td>${item.cs_name}</td>
+						<td>${item.RC_count}</td>
+						<td>${item.RC_date||''}</td>
+						<td>${item.check_pay_date||''}</td>
+						<td>${item.interest}</td>
+						<td>${item.Rmoney}</td>
+					 </tr> `;
+					 
+					 m_Html += LogHtml;
+					 sumInterest += parseInt(item.interest.replace(/,/g, ''));
+					 sumRmoney += parseInt(item.Rmoney.replace(/,/g, ''));
+					 index ++;
+				});
+
+		m_Html += `<tr><td colspan="5" style="text-align:right">總計：</td><td>${sumInterest.toLocaleString()}</td><td>${sumRmoney.toLocaleString()}</td></tr></tbody></table>`;
+		m_Html += '   </div>    ';
+		var OpenWidth=parseInt(m_width.toUpperCase().replace("PX", ""))+50+"px";
+		var m_themedCSS = {
+			width: OpenWidth,
+			top: '20%',
+			left: '30%',
+			};
+			$.blockUI({
+			onOverlayClick: $.unblockUI,
+			overlayCSS: { backgroundColor: "#FFF", opacity: 0.5, cursor: "default" },
+			theme: true,
+			title: Title, 
+			themedCSS:  m_themedCSS, 
+			message: m_Html
+		});
+	
+	}
+
+	function GetSCount(RocDate) {
+		// type(N:未繳,B:呆帳,S:提前清償)
+		// date(2024-11)
+		let RocD = RocDate.split('-');
+		
+		let date = `${parseInt(RocD[0])+1911}-${String(RocD[1].padStart(2,'0'))}`;
+        const url = `${BASE_URL}/AE_ACC/RC_Repay_Dateil_LQuery?type=S&date=${date}`;
+
+        fetch(url, {
+            method: 'Get',
+            headers: {
+				'Content-Type': 'application/json'
+            },
+            credentials: 'include'
+        })
+            .then(response => response.json())
+            .then(responseData => {
+                if (responseData.resultCode === "000") {
+                    const data = JSON.parse(responseData.objResult);
+                    OpenSCount(data);
+                }
+            }).catch(error => {
+                console.error('載入選項時出錯:', error);
+            });
+    }
+
+	function OpenSCount(data)
+	{
+		var m_width="800PX";
+	
+		var Title="明細資料";
+		var m_Html = '<div style="width:'+ m_width +'"> ';
+		m_Html += ' <table style="width: 95%;margin:auto" border="1" id="Title" cellspacing="0" cellpadding="3" bgcolor=""> ';
+		m_Html += ' <tr bgcolor="#CCCCFF" height="35" align="center"> '; 
+		m_Html += '  <td >'+ Title +'</td> '; 
+		m_Html += '</tr> '; 
+		m_Html += '<tr><td> '; 
+		m_Html += '</td></tr> '; 
+		m_Html += '</table> ';
+		m_Html += '<table style="width: 95%;margin:auto" border="1" id="Title" cellspacing="0" cellpadding="3" bgcolor=""><thead><tr bgcolor="#CCCCFF" align="center"><td>序</td><td>客戶姓名</td><td>期數</td><td>應繳款日</td><td>結清金額</td><td>備註</td></tr></thead><tbody>';
+		
+		console.log(`data.length= ${data.length}`)
+		let index = 1;
+		let sumS_AMT = 0;
+		
+		data.forEach((item) =>{
+			//let trString  = item.court_sale === '1'? `<tr title=${item.RCM_note} style="background:#FFFF66">` : '<tr>';
+			
+			var LogHtml = `
+					<tr> 
+						<td>${index}</td>
+						<td>${item.cs_name}</td>
+						<td>${item.RC_count}</td>
+						<td>${item.RC_date||''}</td>
+						<td>${item.S_AMT ||''}</td>
+						<td>${item.RCM_note}</td>
+					 </tr> `;
+					 
+					 m_Html += LogHtml;
+					 sumS_AMT += parseInt(item.S_AMT.replace(/,/g, ''));
+					 index ++;
+				});
+
+		m_Html += `<tr><td colspan="4" style="text-align:right">總計：</td><td>${sumS_AMT.toLocaleString()}</td></tr></tbody></table>`;
+		m_Html += '   </div>    ';
+		var OpenWidth=parseInt(m_width.toUpperCase().replace("PX", ""))+50+"px";
+		var m_themedCSS = {
+			width: OpenWidth,
+			top: '20%',
+			left: '30%',
+			};
+			$.blockUI({
+			onOverlayClick: $.unblockUI,
+			overlayCSS: { backgroundColor: "#FFF", opacity: 0.5, cursor: "default" },
+			theme: true,
+			title: Title, 
+			themedCSS:  m_themedCSS, 
+			message: m_Html
+		});
+	
+	}
+</script>	

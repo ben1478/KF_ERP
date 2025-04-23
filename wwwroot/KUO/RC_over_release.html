@@ -37,7 +37,7 @@
                         </tr>
                         <tr class="c12-k">
                             <td>
-                                <input type="button" value="查詢" onclick="fetchData();" />
+                                <input type="button" value="查詢" onclick="getData();" />
                                 <input type="button" value="匯出Excel" name="btnExcel" onclick="exportToExcel()">
                             </td>
                             <td>
@@ -91,130 +91,35 @@
                 </td>
             </tr>
             <tr>
+                <td colspan="2">&nbsp;&nbsp;</td>
+            </tr>
+            <tr>
                 <td></td>
                 <td>
-                    <table id="AreaTable" border="0" cellpadding="4" cellspacing="1" bgcolor="#666666">
-                        <tbody>
+                    <table id="AreaTable" border="0" width="800" cellpadding="4" cellspacing="1" bgcolor="#666666">
+                        <thead>
                             <tr align="center" bgcolor="#CCCCFF" class="c12-k">
-                                <td width="50">序</td>
-                                <td width="130">區域</td>
+                                <td width="30">序</td>
+                                <td width="50">區域</td>
                                 <td width="30">總件數</td>
                                 <td width="30">總金額</td>
                                 <td width="30">逾期案件</td>
                                 <td width="30">逾放金額</td>
                                 <td width="30">逾放比%</td>
-                                <td width="70">結清件數</td>
-                                <td width="70">結清金額</td>
+                                <td width="30">結清件數</td>
+                                <td width="30">結清金額</td>
                             </tr>
+                        </thead>
 
-                            <tr align="center" class="c12-k" bgcolor="#fff">
-                                <td width="50">1</td>
-                                <td width="50">台北一</td>
-                                <td width="50">93</td>
-                                <td>163,100,000</td>
-                                <td width="50">6</td>
-                                <td>11,000,000</td>
-                                <td width="50">6.74%</td>
-                                <td>93</td>
-                                <td>182,100,000</td>
+                        <tbody>
+                            <tr align="center" class="c12-k" bgcolor="#FFFFFF" onmouseover="this.style.background='#FFFF66';" onmouseout="this.style.background='#FFFFFF'; " style="background: rgb(255, 255, 255);">
                             </tr>
-
-                            <tr align="center" class="c12-k" bgcolor="#fff">
-                                <td width="50">2</td>
-                                <td width="50">台北二</td>
-                                <td width="50">33</td>
-                                <td>56,700,000</td>
-                                <td width="50">3</td>
-                                <td>5,500,000</td>
-                                <td width="50">9.7%</td>
-                                <td>63</td>
-                                <td>139,650,000</td>
+                            <tr align="center" class="c12-k" bgcolor="#FFFFFF" onmouseover="this.style.background='#FFFF66';" onmouseout="this.style.background='#FFFFFF'; " style="background: rgb(255, 255, 255);">
                             </tr>
-
-                            <tr align="center" class="c12-k" bgcolor="#fff">
-                                <td width="50">3</td>
-                                <td width="50">新北</td>
-                                <td width="50">25</td>
-                                <td>35,100,000</td>
-                                <td width="50">0</td>
-                                <td>0</td>
-                                <td width="50">0%</td>
-                                <td>53</td>
-                                <td>77,850,000</td>
+                            <tr align="center" height="30" bgcolor="#CCCCFF">
+                                <td class="c12-k" colspan="16">
+                                </td>
                             </tr>
-
-                            <tr align="center" class="c12-k" bgcolor="#fff">
-                                <td width="50">4</td>
-                                <td width="50">台中</td>
-                                <td width="50">43</td>
-                                <td>79,900,000</td>
-                                <td width="50">4</td>
-                                <td>8,600,000</td>
-                                <td width="50">10.76%</td>
-                                <td>69</td>
-                                <td>120,150,000</td>
-                            </tr>
-
-                            <tr align="center" class="c12-k" bgcolor="#fff">
-                                <td width="50">5</td>
-                                <td width="50">高雄</td>
-                                <td width="50">48</td>
-                                <td>66,100,000</td>
-                                <td width="50">0</td>
-                                <td>0</td>
-                                <td width="50">0%</td>
-                                <td>104</td>
-                                <td>144,500,000</td>
-                            </tr>
-
-                            <tr align="center" class="c12-k" bgcolor="#fff">
-                                <td width="50">6</td>
-                                <td width="50">台南</td>
-                                <td width="50">52</td>
-                                <td>58,700,000</td>
-                                <td width="50">4</td>
-                                <td>7,300,000</td>
-                                <td width="50">12.44%</td>
-                                <td>88</td>
-                                <td>118,450,000</td>
-                            </tr>
-
-                            <tr align="center" class="c12-k" bgcolor="#fff">
-                                <td width="50">7</td>
-                                <td width="50">桃園</td>
-                                <td width="50">35</td>
-                                <td>60,400,000</td>
-                                <td width="50">7</td>
-                                <td>13,400,000</td>
-                                <td width="50">22.19%</td>
-                                <td>49</td>
-                                <td>99,800,000</td>
-                            </tr>
-
-                            <tr align="center" class="c12-k" bgcolor="#fff">
-                                <td width="50">8</td>
-                                <td width="50">數位行銷部</td>
-                                <td width="50">74</td>
-                                <td>149,669,217</td>
-                                <td width="50">4</td>
-                                <td>8,000,000</td>
-                                <td width="50">5.35%</td>
-                                <td>74</td>
-                                <td>201,660,000</td>
-                            </tr>
-
-                            <tr align="center" class="c12-k" bgcolor="#fff">
-                                <td width="50">9</td>
-                                <td width="50">湧立</td>
-                                <td width="50">1</td>
-                                <td>15,000,000</td>
-                                <td width="50">1</td>
-                                <td>15,000,000</td>
-                                <td width="50">100%</td>
-                                <td>2</td>
-                                <td>2,900,000</td>
-                            </tr>
-
                         </tbody>
                     </table>
                 </td>
@@ -226,116 +131,29 @@
             <tr>
                 <td></td>
                 <td>
-                    <table id="CaseTable" border="0" cellpadding="4" cellspacing="1" bgcolor="#666666">
-                        <tbody>
+                    <table id="CaseTable" border="0" width="800" cellpadding="4" cellspacing="1" bgcolor="#666666">
+                        <thead>
                             <tr align="center" bgcolor="#CCCCFF" class="c12-k">
-                                <td width="50">序</td>
-                                <td width="130">專案名稱</td>
+                                <td width="30">序</td>
+                                <td width="70">專案名稱</td>
                                 <td width="30">總件數</td>
                                 <td width="30">總金額</td>
                                 <td width="30">逾期案件</td>
                                 <td width="30">逾放金額</td>
                                 <td width="30">逾放比%</td>
-                                <td width="70">結清件數</td>
-                                <td width="70">結清金額</td>
+                                <td width="30">結清件數</td>
+                                <td width="30">結清金額</td>
                             </tr>
-
-                            <tr align="center" class="c12-k" bgcolor="#fff">
-                                <td width="50">1</td>
-                                <td width="50">國峯一般專案</td>
-                                <td width="50">318</td>
-                                <td>554,819,217</td>
-                                <td width="50">25</td>
-                                <td>61,500,000</td>
-                                <td width="50">11.08%</td>
-                                <td>543</td>
-                                <td>925,210,000</td>
+                        </thead>
+                        <tbody>
+                            <tr align="center" class="c12-k" bgcolor="#FFFFFF" onmouseover="this.style.background='#FFFF66';" onmouseout="this.style.background='#FFFFFF'; " style="background: rgb(255, 255, 255);">
                             </tr>
-
-                            <tr align="center" class="c12-k" bgcolor="#fff">
-                                <td width="50">2</td>
-                                <td width="50">國峯金便利專案</td>
-                                <td width="50">27</td>
-                                <td>65,050,000</td>
-                                <td width="50">0</td>
-                                <td>0</td>
-                                <td width="50">0%</td>
-                                <td>6</td>
-                                <td>21,000,000</td>
+                            <tr align="center" class="c12-k" bgcolor="#FFFFFF" onmouseover="this.style.background='#FFFF66';" onmouseout="this.style.background='#FFFFFF'; " style="background: rgb(255, 255, 255);">
                             </tr>
-
-                            <tr align="center" class="c12-k" bgcolor="#fff">
-                                <td width="50">3</td>
-                                <td width="50">國峯借新還舊專案</td>
-                                <td width="50">1</td>
-                                <td>3,700,000</td>
-                                <td width="50">1</td>
-                                <td>3,700,000</td>
-                                <td width="50">100%</td>
-                                <td>2</td>
-                                <td>26,500,000</td>
+                            <tr align="center" height="30" bgcolor="#CCCCFF">
+                                <td class="c12-k" colspan="16">
+                                </td>
                             </tr>
-
-                            <tr align="center" class="c12-k" bgcolor="#fff">
-                                <td width="50">4</td>
-                                <td width="50">國峯短約專案</td>
-                                <td width="50">1</td>
-                                <td>2,000,000</td>
-                                <td width="50">0</td>
-                                <td>0</td>
-                                <td width="50">0%</td>
-                                <td>14</td>
-                                <td>50,900,000</td>
-                            </tr>
-
-                            <tr align="center" class="c12-k" bgcolor="#fff">
-                                <td width="50">5</td>
-                                <td width="50">國峯新鑫加乘專案</td>
-                                <td width="50">44</td>
-                                <td>13,200,000</td>
-                                <td width="50">1</td>
-                                <td>300,000</td>
-                                <td width="50">2.27%</td>
-                                <td>6</td>
-                                <td>1,800,000</td>
-                            </tr>
-
-                            <tr align="center" class="c12-k" bgcolor="#fff">
-                                <td width="50">6</td>
-                                <td width="50">國峯新鑫直核專案</td>
-                                <td width="50">2</td>
-                                <td>3,500,000</td>
-                                <td width="50">0</td>
-                                <td>0</td>
-                                <td width="50">0%</td>
-                                <td>1</td>
-                                <td>1,000,000</td>
-                            </tr>
-
-                            <tr align="center" class="c12-k" bgcolor="#fff">
-                                <td width="50">7</td>
-                                <td width="50">國峯優息專案</td>
-                                <td width="50">3</td>
-                                <td>24,600,000</td>
-                                <td width="50">0</td>
-                                <td>0</td>
-                                <td width="50">0%</td>
-                                <td>3</td>
-                                <td>38,500,000</td>
-                            </tr>
-
-                            <tr align="center" class="c12-k" bgcolor="#fff">
-                                <td width="50">8</td>
-                                <td width="50">國峯優質專案</td>
-                                <td width="50">8</td>
-                                <td>17,800,000</td>
-                                <td width="50">2</td>
-                                <td>3,300,000</td>
-                                <td width="50">18.54%</td>
-                                <td>4</td>
-                                <td>7,200,000</td>
-                            </tr>
-
                         </tbody>
                     </table>
                 </td>
@@ -349,12 +167,19 @@
     let WebUser = Params.WebUser;
     let WebBC = Params.WebBC;
 
-    const itemsPerPage = 20;  
+    const itemsPerPage = 30;  
     let currentPage = 1;
     let data = []; 
+    
+    getData();
+    
 
-    fetchData();
-
+    function getData()
+    {
+        fetchData();
+        fetchDataArea();
+        fetchDataCase();
+    }
 
     function fetchData() {
         
@@ -409,6 +234,16 @@
             for (let key of columnOrder) {
                 const cell = document.createElement('td');
                 switch (key) {
+                    case 'amount_total':
+                        let amountt =  item[key];
+                        cell.textContent = amountt.toLocaleString();
+                        row.appendChild(cell);
+                        break;
+                    case 'OV_total':
+                        let ovt =  item[key];
+                        cell.textContent = ovt.toLocaleString();
+                        row.appendChild(cell);
+                        break;
                     default:
                         cell.textContent = item[key] || '';
                         row.appendChild(cell);
@@ -433,8 +268,8 @@
             .then(response => response.json())
             .then(responseData => {
                 if (responseData.resultCode == "000") {
-                    data = JSON.parse(responseData.objResult);
-                    showPageArea(currentPage);
+                    let Areadata = JSON.parse(responseData.objResult);
+                    showPageArea(Areadata);
                     
                 } else {
                     alert(response.resultMsg);
@@ -445,16 +280,12 @@
             });
     }
 
-    function showPageArea(page) {
+    function showPageArea(Areadata) {
         
         const tbody = document.querySelector('#AreaTable tbody');
         tbody.innerHTML = '';
-
-        const startIndex = (page - 1) * itemsPerPage;
-        const endIndex = Math.min(startIndex + itemsPerPage, data.length);
-        const pageData = data.slice(startIndex, endIndex);
-
-        for (let item of pageData) {
+        let startIndex = 1;
+        for (let item of Areadata) {
             const row = document.createElement('tr');
             row.setAttribute('align', 'center');
             row.setAttribute('class', 'c12-k');
@@ -462,16 +293,45 @@
             row.setAttribute('onmouseover', "this.style.background='#FCFCC0';");
             row.setAttribute('onmouseout', "this.style.background='#FFFFFF';");
 
-            const columnOrder = ['BC_name', 'TOT_Count', 'amount_total', 'OV_Count', 'OV_total', 'OV_Rate'];
+            const columnOrder = ['BC_name', 'TOT_Count', 'amount_total', 'OV_Count', 'OV_total', 'OV_Rate','SCount','RemainingPrincipal'];
 
             const serialCell = document.createElement('td');
-            serialCell.textContent = startIndex + pageData.indexOf(item) + 1;
+            serialCell.textContent = startIndex;
             row.appendChild(serialCell);
 
 
             for (let key of columnOrder) {
                 const cell = document.createElement('td');
                 switch (key) {
+                    case 'OV_Count':
+                        cell.textContent = item[key] || 0;
+                        row.appendChild(cell);
+                        break;
+                    case 'amount_total':
+                        let amountt =  item[key];
+                        cell.textContent = amountt.toLocaleString();
+                        row.appendChild(cell);
+                        break;
+                    case 'OV_total':
+                        let ovt =  item[key];
+                        cell.textContent = ovt.toLocaleString();
+                        row.appendChild(cell);
+                        break;
+                    case 'OV_Rate':
+                        cell.textContent = `${item[key]}%` || `0%`;
+                        row.appendChild(cell);
+                        break;
+                    case 'SCount':
+                        let sc =  item[key];
+                        cell.textContent = sc.toLocaleString();
+                        row.appendChild(cell);
+                        break;
+                    case 'RemainingPrincipal':
+                        let rp =  item[key];
+                        cell.textContent = rp.toLocaleString();
+                        row.appendChild(cell);
+                        break;
+                    
                     default:
                         cell.textContent = item[key] || '';
                         row.appendChild(cell);
@@ -479,9 +339,98 @@
             }
             
             tbody.appendChild(row);
+            startIndex ++;
         }
     }
 
+    
+    function fetchDataCase() {
+        
+        let overDay = document.getElementById('overDay').value;
+        const url = `${BASE_URL}/AE_ACC/RC_Over_Rel_Case_LQuery?overDay=${overDay}`;
+
+        fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+            .then(response => response.json())
+            .then(responseData => {
+                if (responseData.resultCode == "000") {
+                    let Casedata = JSON.parse(responseData.objResult);
+                    showPageCase(Casedata);
+                    
+                } else {
+                    alert(response.resultMsg);
+                }
+            })
+            .catch(error => {
+                alert('API 請求失敗:', error);
+            });
+    }
+
+    function showPageCase(Casedata) {
+        
+        const tbody = document.querySelector('#CaseTable tbody');
+        tbody.innerHTML = '';
+        let startIndex = 1;
+        for (let item of Casedata) {
+            const row = document.createElement('tr');
+            row.setAttribute('align', 'center');
+            row.setAttribute('class', 'c12-k');
+            row.setAttribute('bgcolor', '#FFFFFF');
+            row.setAttribute('onmouseover', "this.style.background='#FCFCC0';");
+            row.setAttribute('onmouseout', "this.style.background='#FFFFFF';");
+
+            const columnOrder = ['pro_name', 'TOT_Count', 'amount_total', 'OV_Count', 'OV_total', 'OV_Rate','SCount','RemainingPrincipal'];
+
+            const serialCell = document.createElement('td');
+            serialCell.textContent = startIndex;
+            row.appendChild(serialCell);
+
+
+            for (let key of columnOrder) {
+                const cell = document.createElement('td');
+                switch (key) {
+                    case 'OV_Count':
+                        cell.textContent = item[key] || 0;
+                        row.appendChild(cell);
+                        break;
+                    case 'amount_total':
+                        let amountt =  item[key];
+                        cell.textContent = amountt.toLocaleString();
+                        row.appendChild(cell);
+                        break;
+                    case 'OV_total':
+                        let ovt =  item[key];
+                        cell.textContent = ovt.toLocaleString();
+                        row.appendChild(cell);
+                        break;
+                    case 'OV_Rate':
+                        cell.textContent = `${item[key]}%` || `0%`;
+                        row.appendChild(cell);
+                        break;
+                    case 'SCount':
+                        let sc =  item[key];
+                        cell.textContent = sc.toLocaleString();
+                        row.appendChild(cell);
+                        break;
+                    case 'RemainingPrincipal':
+                        let rp =  item[key];
+                        cell.textContent = rp.toLocaleString();
+                        row.appendChild(cell);
+                        break;
+                    default:
+                        cell.textContent = item[key] || '';
+                        row.appendChild(cell);
+                }
+            }
+            
+            tbody.appendChild(row);
+            startIndex ++;
+        }
+    }
     function exportToExcel() {
 	    var table = document.getElementById('MainTable');
 
