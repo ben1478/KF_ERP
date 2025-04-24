@@ -33,8 +33,9 @@
 								<td width="200" height="24">　<span class="c14k">　<strong>應收帳款-本金餘額表</strong></span></td>
 							</tr>
 							<tr>
-								<td>　</td>
+								<td></td>
 								<td class="c12-k">
+									應繳年月：
 									<select name="RC_dateS" id="RC_dateS">
 									</select>
 									~
@@ -137,72 +138,70 @@
     let currentPage = 1;
     let data = []; 
 
-	loadYYYMMDown();
+	window.onload = function () {
+		loadYYYMMDown();
+	}
+
+	function setEdate(options){
+		const selectElementRC_dateE = document.getElementById('RC_dateE');
+        options['ROC_Date_E'].forEach(option => {
+			let ym = option.ROC_YYYMM.split('-');
+			let ovY = parseInt(ym[0]) + 1911;
+			let optionValue= `${ovY}-${ym[1].padStart(2,'0')}`;
+			
+			if(option.Gre_YYYYMM === option.ROC_YYYMM)
+			{
+				selectElementRC_dateE.innerHTML = `<option value=${optionValue} selected>${option.ROC_YYYMM}</option>`;
+				isFirst= false;
+			}else{
+				const optionElement = document.createElement('option');
+				optionElement.value = optionValue; 
+				optionElement.textContent = option.ROC_YYYMM;
+				selectElementRC_dateE.appendChild(optionElement);
+			}
+			
+    });
+
+
+	}
+	function setSdate(options){
+        const selectElementRC_dateS = document.getElementById('RC_dateS');
+        options['ROC_Date_S'].forEach(option => {
+			let ym = option.ROC_YYYMM.split('-');
+			let ovY = parseInt(ym[0]) + 1911;
+			let optionValue= `${ovY}-${ym[1].padStart(2,'0')}`;
+
+            if(option.Gre_YYYYMM === option.ROC_YYYMM)
+            {
+                selectElementRC_dateS.innerHTML = `<option value=${optionValue} selected>${option.ROC_YYYMM}</option>`;
+            }else{
+                const optionElement = document.createElement('option');
+                optionElement.value = optionValue; 
+                optionElement.textContent = option.ROC_YYYMM;
+                selectElementRC_dateS.appendChild(optionElement);
+            }
+        });
+	}
+	
 
 	function loadYYYMMDown() {
-        const url = `${BASE_URL}/AE_ACC/GetRDYYYMM`;
-		let dateE = new Date();
-		let dateS = new Date();
-		dateS.setMonth(dateS.getMonth()-3);
-
-		//console.log(`dateS=${dateS}`);
+		const url = `${BASE_URL}/AE_ACC/GetRDYYYMM`;
         fetch(url)
-        .then(response => response.json())
+		.then(response => response.json())
         .then(data => {
             if (data.resultCode === "000") {
-                const options = JSON.parse(data.objResult);
-				let nowSY = dateS.getFullYear();
-				let nowSM = String(dateS.getMonth()+1).padStart(2,'0');
-
-                const selectElementRC_dateS = document.getElementById('RC_dateS');
-                options['ROC_Date_S'].forEach(option => {
-					let ym = option.Gre_YYYYMM.split('-');
-					let isSelected = (nowSY == ym[0] && nowSM == ym[1]);
-					//console.log(`${isSelected} nowSY=${nowSY}-${nowSM} ym${ym[0]}-${ym[1]}`);
-
-                    if(isSelected)
-                    {
-                        selectElementRC_dateS.innerHTML = `<option value=${option.Gre_YYYYMM} selected>${option.ROC_YYYMM}</option>`;
-						
-                    }else{
-                        const optionElement = document.createElement('option');
-                        optionElement.value = option.Gre_YYYYMM; 
-                        optionElement.textContent = option.ROC_YYYMM;
-                        selectElementRC_dateS.appendChild(optionElement);
-                    }
-                });
-
-				let nowEY = dateE.getFullYear();
-				let nowEM = String(dateE.getMonth()+1).padStart(2,'0');
-				const selectElementRC_dateE = document.getElementById('RC_dateE');
-                options['ROC_Date_E'].forEach(option => {
-					let ym = option.Gre_YYYYMM.split('-');
-					let isSelected = (nowEY == ym[0] && nowEM == ym[1]);
-					console.log(`${isSelected} nowEY=${nowEY}-${nowEM} ym${ym[0]}-${ym[1]}`);
-					
-                    if(isSelected)
-                    {
-                        selectElementRC_dateE.innerHTML = `<option value=${option.Gre_YYYYMM} selected>${option.ROC_YYYMM}</option>`;
-                    }else{
-                        const optionElement = document.createElement('option');
-                        optionElement.value = option.Gre_YYYYMM; 
-                        optionElement.textContent = option.ROC_YYYMM;
-                        selectElementRC_dateE.appendChild(optionElement);
-                    }
-                });
-
-                fetchData();
+                let options = JSON.parse(data.objResult);
+				setEdate(options);
+				setSdate(options);
+				fetchData();
             } else {
                 alert('錯誤: ' + (data.resultMsg || '未知錯誤'));
             }
-
-            
         })
         .catch(error => {
             console.error('載入選項時出錯:', error);
             alert('無法載入資料，請稍後再試。');
         });
-
     }
 
     function fetchData() {
@@ -271,8 +270,11 @@
                         row.appendChild(cell);
 						break;
 					case 'NCount': // 未繳件數.開啟明細
-						cell.setAttribute('class','Link');
-						cell.setAttribute('onclick',`GetNCount('${item['yyyMM']}')`);
+						if(item[key])
+						{
+							cell.setAttribute('class','Link');
+							cell.setAttribute('onclick',`GetNCount('${item['yyyMM']}')`);
+						}
 						cell.textContent = item[key] || 0;
                         row.appendChild(cell);
 						break;
@@ -281,8 +283,11 @@
 						row.appendChild(cell);
                         break;
 					case 'SCount': // 提前清償件數.開啟明細
-						cell.setAttribute('class','Link');
-						cell.setAttribute('onclick',`GetSCount('${item['yyyMM']}')`);
+						if(item[key])
+						{
+							cell.setAttribute('class','Link');
+							cell.setAttribute('onclick',`GetSCount('${item['yyyMM']}')`);
+						}
 						cell.textContent = item[key] || 0;
                         row.appendChild(cell);
 						break;
@@ -412,10 +417,10 @@
 
 	function OpenNCount(data)
 	{
-		var m_width="450PX";
-	
+		var m_width="450PX;";
+		var m_height="450px;";
 		var Title="明細資料";
-		var m_Html = '<div style="width:'+ m_width +'"> ';
+		var m_Html = `<div style="width:${m_width};height:${m_height}; overflow: auto; ">`;
 		m_Html += ' <table style="width: 95%;margin:auto" border="1" id="Title" cellspacing="0" cellpadding="3" bgcolor=""> ';
 		m_Html += ' <tr bgcolor="#CCCCFF" height="35" align="center"> '; 
 		m_Html += '  <td >'+ Title +'</td> '; 
@@ -496,10 +501,10 @@
 
 	function OpenSCount(data)
 	{
-		var m_width="800PX";
-	
+		var m_width="800PX;";
+		var m_height="400px;";
 		var Title="明細資料";
-		var m_Html = '<div style="width:'+ m_width +'"> ';
+		var m_Html = `<div style="width:${m_width};height:${m_height}; overflow: auto; ">`;
 		m_Html += ' <table style="width: 95%;margin:auto" border="1" id="Title" cellspacing="0" cellpadding="3" bgcolor=""> ';
 		m_Html += ' <tr bgcolor="#CCCCFF" height="35" align="center"> '; 
 		m_Html += '  <td >'+ Title +'</td> '; 
