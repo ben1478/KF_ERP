@@ -18,7 +18,7 @@
             </tr>
             <tr class="c12-k" bgcolor="#FFFFFF">
                 <td align="right" bgcolor="#CCCCFF">*客戶名稱</td>
-                <td align="left"><input type="text" id="CS_name" name="CS_name" size="20" maxlength="20" class="box" value="" required></td>
+                <td align="left"><input type="text" id="CS_name" name="CS_name" size="20" maxlength="20" class="box" value="" required data-required-message='客戶名稱'></td>
             </tr>
             <tr class="c12-k" bgcolor="#FFFFFF">
                 <td width="150" align="right" bgcolor="#CCCCFF">負責業務</td>
@@ -31,7 +31,7 @@
             <tr class="c12-k" bgcolor="#FFFFFF">
                 <td align="right" bgcolor="#CCCCFF">客訴事由</td>
                 <td align="left">
-                    <textarea style="width:80%; FONT-FAMILY: Verdana, serif; BACKGROUND-COLOR: #ffffcc" id="Complaint" name="Complaint" rows="5"></textarea>
+                    <textarea style="width:80%; FONT-FAMILY: Verdana, serif; BACKGROUND-COLOR: #ffffcc" id="Complaint" name="Complaint" rows="5" required data-required-message='客訴事由'></textarea>
                 </td>
             </tr>
             <tr class="c12-k" bgcolor="#FFFFFF">
@@ -162,11 +162,50 @@
         }
     }
 
-    
+    function beforeSave() 
+    {
+	    let isValid = true;
+	    let errMsg = '';
+	    
+        var inputs = document.querySelectorAll('input[required]');
+        for (var i = 0; i < inputs.length; i++) {
+            var input = inputs[i];
+            if (input.validity.valid===false) {
+                if(input.dataset.requiredMessage != undefined)
+                {
+                    if(errMsg == '')
+                    {
+                        input.focus();
+                        errMsg=input.dataset.requiredMessage;
+                    }
+                    else
+                        errMsg = errMsg +',' + input.dataset.requiredMessage;
+                }
+            }
+        }
+        if ($('textarea#Complaint').val() == '')
+	    {
+            if(errMsg == '')
+            {
+               $('textarea#Complaint').focus();
+               errMsg='客訴事由';
+            }
+            else
+               errMsg = errMsg +',' + '客訴事由';
+	    }
+
+        if (errMsg !== '') {
+            isValid = false;
+            alert(`${errMsg}必填請輸入`);
+        }
+
+        return isValid;
+    }    
 
     function saveData() {
 
-        if (!jsCheck()) {
+        let isValid = beforeSave();
+        if (!isValid) {
             return;
         }
 
@@ -239,25 +278,7 @@
 
     }
 
-    function jsCheck() 
-    {
-	
-	    if ($("input[name='CS_name']").val() == '')
-	    {
-		    alert('請輸入[客戶姓名]!!');
-		    $("input[name='CS_name']").focus();
-		    return false;
-	    }
-	
-	    if ($('textarea#Complaint').val() == '')
-	    {
-		    alert('請輸入[客訴事由]!!');
-		    $('textarea#Complaint').focus();
-		    return false;
-	    }
 
-	    return true;
-    }
 
 
 </script>
