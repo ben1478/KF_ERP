@@ -111,7 +111,10 @@
                 if(input.dataset.requiredMessage != undefined)
                 {
                     if(errMsg == '')
+                    {
+                        input.focus();
                         errMsg=input.dataset.requiredMessage;
+                    }
                     else
                         errMsg = errMsg +',' + input.dataset.requiredMessage;
                 }
