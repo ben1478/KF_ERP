@@ -21,18 +21,18 @@
             <tr class="c12-k" bgcolor="#FFFFFF">
                 <td width="150" align="right" bgcolor="#CCCCFF">放款公司</td>
                 <td width="440" align="left">
-                    <input type="text" id="show_fund_company" name="show_fund_company" size="40" maxlength="50" class="box LogData" value="">
+                    <input type="text" id="show_fund_company" name="show_fund_company" size="40" maxlength="50" class="box LogData" value="" required data-required-message='放款公司'>
                 </td>
             </tr>
             <tr class="c12-k" bgcolor="#FFFFFF">
                 <td width="150" align="right" bgcolor="#CCCCFF">專案名稱</td>
                 <td width="440" align="left">
-                    <input type="text" id="show_project_title" name="show_project_title" size="40" maxlength="50" class="box LogData" value="">
+                    <input type="text" id="show_project_title" name="show_project_title" size="40" maxlength="50" class="box LogData" value="" required data-required-message='專案名稱'>
                 </td>
             </tr>
             <tr class="c12-k" bgcolor="#FFFFFF">
                 <td align="right" bgcolor="#CCCCFF">客戶名稱</td>
-                <td align="left"><input type="text" id="cs_name" name="cs_name" size="20" maxlength="10" class="box" value=""></td>
+                <td align="left"><input type="text" id="cs_name" name="cs_name" size="20" maxlength="10" class="box" value="" required data-required-message='客戶名稱'></td>
             </tr>
             <tr class="c12-k" bgcolor="#FFFFFF">
                 <td align="right" bgcolor="#CCCCFF">客戶ID</td>
@@ -40,11 +40,11 @@
             </tr>
             <tr class="c12-k" bgcolor="#FFFFFF">
                 <td align="right" bgcolor="#CCCCFF">撥款金額(萬)</td>
-                <td align="left"><input type="text" id="get_amount" name="get_amount" size="3" maxlength="3" class="box LogData" value="">(萬)</td>
+                <td align="left"><input type="text" id="get_amount" name="get_amount" size="3" maxlength="3" class="box LogData" value="" required data-required-message='撥款金額(萬)'>(萬)</td>
             </tr>
             <tr class="c12-k" bgcolor="#FFFFFF">
                 <td align="right" bgcolor="#CCCCFF">佣金</td>
-                <td align="left"><input type="text" id="comm_amt" name="comm_amt" size="10" maxlength="10" class="box LogData" value=""></td>
+                <td align="left"><input type="text" id="comm_amt" name="comm_amt" size="10" maxlength="10" class="box LogData" value="" required data-required-message='佣金'></td>
             </tr>
             <tr class="c12-k" bgcolor="#FFFFFF">
                 <td align="right" bgcolor="#CCCCFF">期數</td>
@@ -58,7 +58,7 @@
             <tr class="c12-k" bgcolor="#FFFFFF">
                 <td align="right" bgcolor="#CCCCFF">撥款日期</td>
                 <td align="left">
-                    <input type="text" name="get_amount_date" size="10" maxlength="10" class="datepickerTW" value="">
+                    <input type="text" name="get_amount_date" size="10" maxlength="10" class="datepickerTW" value="" required data-required-message='撥款日期'>
                 </td>
             </tr>
             <tr class="c12-k" bgcolor="#FFFFFF">
@@ -70,7 +70,7 @@
             <tr class="c12-k" bgcolor="#FFFFFF">
                 <td width="150" align="right" bgcolor="#CCCCFF">經辦業務</td>
                 <td width="440" align="left">
-                    <input type="text" name="plan_name" id="U_name" size="10" maxlength="10" class="box" value="" readonly="">
+                    <input type="text" name="plan_name" id="U_name" size="10" maxlength="10" class="box" value="" readonly="" required data-required-message='經辦業務'>
                     <input type="button" value="..." name="_select_user_one" onclick="openUserOne('appUser')">
                     <input type="hidden" name="plan_num" id="U_num" value="">
                 </td>
@@ -85,6 +85,7 @@
             </tr>
             <tr class="c12-k" bgcolor="#CCCCFF" height="30">
                 <td colspan="2" align="center">
+                    <span id="FinClosed" style="color:red;font-size:18px;display:none">**此案件已經財務結帳,無法修改**</br></span>
                     <input type="hidden" name="confirm_num" id="confirm_num" value="">
                     <input type="button" class="btn" value="儲存" onclick="saveData();" />
                 </td>
@@ -131,6 +132,11 @@
                         $("input[name='case_remark']").val(data.case_remark);
                         $("input[name='case_id_count']").val(data.case_id_count);
                         $("input[name='confirm_num']").val(data.confirm_num);
+                        if(data.confirm_num)
+                        {
+                            console.log(`data.confirm_num=${data.confirm_num}`);
+                            document.getElementById('FinClosed').style.display =  '';
+                        }
                     } else {
                         alert(response.resultMsg);
                     }
@@ -142,9 +148,9 @@
         }
     }
     
-    function saveData() {
-        
-        var isValid = true;
+    function beforeSave()
+    {
+        let isValid = true;
         
         let cm = $("input[name='confirm_num']").val();
         if (cm) {
@@ -154,15 +160,35 @@
 
         var inputs = document.querySelectorAll('input[required]');
         
+        let errMsg = '';
         for (var i = 0; i < inputs.length; i++) {
             var input = inputs[i];
-            if (!input.value.trim()) {
-                alert("必填請輸入");
-                isValid = false;
-                break;
+            if (input.validity.valid===false) {
+                if(input.dataset.requiredMessage != undefined)
+                {
+                    if(errMsg == '')
+                    {
+                        input.focus();
+                        errMsg=input.dataset.requiredMessage;
+                    }
+                    else
+                        errMsg = errMsg +',' + input.dataset.requiredMessage;
+                }
             }
         }
+        
+        if (errMsg !== '') {
+            isValid = false;
+            alert(`${errMsg}必填請輸入`);
+        }
 
+        return isValid;
+    }
+
+    function saveData() {
+        
+        let isValid = beforeSave();
+        console.log(`isValid=${isValid}`);
         if (!isValid) {
             return;
         }

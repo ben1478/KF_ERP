@@ -235,6 +235,14 @@
                         cell.appendChild(button);
                         row.appendChild(cell);
                         break;
+                    case 'interest_rate_pass':
+                        cell.textContent = `${item[key]}%` ;
+                        row.appendChild(cell);
+                        break;
+                    case 'comm_amt':
+                        cell.textContent = item[key] || 0;
+                        row.appendChild(cell);
+                        break;
                     default:
                         cell.textContent = item[key] || '';
                         row.appendChild(cell);
@@ -251,35 +259,45 @@
                     window.open(`House_othercase_Detail.html?Id=${encryptedId}&User=${encryptedWebUser}`, '_blank', 'scrollbars=yes,resizable=yes,top=100,width=800,height=500');
                 }
             ));
-
-            row.appendChild(createButtonCell(
-                "../images/delete.png",
-                "刪除",
-                function () {
-                    if (Id !== '') {
-                        const url = `${BASE_URL}/AE_SAL/House_othercase_Del?Id=${Id}`;
-                        fetch(url, {
-                            method: 'DELETE',
-                            headers: {
-                                'Content-Type': 'application/json'
-                            }
-                        })
-                            .then(response => response.json())
-                            .then(responseData => {
-                                console.log(responseData.resultCode);
-                                if (responseData.resultCode === '000') {
-                                    alert('已刪除');
-                                    location.reload();
-                                } else {
-                                    alert('刪除失敗，請洽資訊人員。');
+            console.log(`item['confirm_num']=${item['confirm_num']}`);
+            if(item['confirm_num'])
+            {
+                const cell = document.createElement('td');
+                cell.textContent = '';
+                row.appendChild(cell);
+            }
+            else
+            {
+                
+                row.appendChild(createButtonCell(
+                    "../images/delete.png",
+                    "刪除",
+                    function () {
+                        if (Id !== '') {
+                            const url = `${BASE_URL}/AE_SAL/House_othercase_Del?Id=${Id}`;
+                            fetch(url, {
+                                method: 'DELETE',
+                                headers: {
+                                    'Content-Type': 'application/json'
                                 }
                             })
-                            .catch(error => {
-                                alert('刪除失敗，請洽資訊人員。');
-                            })
+                                .then(response => response.json())
+                                .then(responseData => {
+                                    console.log(responseData.resultCode);
+                                    if (responseData.resultCode === '000') {
+                                        alert('已刪除');
+                                        location.reload();
+                                    } else {
+                                        alert('刪除失敗，請洽資訊人員。');
+                                    }
+                                })
+                                .catch(error => {
+                                    alert('刪除失敗，請洽資訊人員。');
+                                })
+                        }
                     }
-                }
-            ));
+                ));
+            }
             
             tbody.appendChild(row);
         }
