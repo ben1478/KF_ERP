@@ -19,23 +19,23 @@
             <tr class="c12-k" bgcolor="#FFFFFF">
                 <td align="right" bgcolor="#CCCCFF">客戶名稱</td>
                 <td align="left">
-                    <input type="text" id="CS_name" name="CS_name" size="40" maxlength="20" class="box" value="" required>
+                    <input type="text" id="CS_name" name="CS_name" size="40" maxlength="20" class="box" value="" required data-required-message='客戶名稱'>
                 </td>
             </tr>
             <tr class="c12-k" bgcolor="#FFFFFF">
                 <td align="right" bgcolor="#CCCCFF">身分證字號</td>
                 <td align="left">
-                    <input type="text" id="CS_PID" name="CS_PID" size="20" maxlength="10" class="box" value="" required>
+                    <input type="text" id="CS_PID" name="CS_PID" size="20" maxlength="10" class="box" value="" required data-required-message='身分證字號'>
                 </td>
             </tr>
             <tr class="c12-k" bgcolor="#FFFFFF">
                 <td align="right" bgcolor="#CCCCFF">貸款金額</td>
-                <td align="left"><input type="text" id="loan_amount" name="loan_amount" size="20" maxlength="50" class="box" value="" required></td>
+                <td align="left"><input type="text" id="loan_amount" name="loan_amount" size="20" maxlength="50" class="box" value="" required data-required-message='貸款金額'></td>
             </tr>
             <tr class="c12-k" bgcolor="#FFFFFF">
                 <td width="300" align="right" bgcolor="#CCCCFF">憑證起始時間</td>
                 <td width="400" align="left">
-                    <input type="text" id="certificate_date_S" name="certificate_date_S" size="20" maxlength="10" class="datepickerTW" value="" style="width:150px;" required>
+                    <input type="text" id="certificate_date_S" name="certificate_date_S" size="20" maxlength="10" class="datepickerTW" value="" style="width:150px;" required data-required-message='憑證起始時間'>
                 </td>
             </tr>
             <tr class="c12-k" bgcolor="#FFFFFF">
@@ -103,16 +103,25 @@
 
         var inputs = document.querySelectorAll('input[required]');
         
-        let isValid = true;
+        let errMsg = '';
         for (var i = 0; i < inputs.length; i++) {
             var input = inputs[i];
-            if (!input.value.trim()) {
-                alert("必填請輸入");
-                isValid = false;
-                break;
+            if (input.validity.valid===false) {
+                console.log(`input.dataset.required = ${input.dataset.required}`);
+                if(input.dataset.requiredMessage != undefined)
+                {
+                    if(errMsg == '')
+                        errMsg=input.dataset.requiredMessage;
+                    else
+                        errMsg = errMsg +',' + input.dataset.requiredMessage;
+                }
             }
         }
-
+        
+        if (errMsg !== '') {
+            alert(`${errMsg}必填請輸入`);
+            return;
+        }
         // let csPID = $("input[name='CS_PID']").val();
         // let isCSPID = checkBasic(csPID);
         // if(isCSPID === false)
