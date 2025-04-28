@@ -1,0 +1,133 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script src="../Base.js"></script>
+    <style>
+        @page {
+            margin: 0;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+        }
+
+        .print-box {
+            position: absolute;
+            top: 50px;
+            left: 50px;
+            right: 50px;
+            bottom: 50px;
+            border: 2px solid #000;
+            padding: 20px;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+            font-size: 16px;
+        }
+
+        h2, h6 {
+            text-align: center;
+            margin: 0 0 20px 0;
+        }
+
+        @media print {
+            .print-button {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="print-box">
+        <h2>國峯租賃股份有限公司</h2>
+        <h6>清償明細</h6>
+        <div style="margin-bottom: 10px;margin-left: 90px;">
+            客戶姓名:
+            <span id='cs_name'></span>
+        </div>
+        <div style="margin-bottom: 10px;margin-left: 390px;">
+            清償基準日:
+            <span id="Breach_date_e"></span>
+        </div>
+        <div style="margin-bottom: 10px;margin-left: 350px;">
+            <span><b>清償金額: <span style="border-bottom: 1px solid black;" id="TotalSettAmt"></span></b></span>
+        </div>
+        <div style="margin-bottom: 10px;margin-left: 120px;">
+            <span id="RP_AMT"></span>
+            <br>
+            <span id="BreakAmt_text"></span><span id="Break_AMT"></span><span id="Breach_rate"></span><br>
+            <span id="interestAmt"></span><spam id="interest_display"></spam><br>
+            <span id="Delay_AMT"></span><br>
+        </div>
+        <br>
+        <br>
+        <span style="margin-left: 50px;">匯款完成後請務必傳真水單且註明<span style="border-bottom: 1px solid black;" id="cs_name_1"></span>相關資訊並來電告知，以便於沖帳，因ACH取消扣款需3個工作天以上，若來不及取消，則請自行存入款項，待作業完成後再退還款項予發票人。</span>
+        <br>
+        <br>
+        <span><b>◆清償金額請匯入本公司帳號</b></span>
+        <br>
+        <br>
+        <div style="margin-left: 140px;">
+            <span style="display: block; margin: 1px 0;">上海銀行 城中分行 0110060</span>
+            <br>
+            <span style="display: block; margin: 1px 0;">帳號:06102000099866</span>
+            <br>
+            <span style="display: block; margin: 1px 0;">戶名:國峯租賃股份有限公司</span>
+            <br>
+            <span style="display: block; margin: 1px 0;">匯完款請傳真:02-2313-1218</span>
+            <br>
+            <span style="display: block; margin: 1px 0;">電話:02-2313-1268</span>
+        </div>
+        <br>
+        <span style="margin-left: 50px;">本公司清償證明製作時間為三天以上，不便之處敬請原諒</span><br />
+        
+    </div>
+    <div style="text-align: center;">
+        <input type="button" onclick="print();" value="列印" class="print-button" />
+    </div>
+</body>
+</html>
+<script>
+    document.getElementById("cs_name").innerText = localStorage.getItem('cs_name');
+    document.getElementById("Breach_date_e").innerText = localStorage.getItem('Breach_date_e');
+    document.getElementById("TotalSettAmt").innerText = localStorage.getItem('TotalSettAmt') + '元';
+    document.getElementById("RP_AMT").innerHTML = '<b>結清本金: ' + localStorage.getItem('RP_AMT') + '元</b>'; 
+    document.getElementById("BreakAmt_text").innerHTML = '<b>' + localStorage.getItem('BreakAmt_text') + ':</b>';
+    document.getElementById("Break_AMT").innerHTML = '<b>' + localStorage.getItem('Break_AMT') + '元</b>';
+    document.getElementById("Breach_rate").innerHTML = '<b>(' + localStorage.getItem('Breach_rate') + '%)</b>';
+    document.getElementById("interestAmt").innerHTML = '<b>利息:' + localStorage.getItem('interestAmt') + '元</b>';
+    document.getElementById("interest_display").innerHTML = '<b>(' + localStorage.getItem('interest_display') + '/30*' + localStorage.getItem('interestDay')
+    + '_' + localStorage.getItem('Breach_date_s').split("/").slice(1).join('/') + '~' + localStorage.getItem('Breach_date_e').split("/").slice(1).join('/') + ')</b>';
+    document.getElementById("Delay_AMT").innerHTML = '<b>延滯利息:' + localStorage.getItem('Delay_AMT') + '元</b>';
+    document.getElementById("cs_name_1").innerHTML = '<b>清償:' + localStorage.getItem('cs_name') + '</b>';
+
+    fetchCourtAmt();
+    
+    function fetchCourtAmt() {
+        var HS_id = localStorage.getItem('HS_id');
+        const url = `${BASE_URL}/AE_ACC/GetCourtDetail?HS_id=${HS_id}`;
+
+        fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+            .then(response => response.json())
+            .then(responseData => {
+                const datas = JSON.parse(responseData.objResult);
+                const delayAmtEl = document.getElementById('Delay_AMT');
+                datas.forEach(data => {
+                    delayAmtEl.insertAdjacentHTML('afterend', `<br><span><b>${data.showName}：${data.showAmt}</b></span>`);
+                });
+            })
+            .catch(error => {
+                alert('抓取法院明細失敗，請稍後再試。');
+            })
+    }
+</script>

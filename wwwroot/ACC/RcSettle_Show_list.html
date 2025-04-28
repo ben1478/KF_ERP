@@ -122,17 +122,21 @@
             serialCell.textContent = startIndex + pageData.indexOf(item) + 1;
             row.appendChild(serialCell);
             let RCM_ID = item['RCM_id'];
+            let isNewFun = item['isNewFun'];
+            let HS_id = item['HS_id'];
             for (let key of columnOrder) {
                 const cell = document.createElement('td');
                 cell.innerHTML = item[key] || '';
                 row.appendChild(cell);
             }
             let encryptedRCM_ID = encryptParameter(RCM_ID);
+            let encryptedFun = encryptParameter(isNewFun);
+            let encryptedHS_id = encryptParameter(HS_id);
             row.appendChild(createButtonCell(
                 "../images/edit.png",
                 "試算",
                 function () {
-                    window.open(`RcSettle_Show_detail.html?RCM_ID=${encryptedRCM_ID}`, '_blank', 'scrollbars=yes,resizable=yes,top=100,width=800,height=500');
+                    window.open(`RcSettle_Show_detail.html?RCM_ID=${encryptedRCM_ID}&isNewFun=${encryptedFun}&HS_id=${encryptedHS_id}`, '_blank', 'scrollbars=yes,resizable=yes,top=100,width=800,height=500');
                 }
             ));
             tbody.appendChild(row);

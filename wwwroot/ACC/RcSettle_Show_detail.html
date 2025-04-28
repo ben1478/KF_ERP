@@ -13,7 +13,7 @@
     <table width="770" border="0" cellspacing="1" cellpadding="3" bgcolor="#666666">
         <tbody>
             <tr class="14-k" bgcolor="#FFFFFF" height="25" align="center">
-                <td colspan="2">提前還款結清記錄 <input type="hidden" id="cs_name" name="cs_name"/></td>               
+                <td colspan="2">提前還款結清記錄 <input type="hidden" id="cs_name" name="cs_name" /></td>
             </tr>
             <tr class="12" bgcolor="#FFFF66" height="25" align="center">
                 <td>清償基準日</td>
@@ -27,10 +27,10 @@
                     <textarea name="RCM_note" cols="34" rows="5"></textarea>
                 </td>
             </tr>
-            <tr class="12" bgcolor="#FFFF66" height="25" align="center">
-                <td>預計違約金利率</td>
+            <tr class="12" bgcolor="#FFFF66" height="25" align="center" id="Breach_rate_display">
+                <td><span id="Breach_rate_text"></span></td>
                 <td bgcolor="#FFFFFF" align="left" colspan="1">
-                    <input type="text" class="text_box_1" id="Breach_rate" name="Breach_rate" size="5" maxlength="5" style="width:80px;" value="13" onchange="updateSettRate()"> %
+                    <input type="text" class="text_box_1" id="Breach_rate" name="Breach_rate" size="5" maxlength="5" style="width:80px;" onchange="updateSettRate()"> %
                 </td>
             </tr>
             <tr class="12" bgcolor="#FFFF66" height="25" align="center">
@@ -45,7 +45,7 @@
                 <td>清償明細</td>
                 <td bgcolor="#FFFFFF" style="text-align: left;">
                     結清本金：<span id="RP_AMT"></span><br>
-                    預計違約金：<span id="BreakAmt_display"></span>(結清本金*<span id="rate_display">13</span>%)<br>
+                    <span id="BreakAmt_text"></span><span id="BreakAmt_display"></span>(結清本金*<span id="rate_display"></span>%)<br>
                     <span id="isFisrt_show" style="display: none;">扣除首期月付金：-<span id="amount_per_month"></span><br></span>
                     利息：<span id="interestAMT_display"></span><br>
                     計息公式：(<span name="interest_display"></span>/30)*<span name="interestDay"></span>(<span name="date_s_display"></span>~<span name="date_e_display"></span>)<br>
@@ -54,7 +54,7 @@
                 </td>
             </tr>
             <tr class="12" bgcolor="#FFFF66" height="25" align="center">
-                <td>實際違約金</td>
+                <td><span id="BreakAmt_text_t"></span></td>
                 <td bgcolor="#FFFFFF" align="left" colspan="1">
                     <input type="text" class="text_box_1" id="Break_AMT" name="Break_AMT" size="10" maxlength="10" style="width:80px;" onchange="sumTotalSettAmt();">
                 </td>
@@ -63,6 +63,12 @@
                 <td>延滯總利息</td>
                 <td bgcolor="#FFFFFF" align="left" colspan="1">
                     <input type="text" class="text_box_1" id="Delay_AMT" name="Delay_AMT" size="10" maxlength="10" style="width:80px;" onchange="sumTotalSettAmt();">
+                </td>
+            </tr>
+            <tr class="12" bgcolor="#FFFF66" height="25" align="center">
+                <td>法院相關費用</td>
+                <td bgcolor="#FFFFFF" align="left" colspan="1">
+                    <span id="court_Amt"></span>
                 </td>
             </tr>
             <tr class="12" bgcolor="#FFFF66" height="25" align="center">
@@ -75,7 +81,7 @@
             </tr>
             <tr class="14-k" bgcolor="#FFFFFF" height="35" align="center">
                 <td align="center" colspan="2">
-                    <input type="button" value="列印結清明細" onclick="printSettle();">
+                    <input type="button" value="預覽列印" onclick="printShow();">
                 </td>
             </tr>
         </tbody>
@@ -85,16 +91,22 @@
 <script>
     let Params = new URLSearchParams(window.location.search);
     let RCM_Number = decryptParameter(Params.get('RCM_ID'));
+    let isNewFun = decryptParameter(Params.get('isNewFun'));
+    let HS_id = decryptParameter(Params.get('HS_id'));
 
     let RP_AMT;
     let isFirst = "N";
     let amount_per_month = 0;
     let interestAmt = 0;
     let TotalSettAmt = 0;
+    let show_Breach_rate = 0;
+    let court_Amt = 0;
+    let BreakAmt_text = "";
 
     dateTW();
     fetchData();
     
+
     function fetchData() {
         const url = `${BASE_URL}/AE_ACC/Settle_Show_SQuery?RCM_ID=${RCM_Number}`;
 
@@ -111,9 +123,8 @@
                     RP_AMT = data[0].RP_AMT;
                     isFirst = data[0].isFirst;
                     document.getElementById("RP_AMT").innerText = data[0].RP_AMT.toLocaleString();
-                    document.getElementById("BreakAmt_display").innerText = data[0].Break_AMT.toLocaleString();
                     if (data[0].interest_AMT === 0) {
-                        document.getElementById("interestAMT_display").innerText = (Math.ceil((data[0].interest / 30) * data[0].interestDay)).toLocaleString();
+                        document.getElementById("interestAMT_display").innerText = (Math.round((data[0].interest / 30) * data[0].interestDay)).toLocaleString();
                     } else {
                         document.getElementById("interestAMT_display").innerText = data[0].interest_AMT.toLocaleString();
                     }
@@ -134,7 +145,6 @@
                     E_dates.forEach(date => {
                         date.innerText = data[0].OffDate;
                     })
-                    $("input[name='Break_AMT']").val(data[0].Break_AMT);
                     $("input[name='Delay_AMT']").val(data[0].Delay_AMT);
                     $("input[name='Breach_date_s']").val(convertToROCDate(data[0].RC_date));
                     $("input[name='Breach_date_e']").val(convertToROCDate(data[0].OffDate));
@@ -149,8 +159,58 @@
                         document.getElementById("isFisrt_show").style.display = 'none';
                         document.getElementById("trDelayMoney").style.display = 'table-row';
                     }
-                    sumTotalSettAmt();
+                    
+                    if (!(data[0].RC_count >= 20 && isNewFun === 'N')) {
+                        if (data[0].RC_count >= 20 && isNewFun === 'Y') {
+                            show_Breach_rate = 2;
+                            document.getElementById("Breach_rate_text").innerText = '作業手續費利率';                          
+                            document.getElementById("BreakAmt_text").innerText = '作業手續費：';
+                            document.getElementById("BreakAmt_text_t").innerText = '實際手續費';
+                            BreakAmt_text = '手續費';
+                        } else {
+                            show_Breach_rate = 13;
+                            document.getElementById("Breach_rate_text").innerText = '預計違約金利率';
+                            document.getElementById("BreakAmt_text").innerText = '預計違約金：';
+                            document.getElementById("BreakAmt_text_t").innerText = '實際違約金';
+                            BreakAmt_text = '違約金';
+                        }
+                    } else {
+                        show_Breach_rate = 0;
+                        document.getElementById("Breach_rate_display").style.display = "none";
+                        document.getElementById("BreakAmt_text").innerText = '預計違約金：';
+                        document.getElementById("BreakAmt_text_t").innerText = '實際違約金';
+                        BreakAmt_text = '違約金';
+                    }
+
+                    document.getElementById("rate_display").innerText = show_Breach_rate;
+                    document.getElementById("Breach_rate").value = show_Breach_rate;
+                    document.getElementById("BreakAmt_display").innerText = Math.ceil(RP_AMT * (show_Breach_rate / 100)).toLocaleString();
+                    $("input[name='Break_AMT']").val(Math.ceil(RP_AMT * (show_Breach_rate / 100)));
+
+                    fetchCourtAmt();
+                    
                 }
+            })
+            .catch(error => {
+                alert('請求失敗，請稍後再試。');
+            })
+    }
+
+    function fetchCourtAmt() {
+        const url = `${BASE_URL}/AE_ACC/GetCourtAmt?HS_id=${HS_id}`;
+
+        fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+            .then(response => response.json())
+            .then(responseData => {
+                const datas = JSON.parse(responseData.objResult); 
+                document.getElementById("court_Amt").innerText = datas[0].TotAmt.toLocaleString();
+                court_Amt = datas[0].TotAmt;
+                sumTotalSettAmt();
             })
             .catch(error => {
                 alert('請求失敗，請稍後再試。');
@@ -267,16 +327,16 @@
         interestAmt = parseFloat((document.getElementById("interestAMT_display").textContent).replace(/,/g, ''));
 
         if (isFirst === "Y") {
-            TotalSettAmt = RP_AMT + parseFloat($('#Break_AMT').val() || 0) + interestAmt - amount_per_month;
+            TotalSettAmt = RP_AMT + parseFloat($('#Break_AMT').val() || 0) + interestAmt - amount_per_month + court_Amt;
             document.getElementById('Tot_Break_AMT').value = TotalSettAmt;
             document.getElementById('spTot_Break_AMT').textContent = TotalSettAmt.toLocaleString();
-            document.getElementById('Tot_Break_AMT_DESC').textContent = RP_AMT.toLocaleString() + "+" + $('#Break_AMT').val().toLocaleString() + "+" + interestAmt.toLocaleString() + "-" + amount_per_month.toLocaleString();
+            document.getElementById('Tot_Break_AMT_DESC').textContent = RP_AMT.toLocaleString() + "+" + $('#Break_AMT').val().toLocaleString() + "+" + interestAmt.toLocaleString() + "-" + amount_per_month.toLocaleString() + "+" + court_Amt.toLocaleString();
         }
         else {
-            TotalSettAmt = RP_AMT + parseFloat($('#Break_AMT').val() || 0) + parseFloat($('#Delay_AMT').val() || 0) + interestAmt;
+            TotalSettAmt = RP_AMT + parseFloat($('#Break_AMT').val() || 0) + parseFloat($('#Delay_AMT').val() || 0) + interestAmt + court_Amt;
             document.getElementById('Tot_Break_AMT').value = TotalSettAmt;
             document.getElementById('spTot_Break_AMT').textContent = TotalSettAmt.toLocaleString();
-            document.getElementById('Tot_Break_AMT_DESC').textContent = RP_AMT.toLocaleString() + "+" + parseFloat($('#Break_AMT').val() || 0).toLocaleString() + "+" + interestAmt.toLocaleString() + "+" + parseFloat($('#Delay_AMT').val() || 0).toLocaleString();
+            document.getElementById('Tot_Break_AMT_DESC').textContent = RP_AMT.toLocaleString() + "+" + parseFloat($('#Break_AMT').val() || 0).toLocaleString() + "+" + interestAmt.toLocaleString() + "+" + parseFloat($('#Delay_AMT').val() || 0).toLocaleString() + "+" + court_Amt.toLocaleString();
         }
     }
 
@@ -362,4 +422,21 @@
         }, 500);
     }
 
+    function printShow() {
+        localStorage.setItem('HS_id', HS_id);
+        localStorage.setItem('cs_name', $('#cs_name').val());
+        localStorage.setItem('Breach_date_e', document.getElementById("Breach_date_e").value.replaceAll("-", "/"));
+        localStorage.setItem('RP_AMT', RP_AMT.toLocaleString()); 
+        localStorage.setItem('BreakAmt_text', BreakAmt_text);
+        localStorage.setItem('Break_AMT', parseFloat($('#Break_AMT').val() || 0).toLocaleString());
+        localStorage.setItem('Breach_rate', $('#Breach_rate').val().toLocaleString());
+        localStorage.setItem('interestAmt', interestAmt.toLocaleString());
+        localStorage.setItem('interest_display', document.getElementsByName("interest_display")[0].textContent);
+        localStorage.setItem('interestDay', document.getElementsByName("interestDay")[0].textContent);
+        localStorage.setItem('Breach_date_s', document.getElementById("Breach_date_s").value.replaceAll("-", "/"));
+        localStorage.setItem('Delay_AMT', parseFloat(document.getElementById("Delay_AMT").value || 0).toLocaleString());
+        localStorage.setItem('TotalSettAmt', TotalSettAmt.toLocaleString());
+
+        window.open('RcSettle_FormPrint.html', '_blank', 'scrollbars=yes,resizable=yes,top=100,width=800,height=500');
+    }
 </script>
