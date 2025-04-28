@@ -5,87 +5,244 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <script type="text/javascript" src="/tool_js/scroll.js"></script>
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
     <script src="../Base.js"></script>
     <link href="../_include/main.css" rel="stylesheet" type="text/css">
     <title>作業平台</title>
 </head>
 <body>
-    <table border="0" width="100%">
-        <tbody>
-            <tr>
-                <td width="20">　</td>
-                <td width="230" height="24" background="../../image/title-bk.gif">
-                    <span class="c14k"><strong>撥款及費用確認書</strong></span>
-                </td>
-                <td width="770"></td>
-            </tr>
-            <tr class="c12-k">
-                <td colspan="4" align="left" width="86%">
-                    申請人：
-                    <input type="text" name="CS_name" size="10" maxlength="10" value="">
-                    區：
-                    <select name="U_BC" id="U_BC" class=""></select>
-                    業務：
-                    <input type="hidden" name="plan_num" id="U_num" value="">
-                    <input type="text" name="plan_name" id="U_name" size="10" maxlength="10" class="box" value="" readonly="">
-                    <input type="button" value="..." name="_select_user_one" onclick="openUserOne('appUser')">
-                    撥款年月：
-                    <select name="selYear_S" id="selYear_S"></select>
-                    排序：
-                    <select name="OrderByStr" id="OrderByStr" class="">
-                        <option value="M.U_BC,M.U_name" selected>區-業務</option>
-                        <option value="get_amount_date">撥款日期</option>
-                    </select> &nbsp;
-                    <input type="button" value="查詢" onclick="fetchData();" />
+    <style type="text/css">
+        #spActStatus {
+            font-size: 20px;
+            color: red;
+            font-weight: 600;
+        }
 
-                </td>
-            </tr>
-        </tbody>
-    </table>
-    
-    <table width="1050" border="0" cellspacing="0" cellpadding="0">
+        .frozenHd {
+            background-color: #CCCCFF;
+        }
+
+        .frozenBd {
+            background-color: #FFFFFF;
+        }
+
+        .frozen1 {
+            position: sticky;
+            left: 0;
+            z-index: 1;
+            border-right: 1px solid #000;
+        }
+
+        .frozen2 {
+            position: sticky;
+            left: 60;
+            z-index: 1;
+            border-right: 1px solid #000;
+        }
+
+        .frozen3 {
+            position: sticky;
+            left: 120;
+            z-index: 1;
+            border-right: 1px solid #000;
+        }
+
+        .frozen4 {
+            position: sticky;
+            left: 210;
+            z-index: 1;
+            border-right: 1px solid #000;
+        }
+
+        .frozen5 {
+            position: sticky;
+            left: 295;
+            z-index: 1;
+            border-right: 1px solid #000;
+        }
+
+        .frozen6 {
+            position: sticky;
+            left: 380;
+            z-index: 1;
+            border-right: 1px solid #000;
+        }
+
+        #MainTable tr.Red td {
+            background: #FFD2D2;
+        }
+
+        #RefInfo tr td {
+            align: center;
+        }
+
+        tr.Sel td {
+            font-weight: bold;
+            background: #FFD2D2;
+        }
+
+
+        td.Ref {
+            text-decoration: underline;
+            font-weight: bold;
+            color: #FF2D2D;
+            cursor: pointer;
+        }
+
+        td.Red {
+            font-weight: bold;
+            background: #FFD2D2;
+        }
+
+        td.Cancel {
+            text-decoration: line-through;
+        }
+
+        td.Confirm {
+            font-weight: bold;
+            background: #BBFFBB;
+        }
+
+        #MainTable tr.Confirm td {
+            background: #BBFFBB;
+        }
+
+        #MainTable tr.Cancel td {
+            text-decoration: line-through;
+        }
+
+        #MainTable tr.Change td {
+            background: #A6FFFF;
+            cursor: pointer;
+        }
+
+        #MainTable tr.disable td {
+            text-decoration: line-through;
+        }
+
+
+        #MainTable td.LogEDIT {
+            text-decoration: underline;
+            font-weight: bold;
+            color: blue;
+            cursor: pointer;
+        }
+
+        #MainTable td.EDIT {
+            text-decoration: underline;
+            font-weight: bold;
+            color: blue;
+            cursor: pointer;
+        }
+
+        #MainTable tr.Notice td {
+            font-weight: bold;
+            background: #FFFFB9;
+        }
+
+    </style>
+
+    <table width="1100px" xwidth="1100px" id="TOPage" class="Main" border="0" cellspacing="0" cellpadding="0">
         <tbody>
             <tr>
-                <td valign="top"> </td>
-                <td align="center" valign="top">
-                    <table id="MainTable" width="1050" border="0" cellpadding="4" cellspacing="1" bgcolor="#666666">
-                        <thead>
-                            <tr align="center" bgcolor="#CCCCFF" class="c12-k">
-                                <td width="5%">序號</td>
-                                <td width="8%">區</td>
-                                <td width="10%">進件日</td>
-                                <td width="10%">申請人</td>
-                                <td width="18%">介紹人</td>
-                                <td width="7%">業務</td>
-                                <td width="10%">撥款日</td>
-                                <td width="10%">撥款金額(萬)</td>
-                                <td width="10%">承作利率(%)</td>
-                                <td width="10%">上傳</td>
-                            </tr>
-                        </thead>
+                <td></td>
+                <td>
+                    <table width="100%" border="0" cellspacing="0" cellpadding="0">
                         <tbody>
-                            <tr align="center" class="c12-k" bgcolor="#FFFFFF" onmouseover="this.style.background='#FFFF66';" onmouseout="this.style.background='#FFFFFF'; " style="background: rgb(255, 255, 255);">
+                            <tr>
+                                <td width="20">　</td>
+                                <td width="230" height="24" background="../../image/title-bk.gif">
+                                    <span class="c14k"><strong>撥款及費用確認書</strong></span>
+                                </td>
+                                <td width="770"></td>
                             </tr>
-                            <tr align="center" class="c12-k" bgcolor="#FFFFFF" onmouseover="this.style.background='#FFFF66';" onmouseout="this.style.background='#FFFFFF'; " style="background: rgb(255, 255, 255);">
-                            </tr>
-                            <tr align="center" height="30" bgcolor="#CCCCFF">
-                                <td class="c12-k" colspan="16">
+                            <tr class="c12-k">
+                                <td colspan="4" align="left" width="86%">
+                                    申請人：
+                                    <input type="text" name="CS_name" size="10" maxlength="10" value="">
+                                    區：
+                                    <select name="U_BC" id="U_BC" class=""></select>
+                                    業務：
+                                    <input type="hidden" name="plan_num" id="U_num" value="">
+                                    <input type="text" name="plan_name" id="U_name" size="10" maxlength="10" class="box" value="" readonly="">
+                                    <input type="button" value="..." name="_select_user_one" onclick="openUserOne('appUser')">
+                                    撥款年月：
+                                    <select name="selYear_S" id="selYear_S"></select>
+                                    排序：
+                                    <select name="OrderByStr" id="OrderByStr" class="">
+                                        <option value="M.U_BC,M.U_name" selected>區-業務</option>
+                                        <option value="get_amount_date">撥款日期</option>
+                                    </select> &nbsp;
+                                    <input type="button" value="查詢" onclick="fetchData();" />
+
                                 </td>
                             </tr>
                         </tbody>
-                        <tfoot>
-                            <tr align="center" height="15" bgcolor="#CCCCFF">
-                                <td class="c12-k" colspan="15">
-                                    <font color="#000080">
-                                        <label id="CountRows"></label>
-                                    </font>
-                                </td>
-                            </tr>
-                        </tfoot>
                     </table>
-                    <div id="pagination"></div>
                 </td>
+            </tr>
+            <tr>
+                <td valign="top"></td>
+                <Td id="GridTD">
+                    <div id="DivHead" class="scroll" style="width: 1045px; overflow: hidden; display: inline-block; outline: none;" tabindex="1">
+                        <table id="MainTableH" style="width:1100px" border="0" cellpadding="4" cellspacing="1" bgcolor="#666666">
+                            <tbody>
+                                <tr align="center" style="height:43px " bgcolor="#CCCCFF" class="c12-k">
+                                    <td width="5%">No.</td>
+                                    <td width="8%">區</td>
+                                    <td width="10%">進件日</td>
+                                    <td width="10%">申請人</td>
+                                    <td width="18%">介紹人</td>
+                                    <td width="7%">業務</td>
+                                    <td width="10%">撥款日</td>
+                                    <td width="10%">撥款金額(萬)</td>
+                                    <td width="10%">承作利率(%)</td>
+                                    <td width="12%">上傳</td>
+
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div id="DivBody" class="scroll" style="width: 1045px; height: 473.25px; overflow: hidden; outline: none;" tabindex="2">
+                        <table id="MainTable" style="width:1100px;height:auto;" border="0" cellpadding="4" cellspacing="1" bgcolor="#666666">
+                            <tbody>
+                                <tr align="center" style="display:none" bgcolor="#CCCCFF" class="c12-k">
+                                    <td width="5%">No.</td>
+                                    <td width="8%">區</td>
+                                    <td width="10%">進件日</td>
+                                    <td width="10%">申請人</td>
+                                    <td width="18%">介紹人</td>
+                                    <td width="7%">業務</td>
+                                    <td width="10%">撥款日</td>
+                                    <td width="10%">撥款金額(萬)</td>
+                                    <td width="10%">承作利率(%)</td>
+                                    <td width="12%">上傳</td>
+                                </tr>
+                                <tr align="center" class="c12-k" bgcolor="#FFFFFF" onmouseover="this.style.background='#FFFF66';" onmouseout="this.style.background='#FFFFFF'; " style="background: rgb(255, 255, 255);">
+                                </tr>
+                                <tr align="center" class="c12-k" bgcolor="#FFFFFF" onmouseover="this.style.background='#FFFF66';" onmouseout="this.style.background='#FFFFFF'; " style="background: rgb(255, 255, 255);">
+                                </tr>
+                                <tr align="center" height="30" bgcolor="#CCCCFF">
+                                    <td class="c12-k" colspan="10">
+                                    </td>
+                                </tr>
+                            </tbody>
+                            <tfoot>
+                                <tr class="foot" align="center" height="30" bgcolor="#CCCCFF">
+                                    <td class="c12-k" colspan="4">
+                                        <font color="#000080">
+                                            <label id="CountRows"></label>
+                                        </font>
+                                    </td>
+                                    <td class="c12-k" colspan="3" id="TRSum" style="text-align:right"><font color="#000080"> 合計:</font></td>
+                                    <td class="c12-k" id="TRget_amount_T"><font color="#000080"></font></td>
+                                    <td class="c12-k" colspan="2"></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </Td>
             </tr>
         </tbody>
     </table>
@@ -96,15 +253,121 @@
     let WebUser = Params.WebUser;
     let WebBC = Params.WebBC;
 
-    const itemsPerPage = 20;  
-    let currentPage = 1;
+    // const itemsPerPage = 20;  
+    // let currentPage = 1;
     let data = []; 
 
     window.onload = function () {
         dateTW();
         loadBCDropdown();
         loadYearDown();
+        //console.log('window.onload end');
     }
+
+    $(document).ready(function() {
+
+
+													var DivWidth=$("#GridTD").width()*0.95+"px";
+													$("#DivBody").width(DivWidth)
+													$("#DivHead").width(DivWidth)
+													var windowHeight = $("#TOPage").height()*0.75;
+
+													$("#DivBody").height(windowHeight+"px")
+													$(".scroll").niceScroll({ autohidemode: false, cursorwidth: "15px",  cursorcolor: "#00FFFF", cursoropacitymax: 0.5, cursorwidth: 7 });
+													$("#DivBody").on("scroll", function () {
+														$("#DivHead").scrollLeft($(this).scrollLeft());
+														$("#LfIdx").text($(this).scrollLeft());
+														if($(this).scrollLeft()>2)
+														{
+															$("#DivHead td:eq(0)").addClass("frozen1").addClass("frozenHd");
+															$("#DivBody tr td:first-child").addClass("frozen1").addClass("frozenBd");
+															$("#DivBody tr.foot td").removeClass("frozen1").removeClass("frozenBd");
+														}
+														else
+														{
+															$("#DivHead td:eq(0)").removeClass("frozen1").removeClass("frozenHd");
+															$("#DivBody tr td:first-child").removeClass("frozen1").removeClass("frozenBd");
+
+														}
+														if($(this).scrollLeft()>10)
+														{
+															$("#DivHead td:eq(1)").addClass("frozen2").addClass("frozenHd");
+															$("#DivBody tr td:nth-child(2)").addClass("frozen2").addClass("frozenBd");
+															$("#DivBody tr.foot td").removeClass("frozen2").removeClass("frozenBd");
+														}
+														else
+														{
+															$("#DivHead td:eq(1)").removeClass("frozen2").removeClass("frozenHd");
+															$("#DivBody tr td:nth-child(2)").removeClass("frozen2").removeClass("frozenBd");
+														}
+														if($(this).scrollLeft()>28)
+														{
+															$("#DivHead td:eq(2)").addClass("frozen3").addClass("frozenHd");
+															$("#DivBody tr td:nth-child(3)").addClass("frozen3").addClass("frozenBd");
+															$("#DivBody tr.foot td").removeClass("frozen3").removeClass("frozenBd");
+														}
+														else
+														{
+															$("#DivHead td:eq(2)").removeClass("frozen3").removeClass("frozenHd");
+															$("#DivBody tr td:nth-child(3)").removeClass("frozen3").removeClass("frozenBd");
+														}
+														if($(this).scrollLeft()>32)
+														{
+															$("#DivHead td:eq(3)").addClass("frozen4").addClass("frozenHd");
+															$("#DivBody tr td:nth-child(4)").addClass("frozen4").addClass("frozenBd");
+															$("#DivBody tr.foot td").removeClass("frozen4").removeClass("frozenBd");
+														}
+														else
+														{
+															$("#DivHead td:eq(3)").removeClass("frozen4").removeClass("frozenHd");
+															$("#DivBody tr td:nth-child(4)").removeClass("frozen4").removeClass("frozenBd");
+														}
+														if($(this).scrollLeft()>38)
+														{
+															$("#DivHead td:eq(4)").addClass("frozen5").addClass("frozenHd");
+															$("#DivBody tr td:nth-child(5)").addClass("frozen5").addClass("frozenBd");
+															$("#DivBody tr.foot td").removeClass("frozen5").removeClass("frozenBd");
+															$("#TRrecordcount").addClass("frozen1").addClass("frozenHd");
+															$("#MTRrecordcount").addClass("frozen1").addClass("frozenHd");
+
+														}
+														else
+														{
+															$("#DivHead td:eq(4)").removeClass("frozen5").removeClass("frozenHd");
+															$("#DivBody tr td:nth-child(5)").removeClass("frozen5").removeClass("frozenBd");
+															$("#TRrecordcount").removeClass("frozen1").removeClass("frozenHd");
+															$("#MTRrecordcount").removeClass("frozen1").removeClass("frozenHd");
+
+														}
+														if($(this).scrollLeft()>601)
+														{
+															$("#DivHead td:eq(11)").addClass("frozen6").addClass("frozenHd");
+															$("#DivBody tr td:nth-child(12)").addClass("frozen6").addClass("frozenBd");
+															$("#DivBody tr.foot td").removeClass("frozen6").removeClass("frozenBd");
+															$("#TRget_amount_T").addClass("frozen6").addClass("frozenHd");
+															$("#MTRget_amount_T").addClass("frozen6").addClass("frozenHd");
+															$("#TRSum").addClass("frozen5").addClass("frozenHd");
+															$("#MTRSum").addClass("frozen5").addClass("frozenHd");
+														}
+														else
+														{
+															$("#DivHead td:eq(11)").removeClass("frozen6").removeClass("frozenHd");
+															$("#DivBody tr td:nth-child(12)").removeClass("frozen6").removeClass("frozenBd");
+															$("#TRget_amount_T").removeClass("frozen6").removeClass("frozenHd");
+															$("#MTRget_amount_T").removeClass("frozen6").removeClass("frozenHd");
+															$("#TRSum").removeClass("frozen5").removeClass("frozenHd");
+															$("#MTRSum").removeClass("frozen5").removeClass("frozenHd");
+														}
+
+													});
+													$("#DivHead").on("scroll", function () {
+														$("#DivBody").scrollLeft($(this).scrollLeft());
+													});
+													$('.LogEDIT').on('click', function() {
+														Edit_AMT($(this).attr("Rowidx"),$(this).attr("LogTable"),$(this).attr("DisplayNa"),$(this).attr("ColumnNa"),$(this).attr("Remark"),$(this).attr("RemarkVal"),$(this)[0].innerText)
+													});
+
+												});
 
     function fetchData() {
         // 需引用與WebApi.LQuery一致參數
@@ -117,7 +380,9 @@
         };
 
         const url = `${BASE_URL}/AE_SAL/House_SendCase_LQuery`;
-
+        
+        console.log('fetchData');
+        
         fetch(url, {
             method: 'POST',
             headers: {
@@ -130,8 +395,7 @@
             .then(responseData => {
                 if (responseData.resultCode == "000") {
                     data = JSON.parse(responseData.objResult);
-                    showPage(currentPage);
-                    createPagination();
+                    showPage();
                 } else {
                     alert(response.resultMsg);
                 }
@@ -141,20 +405,14 @@
             });
     }
 
-    function showPage(page) {
-        document.getElementById('CountRows').innerHTML = `筆數:${data.length}`;
+    function showPage() {
         const tbody = document.querySelector('#MainTable tbody');
         tbody.innerHTML = '';
-
-        const startIndex = (page - 1) * itemsPerPage;
-        const endIndex = Math.min(startIndex + itemsPerPage, data.length);
-        const pageData = data.slice(startIndex, endIndex);
-
-        let Id; // key
-        let encryptedId;
+        let startIndex = 0;
+        
         let encryptedWebUser = encryptParameter(WebUser);
-
-        for (let item of pageData) {
+        let sumAmount = 0;
+        for (let item of data) {
             const row = document.createElement('tr');
             row.setAttribute('align', 'center');
             row.setAttribute('class', 'c12-k');
@@ -162,35 +420,77 @@
             row.setAttribute('onmouseover', "this.style.background='#FCFCC0';");
             row.setAttribute('onmouseout', "this.style.background='#FFFFFF';");
             //List.顯示序順:欄位名稱需與t-sql欄位(大小)一致
-            const columnOrder = ['HS_id', 'File_ID', 'U_BC_name', 'Send_amount_date', 'CS_name', 'CS_introducer', 'plan_name', 'get_amount_date', 'get_amount', 'interest_rate_pass','upLoad_Count'];
+            const columnOrder = ['File_ID', 'U_BC_name', 'Send_amount_date', 'CS_name', 'CS_introducer', 'plan_name', 'get_amount_date', 'get_amount', 'interest_rate_pass','upLoad_Count'];
             //List.序欄位
             const serialCell = document.createElement('td');
-            serialCell.textContent = startIndex + pageData.indexOf(item) + 1;
+            startIndex = startIndex + 1;
+            serialCell.textContent = startIndex;
+            serialCell.width='5%';
             row.appendChild(serialCell);
-      
+           
             let File_ID; // SendCase上傳檔案key 
-
             for (let key of columnOrder) {
                 const cell = document.createElement('td');
                 switch (key) {
-                    case 'HS_id':  // key
-                        Id = item[key];
-                        break;
                     case 'File_ID': // SendCase上傳檔案key 
                         File_ID = item[key];
                         break;
-                    case 'upLoad_Count':
-                        const button = document.createElement('input');
-                        button.type = 'button';
-                        button.value = '附加檔案(' + item[key] + ')';
-                        button.onclick = function () {
-                            window.open(`../File/File_UpLoad_List.html?cknum=${File_ID}&user=${encryptedWebUser}`, '_blank', 'scrollbars=yes,resizable=yes,top=100,width=800,height=500');
-                        };
-                        cell.style.textAlign = 'center';
-                        cell.style.verticalAlign = 'middle';
-                        cell.appendChild(button);
+                    case 'U_BC_name':
+                        cell.width = '8%';
+                        cell.textContent = item[key] || '';
                         row.appendChild(cell);
                         break;
+                    case 'Send_amount_date':
+                        cell.width = '10%';
+                        cell.textContent = item[key] || '';
+                        row.appendChild(cell);
+                        break;
+                    case 'CS_name':
+                        cell.width = '10%';
+                        cell.textContent = item[key] || '';
+                        row.appendChild(cell);
+                        break;
+                    case 'CS_introducer':
+                        cell.width = '18%';
+                        cell.textContent = item[key] || '';
+                        row.appendChild(cell);
+                        break;
+                    case 'plan_name':
+                        cell.width = '7%';
+                        cell.textContent = item[key] || '';
+                        row.appendChild(cell);
+                        break;
+                    case 'get_amount_date':
+                        cell.width = '10%';
+                        cell.textContent = item[key] || '';
+                        row.appendChild(cell);
+                        break;
+                    
+                    
+                    case 'get_amount':
+                        cell.width = '10%';
+                        sumAmount +=  parseInt(item[key]);
+                        cell.textContent = item[key].toLocaleString() || '0';
+                        row.appendChild(cell);
+                        break;
+                    case 'interest_rate_pass':
+                        cell.width = '10%';
+                        cell.textContent = item[key] || '';
+                        row.appendChild(cell);
+                        break;
+                    case 'upLoad_Count':
+                            const button = document.createElement('input');
+                            button.type = 'button';
+                            button.value = '附加檔案(' + item[key] + ')';
+                            button.onclick = function () {
+                                window.open(`../File/File_UpLoad_List.html?cknum=${File_ID}&user=${encryptedWebUser}`, '_blank', 'scrollbars=yes,resizable=yes,top=100,width=800,height=500');
+                            };
+                            cell.width = '12%';
+                            cell.style.textAlign = 'center';
+                            cell.style.verticalAlign = 'middle';
+                            cell.appendChild(button);
+                            row.appendChild(cell);
+                            break;
                     default:
                         cell.textContent = item[key] || '';
                         row.appendChild(cell);
@@ -198,6 +498,10 @@
             }
             tbody.appendChild(row);
         }
+        document.getElementById("TRget_amount_T").textContent = sumAmount.toLocaleString();
+        document.getElementById("CountRows").textContent = `筆數:${startIndex.toLocaleString()}`;
+        
+        console.log('sumAmount= ${sumAmount}');
     }
 
     function loadYearDown() {
