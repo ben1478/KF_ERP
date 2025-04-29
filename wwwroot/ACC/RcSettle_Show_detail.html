@@ -102,11 +102,11 @@
     let show_Breach_rate = 0;
     let court_Amt = 0;
     let BreakAmt_text = "";
+    let Over_Amt = 0;
 
     dateTW();
     fetchData();
     
-
     function fetchData() {
         const url = `${BASE_URL}/AE_ACC/Settle_Show_SQuery?RCM_ID=${RCM_Number}`;
 
@@ -122,6 +122,7 @@
                     const data = JSON.parse(responseData.objResult);
                     RP_AMT = data[0].RP_AMT;
                     isFirst = data[0].isFirst;
+                    Over_Amt = data[0].OverAmt;
                     document.getElementById("RP_AMT").innerText = data[0].RP_AMT.toLocaleString();
                     if (data[0].interest_AMT === 0) {
                         document.getElementById("interestAMT_display").innerText = (Math.round((data[0].interest / 30) * data[0].interestDay)).toLocaleString();
@@ -187,6 +188,7 @@
                     document.getElementById("BreakAmt_display").innerText = Math.ceil(RP_AMT * (show_Breach_rate / 100)).toLocaleString();
                     $("input[name='Break_AMT']").val(Math.ceil(RP_AMT * (show_Breach_rate / 100)));
 
+                   
                     fetchCourtAmt();
                     
                 }
@@ -210,6 +212,7 @@
                 const datas = JSON.parse(responseData.objResult); 
                 document.getElementById("court_Amt").innerText = datas[0].TotAmt.toLocaleString();
                 court_Amt = datas[0].TotAmt;
+               
                 sumTotalSettAmt();
             })
             .catch(error => {
@@ -325,19 +328,29 @@
 
     function sumTotalSettAmt() {
         interestAmt = parseFloat((document.getElementById("interestAMT_display").textContent).replace(/,/g, ''));
+      
+        var desc = "";
 
         if (isFirst === "Y") {
-            TotalSettAmt = RP_AMT + parseFloat($('#Break_AMT').val() || 0) + interestAmt - amount_per_month + court_Amt;
-            document.getElementById('Tot_Break_AMT').value = TotalSettAmt;
-            document.getElementById('spTot_Break_AMT').textContent = TotalSettAmt.toLocaleString();
-            document.getElementById('Tot_Break_AMT_DESC').textContent = RP_AMT.toLocaleString() + "+" + $('#Break_AMT').val().toLocaleString() + "+" + interestAmt.toLocaleString() + "-" + amount_per_month.toLocaleString() + "+" + court_Amt.toLocaleString();
+            TotalSettAmt = RP_AMT + parseFloat($('#Break_AMT').val() || 0) + interestAmt - amount_per_month + court_Amt - Over_Amt;
+            desc = RP_AMT.toLocaleString() + "+" + $('#Break_AMT').val().toLocaleString() + "+" + interestAmt.toLocaleString() + "-" + amount_per_month.toLocaleString() + "+" + court_Amt.toLocaleString();
+            if (Over_Amt !== 0) {
+                desc += "-" + Over_Amt.toLocaleString();
+            }
         }
         else {
-            TotalSettAmt = RP_AMT + parseFloat($('#Break_AMT').val() || 0) + parseFloat($('#Delay_AMT').val() || 0) + interestAmt + court_Amt;
-            document.getElementById('Tot_Break_AMT').value = TotalSettAmt;
-            document.getElementById('spTot_Break_AMT').textContent = TotalSettAmt.toLocaleString();
-            document.getElementById('Tot_Break_AMT_DESC').textContent = RP_AMT.toLocaleString() + "+" + parseFloat($('#Break_AMT').val() || 0).toLocaleString() + "+" + interestAmt.toLocaleString() + "+" + parseFloat($('#Delay_AMT').val() || 0).toLocaleString() + "+" + court_Amt.toLocaleString();
+            TotalSettAmt = RP_AMT + parseFloat($('#Break_AMT').val() || 0) + parseFloat($('#Delay_AMT').val() || 0) + interestAmt + court_Amt - Over_Amt;
+            
+            desc = RP_AMT.toLocaleString() + "+" + parseFloat($('#Break_AMT').val() || 0).toLocaleString() + "+" + interestAmt.toLocaleString() + "+" + parseFloat($('#Delay_AMT').val() || 0).toLocaleString() + "+" + court_Amt.toLocaleString();
+            if (Over_Amt !== 0) {
+                desc += "-" + Over_Amt.toLocaleString();
+            }
+            
         }
+
+        document.getElementById('Tot_Break_AMT').value = TotalSettAmt;
+        document.getElementById('spTot_Break_AMT').textContent = TotalSettAmt.toLocaleString();
+        document.getElementById('Tot_Break_AMT_DESC').textContent = desc;
     }
 
     function printShow() {
@@ -354,6 +367,7 @@
         localStorage.setItem('Breach_date_s', document.getElementById("Breach_date_s").value.replaceAll("-", "/"));
         localStorage.setItem('Delay_AMT', parseFloat(document.getElementById("Delay_AMT").value || 0).toLocaleString());
         localStorage.setItem('TotalSettAmt', TotalSettAmt.toLocaleString());
+        localStorage.setItem('Over_Amt', Over_Amt);
 
         window.open('RcSettle_FormPrint.html', '_blank', 'scrollbars=yes,resizable=yes,top=50,width=800,height=900');
     }
