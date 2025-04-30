@@ -1,0 +1,78 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script src="../Base.js"></script>
+    <title>作業平台</title>
+</head>
+<body>
+    <table border="0" width="100%">
+        <tbody>
+            <tr class="c12-k">
+                <td width="86%">
+                    職務名稱：
+                    <input type="text" name="CS_name" id="CS_name" size="10" maxlength="10" class="box">
+                    &nbsp;
+                    任職起月：
+                    <input type="text" name="CS_PID" id="CS_PID" size="10" maxlength="10" class="box">
+                    <input type="button" value="查詢" onclick="fetchData();" />
+                    <input type="button" value="新增" onclick="openNewData();" />
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table width="850" border="0" cellspacing="0" cellpadding="0">
+        <tbody>
+            <tr>
+                <td valign="top"> </td>
+                <td align="center" valign="top">
+                    <table id="MainTable" width="850" border="0" cellpadding="4" cellspacing="1" bgcolor="#666666">
+                        <thead>
+                            <tr align="center" height="30" bgcolor="#CCCCFF" class="c12-k">
+                                <td width="40">序號</td>
+                                <td width="40">職務名稱</td>
+                                <td width="40">任職起月</td>
+                                <td width="40">任職迄月</td>
+                                <td width="100">責任額</td>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr align="center" class="c12-k" bgcolor="#FFFFFF" onmouseover="this.style.background='#FFFF66';" onmouseout="this.style.background='#FFFFFF'; " style="background: rgb(255, 255, 255);">
+                            </tr>
+                            <tr align="center" class="c12-k" bgcolor="#FFFFFF" onmouseover="this.style.background='#FFFF66';" onmouseout="this.style.background='#FFFFFF'; " style="background: rgb(255, 255, 255);">
+                            </tr>
+                            <tr align="center" height="30" bgcolor="#CCCCFF">
+                                <td class="c12-k" colspan="16">
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div id="Professiona"></div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</body>
+</html>
+<script>
+    const Params = getQueryParams();
+    let WebUser = Params.WebUser;
+    let WebBC = Params.WebBC;
+
+    const itemsPerPage = 100;
+    let currentPage = 1;
+    let data = [];
+
+    function fetchData() {
+
+    }
+
+    function openNewData() {
+        let encryptedUser = encryptParameter(WebUser);
+        window.open(`Profess_Target_datail.html?User=${encryptedUser}`, '_blank', 'scrollbars=yes,resizable=yes,top=100,width=800,height=500');
+    }
+</script>

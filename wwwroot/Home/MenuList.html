@@ -111,7 +111,9 @@
                                 <td width="13%" align="center">
                                     <input type="button" name="add" value="廠商主檔資料列表" onclick="openManufacturer();">
                                 </td>
-                                <td width="13%" align="center"></td>
+                                <td width="13%" align="center">
+                                    <input type="button" name="add" value="職稱責任額" onclick="openTarget();">
+                                </td>
                                 <td width="13%" align="center"></td>
                             </tr>
                             <tr>
@@ -278,9 +280,12 @@
         window.open(`/KUO/RC_repay.html?User=${WebUser}&U_BC=${WebBC}`, 'list', 'scrollbars=yes,resizable=yes,width=1300,height=500,left=250,top=100')
     }
     function openRcSettle() {
-        window.open(`/ACC/RcSettle_Show_list.html?PM_U_num=${WebUser}&U_BC=${WebBC}`, 'list', 'scrollbars=yes,resizable=yes,width=1000,height=500,left=250,top=100')
+        window.open(`/ACC/RcSettle_Show_list.html?User=${WebUser}&U_BC=${WebBC}`, 'list', 'scrollbars=yes,resizable=yes,width=1000,height=500,left=250,top=100')
     }
 
+    function openTarget() {
+        window.open(`/Tar/Profess_Target_list.html?User=${WebUser}&U_BC=${WebBC}`, 'list', 'scrollbars=yes,resizable=yes,width=1000,height=500,left=250,top=100')
+    }
 
     function openLogout() {
         window.location.href = '/Login.html';
