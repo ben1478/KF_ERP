@@ -13,36 +13,47 @@
 <body>
     <table width="700" border="0" cellspacing="1" cellpadding="2" bgcolor="#999999">
         <tbody>
-            <tr class="c12-k" bgcolor="#CCCCFF">
+            <tr class="c12-k" bgcolor="#CCCCFF" height="30">
                 <td colspan="2" align="center"><span class="c14k" id="dtFun"></span></td>
             </tr>
             <tr class="c12-k" bgcolor="#FFFFFF">
-                <td align="right" bgcolor="#CCCCFF">客戶名稱</td>
+                <td width="150" align="right" bgcolor="#CCCCFF">介紹人</td>
+                <td width="440" align="left">
+                    <input type="text" id="Introducer_name" name="Introducer_name" size="40" maxlength="20" class="box" value="">
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td align="right" bgcolor="#CCCCFF">介紹人生日</td>
                 <td align="left">
-                    <input type="text" id="CS_name" name="CS_name" size="40" maxlength="20" class="box" value="" required data-required-message='客戶名稱'>
+                    <input type="text" name="Introducer_HBD" size="10" maxlength="10" class="datepickerTW" value="" readonly="" style="width:150px;">
                 </td>
             </tr>
             <tr class="c12-k" bgcolor="#FFFFFF">
-                <td align="right" bgcolor="#CCCCFF">身分證字號</td>
+                <td align="right" bgcolor="#CCCCFF">身分證字號/統一編號</td>
                 <td align="left">
-                    <input type="text" id="CS_PID" name="CS_PID" size="20" maxlength="10" class="box" value="" required data-required-message='身分證字號'>
+                    <input type="text" id="Introducer_PID" name="Introducer_PID" size="20" maxlength="10" class="box" value="">
+                    <input type="checkbox" name="isCompany" value="N" checked=""> 公司行號/自營商
                 </td>
             </tr>
             <tr class="c12-k" bgcolor="#FFFFFF">
-                <td align="right" bgcolor="#CCCCFF">貸款金額</td>
-                <td align="left"><input type="text" id="loan_amount" name="loan_amount" size="20" maxlength="50" class="box" value="" required data-required-message='貸款金額'></td>
+                <td align="right" bgcolor="#CCCCFF">收款帳號</td>
+                <td align="left"><input type="text" id="Bank_account" name="Bank_account" size="20" maxlength="50" class="box" value=""></td>
             </tr>
             <tr class="c12-k" bgcolor="#FFFFFF">
-                <td width="300" align="right" bgcolor="#CCCCFF">憑證起始時間</td>
-                <td width="400" align="left">
-                    <input type="text" id="certificate_date_S" name="certificate_date_S" size="20" maxlength="10" class="datepickerTW" value="" style="width:150px;" required data-required-message='憑證起始時間'>
-                </td>
+                <td align="right" bgcolor="#CCCCFF">收款總行</td>
+                <td align="left"><input type="text" id="Bank_head" name="Bank_head" size="20" maxlength="20" class="box" value=""></td>
             </tr>
             <tr class="c12-k" bgcolor="#FFFFFF">
-                <td align="right" bgcolor="#CCCCFF">憑證到期時間</td>
-                <td align="left">
-                    <input type="text" id="certificate_date_E" name="certificate_date_E" size="20" maxlength="10" class="datepickerTW" value="" style="width:150px;">
-                </td>
+                <td align="right" bgcolor="#CCCCFF">收款分行</td>
+                <td align="left"><input type="text" id="Bank_branches" name="Bank_branches" size="20" maxlength="20" class="box" value=""></td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td align="right" bgcolor="#CCCCFF">收款銀行</td>
+                <td align="left"><input type="text" id="Bank_name" name="Bank_name" size="20" maxlength="20" class="box" value=""></td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td align="right" bgcolor="#CCCCFF">介紹人地址</td>
+                <td align="left"><input type="text" id="Introducer_addr" name="Introducer_addr" size="40" class="box" value=""></td>
             </tr>
             <tr class="c12-k" bgcolor="#FFFFFF">
                 <td align="right" bgcolor="#CCCCFF">備註</td>
@@ -50,7 +61,7 @@
             </tr>
             <tr class="c12-k" bgcolor="#CCCCFF" height="30">
                 <td colspan="2" align="center">
-                    <input type="button" name="btnSave" value="存檔" onclick="saveData();" />
+                    <input type="submit" name="submit" class="btn" value="儲存" onclick="saveData();">
                 </td>
             </tr>
         </tbody>
@@ -64,13 +75,17 @@
 
     let ChkRole;
     dateTW();
+
+    
     fetchData();
+    
+    
    
     function fetchData() {
         let dtFun = '';
         if (Id !== 'add') {
             dtFun = '修改';
-            const url = `${BASE_URL}/AE_ACC/Debt_Certificate_DetQuery?DebtID=${Id}`;
+            const url = `${BASE_URL}/AE_RPT/Introducer_Comm_DetQuery?U_ID=${Id}`;
             fetch(url, {
                 method: 'GET',
                 headers: {
@@ -81,17 +96,22 @@
                 .then(response => {
                     if (response.resultCode === '000') {
                         const data = JSON.parse(response.objResult)[0];
-                        $("input[name='CS_name']").val(data.cs_name);
-                        $("input[name='CS_PID']").val(data.CS_PID);
-                        $("input[name='loan_amount']").val(data.loan_amount);
-                        $("input[name='certificate_date_S']").val(data.str_certificate_date_S);
-                        $("input[name='certificate_date_E']").val(data.str_certificate_date_E);
+                        $("input[name='Introducer_name']").val(data.Introducer_name);
+                        $("input[name='Introducer_HBD']").val(data.Introducer_HBD);
+                        $("input[name='Introducer_PID']").val(data.Introducer_PID);
+                        $("input[name='Bank_account']").val(data.Bank_account);
+                        $("input[name='Bank_head']").val(data.Bank_head);
+                        $("input[name='Bank_branches']").val(data.Bank_branches);
+                        $("input[name='Bank_name']").val(data.Bank_name);
+                        $("input[name='Introducer_addr']").val(data.Introducer_addr);
                         $("input[name='Remark']").val(data.Remark);
+                        document.querySelector('input[name="isCompany"]').checked = data.isCompany==="Y";
                     } else {
                         alert(response.resultMsg);
                     }
                 })
                 .catch(error => {
+                    console.log(`API 請求失敗:${error}`);
                     alert('API 請求失敗:', error);
                 });
         }
@@ -99,7 +119,7 @@
         {
             dtFun = '新增';
         }
-        document.getElementById('dtFun').innerHTML = `債權憑證資料${dtFun}`;
+        document.getElementById('dtFun').innerHTML = `介紹人佣金資料${dtFun}`;
     }
 
     
@@ -129,24 +149,18 @@
             alert(`${errMsg}必填請輸入`);
             return;
         }
-        // let csPID = $("input[name='CS_PID']").val();
-        // let isCSPID = checkBasic(csPID);
-        // if(isCSPID === false)
-        // {
-        //     alert("身份證格式錯誤");
-        // }
-        // isValid = isValid && isCSPID;
-        if (!isValid) {
-            return;
-        }
-
+        
         let formData = {
-            Debt_ID:Id,
-            cs_name: $("input[name='CS_name']").val(),
-            CS_PID: $("input[name='CS_PID']").val(),
-            loan_amount: $("input[name='loan_amount']").val(),
-            str_certificate_date_S: $("input[name='certificate_date_S']").val(),
-            str_certificate_date_E: $("input[name='certificate_date_E']").val(),
+            U_ID:Id,
+            Introducer_name :$("input[name='Introducer_name']").val(),
+            Introducer_HBD :$("input[name='Introducer_HBD']").val(),
+            Introducer_PID :$("input[name='Introducer_PID']").val(),
+            Bank_account :$("input[name='Bank_account']").val(),
+            Bank_head :$("input[name='Bank_head']").val(),
+            Bank_branches :$("input[name='Bank_branches']").val(),
+            Bank_name :$("input[name='Bank_name']").val(),
+            Introducer_addr :$("input[name='Introducer_addr']").val(),
+            isCompany: document.querySelector('input[name="isCompany"]:checked') ? "Y" : "N",
             Remark: $("input[name='Remark']").val(),
             add_num: WebUser,
             edit_num: WebUser 
@@ -154,7 +168,7 @@
 
         if (Id === 'add') {
 
-            const url = `${BASE_URL}/AE_ACC/Debt_Certificate_DetIns`;
+            const url = `${BASE_URL}/AE_RPT/Introducer_Comm_DetIns`;
 
             fetch(url, {
                 method: 'POST',
@@ -178,7 +192,7 @@
                     alert('請求失敗，請稍後再試。');
                 });
         } else {
-            const url = `${BASE_URL}/AE_ACC/Debt_Certificate_DetUpd`;
+            const url = `${BASE_URL}/AE_RPT/Introducer_Comm_DetUpd`;
 
             fetch(url, {
                 method: 'POST',
@@ -247,59 +261,4 @@
             } 
         }
     });
-
-
-    function checkBasic(code) {
-      let result =
-        checkLength(code) &&
-        checkDigit(code) &&
-        checkGender(parseInt(code.substring(1, 2)));
-
-      console.log(`check basic: ${result}`);
-      return result;
-    }
-
-    function checkLength(code) {
-      let r = false;
-      if (code.length === 10) r = true;
-
-      console.log(`check legnth:${r} `);
-
-      return r;
-    }
-
-    function checkDigit(code) {
-      const testStr = code.substring(1);
-      for (let i = 0; i < testStr.length; i++) {
-        if (isNaN(testStr.charAt(i))) {
-          console.log(
-            `Check digit false. ${testStr.charAt(i)} is ${!isNaN(
-              testStr.charAt(i)
-            )}`
-          );
-
-          return false;
-        }
-      }
-
-      return true;
-    }
-
-    function checkGender(code) {
-      const genderArr = [
-        1, //男
-        2, //女
-        8, //外來人口-男
-        9, //外來人口-女
-      ];
-
-      if (genderArr.includes(code)) {
-        console.log("check Gender: true");
-        return true;
-      }
-      console.log("check Gender: false");
-
-      return false;
-    }
-
 </script>
