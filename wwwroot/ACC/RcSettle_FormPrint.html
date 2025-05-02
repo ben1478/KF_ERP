@@ -26,14 +26,13 @@
 </head>
 <body>
     <div class="print-box" style="width: 170mm;height: 257mm;margin: 20mm auto;border: 2px solid #000;padding: 10mm;box-sizing: border-box;font-family: Arial, sans-serif;font-size: 16px;position: relative;">
-        <h2 style="text-align: center; margin: 0 0 20px 0;">國峯租賃股份有限公司</h2>
-        <h6 style="text-align: center; margin: 0 0 20px 0;">清償明細</h6>
+        <h1 style="text-align: center; margin: 0 0 20px 0;">國峯租賃股份有限公司</h1>
+        <h3 style="text-align: center; margin: 0 0 20px 0;">清償明細</h3>
         <div style="margin-bottom: 10px;margin-left: 90px;">
-            客戶姓名:
-            <span id='cs_name'></span>
+            <span id="cs_name"></span>
         </div>
         <div style="margin-bottom: 10px;margin-left: 390px;">
-            清償基準日:
+            
             <span id="Breach_date_e"></span>
         </div>
         <div style="margin-bottom: 10px;margin-left: 350px;">
@@ -72,8 +71,8 @@
 </body>
 </html>
 <script>
-    document.getElementById("cs_name").innerText = localStorage.getItem('cs_name');
-    document.getElementById("Breach_date_e").innerText = localStorage.getItem('Breach_date_e');
+    document.getElementById("cs_name").innerHTML = '<b>客戶姓名: ' + localStorage.getItem('cs_name') + '</b>';
+    document.getElementById("Breach_date_e").innerHTML = '<b>清償基準日: ' + localStorage.getItem('Breach_date_e') + '</b>';
     document.getElementById("TotalSettAmt").innerText = localStorage.getItem('TotalSettAmt') + '元';
     document.getElementById("RP_AMT").innerHTML = '<b>結清本金: ' + localStorage.getItem('RP_AMT') + '元</b>'; 
     document.getElementById("BreakAmt_text").innerHTML = '<b>' + localStorage.getItem('BreakAmt_text') + ':</b>';
