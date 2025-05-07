@@ -8,6 +8,73 @@
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
     <script src="../Base.js"></script>
     <title>作業平台</title>
+    <style>
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 999;
+        }
+
+        .modal-box {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #fff;
+            padding: 30px 40px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            z-index: 1000;
+            min-width: 300px;
+            font-family: Arial, sans-serif;
+        }
+
+            .modal-box label {
+                display: block;
+                margin-top: 10px;
+                font-weight: bold;
+            }
+
+            .modal-box select {
+                width: 100%;
+                padding: 6px;
+                margin-top: 5px;
+                border-radius: 6px;
+                border: 1px solid #ccc;
+                font-size: 14px;
+            }
+
+            .modal-box .btn-container {
+                margin-top: 20px;
+                text-align: right;
+            }
+
+            .modal-box button {
+                padding: 8px 16px;
+                margin-left: 10px;
+                border: none;
+                border-radius: 6px;
+                font-size: 14px;
+                cursor: pointer;
+            }
+
+                .modal-box button:first-child {
+                    background-color: #007bff;
+                    color: white;
+                }
+
+                .modal-box button:last-child {
+                    background-color: #ccc;
+                }
+
+                .modal-box button:hover {
+                    opacity: 0.9;
+                }
+    </style>
 </head>
 <body>
     <table border="0" width="100%">
@@ -15,12 +82,13 @@
             <tr class="c12-k">
                 <td width="86%">
                     職務名稱：
-                    <input type="text" name="CS_name" id="CS_name" size="10" maxlength="10" class="box">
+                    <input type="text" name="Title_name" id="Title_name" size="10" maxlength="10" class="box">
                     &nbsp;
                     任職起月：
-                    <input type="text" name="CS_PID" id="CS_PID" size="10" maxlength="10" class="box">
+                    <input type="text" name="DATE_S" id="DATE_S" size="10" maxlength="10" class="box">
                     <input type="button" value="查詢" onclick="fetchData();" />
                     <input type="button" value="新增" onclick="openNewData();" />
+                    <input type="button" value="比照上期新增" onclick="clone();" />
                 </td>
             </tr>
         </tbody>
@@ -33,11 +101,12 @@
                     <table id="MainTable" width="850" border="0" cellpadding="4" cellspacing="1" bgcolor="#666666">
                         <thead>
                             <tr align="center" height="30" bgcolor="#CCCCFF" class="c12-k">
-                                <td width="40">序號</td>
+                                <td width="30">序號</td>
                                 <td width="40">職務名稱</td>
-                                <td width="40">任職起月</td>
-                                <td width="40">任職迄月</td>
-                                <td width="100">責任額</td>
+                                <td width="40">任額起月</td>
+                                <td width="40">任額迄月</td>
+                                <td width="50">責任額(萬)</td>
+                                <td width="30"></td>
                             </tr>
                         </thead>
                         <tbody>
@@ -51,9 +120,10 @@
                             </tr>
                         </tbody>
                     </table>
-                    <div id="Professiona"></div>
+                    <div id="pagination"></div>
                 </td>
             </tr>
+
         </tbody>
     </table>
 </body>
@@ -67,12 +137,191 @@
     let currentPage = 1;
     let data = [];
 
+    fetchData();
+
     function fetchData() {
 
+        let Title_name = $('#Title_name').val();
+        let DATE_S = $('#DATE_S').val();
+
+        const url = `${BASE_URL}/AE_TAR/Pro_Target_LQuery?Title_name=${Title_name}&PR_DATE_S=${DATE_S}`;
+        fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include'
+        })
+            .then(response => response.json())
+            .then(responseData => {
+                data = JSON.parse(responseData.objResult);
+                showPage(currentPage);
+                createPagination();
+            })
+            .catch(error => {
+                alert('API 請求失敗:', error);
+            });
+    }
+
+    function showPage(page) {
+        const tbody = document.querySelector('#MainTable tbody');
+        tbody.innerHTML = '';
+
+        const startIndex = (page - 1) * itemsPerPage;
+        const endIndex = Math.min(startIndex + itemsPerPage, data.length);
+        const pageData = data.slice(startIndex, endIndex);
+
+        for (let item of pageData) {
+            const row = document.createElement('tr');
+            row.setAttribute('align', 'center');
+            row.setAttribute('class', 'c12-k');
+            row.setAttribute('bgcolor', '#FFFFFF');
+            row.setAttribute('onmouseover', "this.style.background='#FCFCC0';");
+            row.setAttribute('onmouseout', "this.style.background='#FFFFFF';");
+
+            const columnOrder = ['PR_title_Name', 'PR_Date_S', 'PR_Date_E', 'PR_target'];
+
+            const serialCell = document.createElement('td');
+            serialCell.textContent = startIndex + pageData.indexOf(item) + 1;
+            row.appendChild(serialCell);
+
+            for (let key of columnOrder) {
+                const cell = document.createElement('td');
+                cell.innerHTML = item[key] || '';
+                row.appendChild(cell);
+            }
+
+            let PR_ID = item['PR_ID'];
+            let PR_title = item['PR_title'];
+            let encryptedPR_ID = encryptParameter(PR_ID);
+
+            const buttonCell = document.createElement('td');
+            const button = document.createElement('button');
+
+            button.textContent = '變更';
+            button.className = 'action-button';
+            button.style.padding = '5px 10px';
+            button.style.cursor = 'pointer';
+            button.addEventListener('click', function () {
+                openPopupForm(item['PR_ID'], item['PR_title'], item['PR_title_Name'], item['PR_Date_S'], item['PR_Date_E'], item['PR_target']
+                );
+            });
+
+            buttonCell.appendChild(button);
+            row.appendChild(buttonCell);
+
+            tbody.appendChild(row);
+        }
+    }
+
+    function openPopupForm(pr_id, pr_title, pr_title_Name,pr_date_s, pr_date_e, pr_target) {
+        localStorage.setItem('PR_ID', pr_id);
+        localStorage.setItem('title', pr_title);
+        localStorage.setItem('titleName', pr_title_Name);
+        localStorage.setItem('startMonth', pr_date_s);
+        localStorage.setItem('endMonth', pr_date_e);
+        localStorage.setItem('amount', pr_target);
+        localStorage.setItem('WebUser', WebUser);
+        window.open('Profess_detail_form.html', '_blank', 'width=500,height=150,top=100,left=200,resizable=yes,scrollbars=yes');   
     }
 
     function openNewData() {
         let encryptedUser = encryptParameter(WebUser);
-        window.open(`Profess_Target_datail.html?User=${encryptedUser}`, '_blank', 'scrollbars=yes,resizable=yes,top=100,width=800,height=500');
+        window.open(`Profess_Target_datail.html?User=${encryptedUser}`, '_blank', 'scrollbars=yes,resizable=yes,width=600,height=500,top=50');
+    }
+
+    function createYearMonthSelect(selectedValue) {
+        const now = new Date();
+        const select = document.createElement('select');
+        select.classList.add('box');
+
+        for (let i = 0; i < 12; i++) {
+            const optionDate = new Date(now.getFullYear(), now.getMonth() + i);
+            const year = optionDate.getFullYear();
+            const month = (optionDate.getMonth() + 1).toString().padStart(2, '0');
+            const value = `${year}/${month}`;
+
+            const option = document.createElement('option');
+            option.value = value;
+            option.textContent = `${year}年${month}月`;
+
+            if (value === selectedValue) {
+                option.selected = true;
+            }
+            select.appendChild(option);
+        }
+        return select;
+    }
+
+    function clone() {
+        const overlay = document.createElement('div');
+        overlay.className = 'modal-overlay';
+
+        const modal = document.createElement('div');
+        modal.className = 'modal-box';
+
+        const startLabel = document.createElement('label');
+        startLabel.textContent = '任額起月：';
+        const startSelect = createYearMonthSelect();
+
+        const endLabel = document.createElement('label');
+        endLabel.textContent = '任額迄月：';
+        const endSelect = createYearMonthSelect();
+
+        const btnContainer = document.createElement('div');
+        btnContainer.className = 'btn-container';
+
+        const confirmBtn = document.createElement('button');
+        confirmBtn.textContent = '確定';
+        confirmBtn.onclick = () => {
+            const startDate = startSelect.value;
+            const endDate = endSelect.value;
+            cloneData(startDate, endDate);
+            document.body.removeChild(overlay);
+            document.body.removeChild(modal);
+        };
+
+        const cancelBtn = document.createElement('button');
+        cancelBtn.textContent = '取消';
+        cancelBtn.onclick = () => {
+            document.body.removeChild(overlay);
+            document.body.removeChild(modal);
+        };
+
+        btnContainer.appendChild(confirmBtn);
+        btnContainer.appendChild(cancelBtn);
+
+        modal.appendChild(startLabel);
+        modal.appendChild(startSelect);
+        modal.appendChild(endLabel);
+        modal.appendChild(endSelect);
+        modal.appendChild(btnContainer);
+
+        document.body.appendChild(overlay);
+        document.body.appendChild(modal);
+    }
+
+    function cloneData(startDate, endDate) {
+        const url = `${BASE_URL}/AE_TAR/Pro_Target_Clone?PR_DATE_S=${startDate}&PR_DATE_E=${endDate}&User=${WebUser}`;
+
+        fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+            .then(response => response.json())
+            .then(responseData => {
+                if (responseData.resultCode === '000') {
+                    alert(responseData.resultMsg);
+                    fetchData();
+                } else {
+                    alert(responseData.resultMsg);
+                    fetchData();
+                }
+            })
+            .catch(error => {
+                alert('請求失敗，請稍後再試。');
+            })
     }
 </script>
