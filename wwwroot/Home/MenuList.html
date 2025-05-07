@@ -195,6 +195,13 @@
                             </tr>
                             <tr>
                                 <td width="13%" align="center">
+                                    <input type="button" name="add" value="全區業績表" onclick="Performance_LQuery();">
+                                </td>
+                                <td width="13%" align="center"></td>
+                                <td width="13%" align="center"></td>
+                            </tr>
+                            <tr>
+                                <td width="13%" align="center">
                                     <input type="button" name="add" value="登出" onclick="openLogout();">
                                 </td>
                                 <td width="13%" align="center"></td>
@@ -306,6 +313,9 @@
     }
     function Introducer_Comm_LQuery() {
         window.open(`/Rpt/Introducer_Comm_list.html?User=${WebUser}&U_BC=${WebBC}`, 'list', 'scrollbars=yes,resizable=yes,width=1000,height=500,left=250,top=100')
+    }
+    function Performance_LQuery() {
+            window.open(`/Rpt/Performance.html?User=${WebUser}&U_BC=${WebBC}`, 'list', 'scrollbars=yes,resizable=yes,width=1000,height=500,left=250,top=100')
     }
     function openLogout() {
         window.location.href = '/Login.html';
