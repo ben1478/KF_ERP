@@ -120,7 +120,9 @@
                                 <td width="13%" align="center">
                                     <input type="button" name="add" value="車貸建檔" onclick="openHouse_othercase();">
                                 </td>
-                                <td width="13%" align="center"></td>
+                                <td width="13%" align="center">
+                                    <input type="button" name="add" value="業務責任額" onclick="openTargetP();">
+                                </td>
                                 <td width="13%" align="center"></td>
                             </tr>
                             <tr>
@@ -319,5 +321,9 @@
     }
     function openLogout() {
         window.location.href = '/Login.html';
+    }
+
+    function openTargetP() {
+        window.open(`/Tar/Person_Target_list.html?User=${WebUser}&U_BC=${WebBC}`, 'list', 'scrollbars=yes,resizable=yes,width=1000,height=500,left=250,top=100')
     }
 </script>

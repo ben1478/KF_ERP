@@ -10,10 +10,18 @@
     <title>作業平台</title>
 </head>
 <body>
-    <input type="button" value="比照上期" onclick="cloneData();" />&nbsp;&nbsp;&nbsp;
-    <input type="button" value="儲存" onclick="SaveData();"/>
-    <br />
-    <br />
+    <table border="0" width="100%">
+        <tbody>
+            <tr class="c12-k">
+                <td width="86%">
+                    責任額起訖：
+                    <span id="yearMonthStartContainer"></span>
+                    ~
+                    <span id="yearMonthEndContainer"></span>
+                </td>
+            </tr>
+        </tbody>
+    </table>
     <table width="850" border="0" cellspacing="0" cellpadding="0">
         <tbody>
             <tr>
@@ -23,23 +31,17 @@
                         <thead>
                             <tr align="center" height="30" bgcolor="#CCCCFF" class="c12-k">
                                 <td width="100">職務名稱</td>
-                                <td width="120">責任額起月</td>
-                                <td width="120">責任額契月</td>
                                 <td width="140">責任額金額(萬)</td>
                             </tr>
                         </thead>
                         <tbody>
-                            <tr align="center" class="c12-k" bgcolor="#FFFFFF" onmouseover="this.style.background='#FFFF66';" onmouseout="this.style.background='#FFFFFF'; " style="background: rgb(255, 255, 255);">
-                            </tr>
-                            <tr align="center" class="c12-k" bgcolor="#FFFFFF" onmouseover="this.style.background='#FFFF66';" onmouseout="this.style.background='#FFFFFF'; " style="background: rgb(255, 255, 255);">
-                            </tr>
-                            <tr align="center" height="30" bgcolor="#CCCCFF">
-                                <td class="c12-k" colspan="16">
-                                </td>
-                            </tr>
                         </tbody>
+                        <tr align="center" height="30" bgcolor="#CCCCFF">
+                            <td class="c12-k" colspan="4">
+                                <input type="button" value="儲存" onclick="SaveData();" />
+                            </td>
+                        </tr>
                     </table>
-                    <div id="pagination"></div>
                 </td>
             </tr>
         </tbody>
@@ -51,6 +53,14 @@
     let WebUser = decryptParameter(Params.get('User'));
 
     fetchData();
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const startSelect = createYearMonthSelect('PR_Date_S');
+        const endSelect = createYearMonthSelect('PR_Date_E');
+
+        document.getElementById('yearMonthStartContainer').appendChild(startSelect);
+        document.getElementById('yearMonthEndContainer').appendChild(endSelect);
+    });
 
     function fetchData() {
         const url = `${BASE_URL}/AE_TAR/GetproFessionalTitle`;
@@ -78,16 +88,8 @@
                     cell_1.textContent = item.item_D_name;
                     row.appendChild(cell_1);
 
-                    const cell_2 = document.createElement('td');
-                    cell_2.appendChild(createYearMonthSelect());
-                    row.appendChild(cell_2);
-
-                    const cell_3 = document.createElement('td');
-                    cell_3.appendChild(createYearMonthSelect());
-                    row.appendChild(cell_3);
-
                     const cell_4 = document.createElement('td');
-                    cell_4.innerHTML = '<input type="text" size="10" maxlength="10" class="box">';
+                    cell_4.innerHTML = '<input type="text" size="10" maxlength="10" class="box" name="amount">';
                     row.appendChild(cell_4);
 
                     tbody.appendChild(row);
@@ -98,16 +100,18 @@
             });
     }
 
-    function createYearMonthSelect() {
+    function createYearMonthSelect(name) {
         const now = new Date();
         const select = document.createElement('select');
         select.classList.add('box');
+        select.name = name;
+        select.id = name;
 
         for (let i = 0; i < 12; i++) {
             const optionDate = new Date(now.getFullYear(), now.getMonth() + i);
             const year = optionDate.getFullYear();
             const month = (optionDate.getMonth() + 1).toString().padStart(2, '0');
-            const value = `${year}${month}`;
+            const value = `${year}/${month}`;
 
             const option = document.createElement('option');
             option.value = value;
@@ -119,20 +123,18 @@
     }
 
     function SaveData() {
-        const rows = document.querySelectorAll('#MainTable tbody tr');
+        const rows = document.querySelectorAll('#MainTable tbody tr[data-key]');
         const result = [];
 
         rows.forEach(row => {
-            const key = row.getAttribute('data-key');
-
-            const selects = row.querySelectorAll('select');
-            const inputs = row.querySelectorAll('input');
+            const dataKey = row.getAttribute('data-key');
+            const amountInputs = row.querySelectorAll('input[name="amount"]');
 
             const dataItem = {
-                title: key,
-                startMonth: selects[0]?.value || '', 
-                endMonth: selects[1]?.value || '',  
-                amount: inputs[0]?.value || '',
+                title: dataKey,
+                startMonth: $('#PR_Date_S').val() || '', 
+                endMonth: $('#PR_Date_E').val() || '',  
+                amount: amountInputs[0]?.value || '',
                 user: WebUser
             };
 
@@ -151,15 +153,14 @@
             .then(response => response.json())
             .then(responseData => {
                 if (responseData.resultCode === '000') {
-                    alert('新增成功');
+                    alert(responseData.resultMsg);
                     window.close();
+                    window.opener.location.reload();
+                } else {
+                    alert(responseData.resultMsg);
                 }
             }).catch(error => {
                 alert('請求失敗，請稍後再試。');
             });
-    }
-
-    function cloneData() {
-
     }
 </script>
