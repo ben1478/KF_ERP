@@ -228,7 +228,7 @@
             row.setAttribute('bgcolor', '#FFFFFF');
             row.setAttribute('onmouseover', "this.style.background='#FCFCC0';");
             row.setAttribute('onmouseout', "this.style.background='#FFFFFF';");
-
+			row.setAttribute('id',`tr${item['HS_id']}`);
             const columnOrder = ['Send_amount_date', 'get_amount_date', 'CS_name', 'CS_ID', 'show_project_title','SCount','get_amount'];
 			
 			const serialCell = document.createElement('td');
@@ -241,8 +241,10 @@
 					case 'Send_amount_date': // 出件日期.開啟明細
 						if(item[key])
 						{
+							cell.setAttribute('id',`dte_${item['HS_id']}`);
+							cell.setAttribute('orgval',item[key]);
 							cell.setAttribute('class','Link');
-							cell.setAttribute('onclick',`GetNCount('${item['yyyMM']}')`);
+							cell.setAttribute('onclick',`changDate(${item['HS_id']},'${item[key]}')`);
 						}
 						cell.textContent = item[key] || 0;
                         row.appendChild(cell);
@@ -302,87 +304,85 @@
         });
     }
 
-	function GetNCount(RocDate) {
-		// type(N:未繳,B:呆帳,S:提前清償)
-		// date(2024-11)
-		let RocD = RocDate.split('-');
-		let date = `${parseInt(RocD[0])+1911}-${String(RocD[1].padStart(2,'0'))}`;
-        const url = `${BASE_URL}/AE_ACC/RC_Repay_Dateil_LQuery?type=N&date=${date}`;
-
-        fetch(url, {
-            method: 'Get',
-            headers: {
-				'Content-Type': 'application/json'
-            },
-            credentials: 'include'
-        })
-            .then(response => response.json())
-            .then(responseData => {
-                if (responseData.resultCode === "000") {
-                    const data = JSON.parse(responseData.objResult);
-                    OpenNCount(data);
-                }
-            }).catch(error => {
-                console.error('載入選項時出錯:', error);
-            });
-    }
-
-	function OpenNCount(data)
+	function changDate(HS_id, Send_amount_date)
 	{
-		var m_width="450PX;";
-		var m_height="450px;";
-		var Title="明細資料";
-		var m_Html = `<div style="width:${m_width};height:${m_height}; overflow: auto; ">`;
-		m_Html += ' <table style="width: 95%;margin:auto" border="1" id="Title" cellspacing="0" cellpadding="3" bgcolor=""> ';
-		m_Html += ' <tr bgcolor="#CCCCFF" height="35" align="center"> '; 
-		m_Html += '  <td >'+ Title +'</td> '; 
-		m_Html += '</tr> '; 
-		m_Html += '<tr><td> '; 
-		m_Html += '</td></tr> '; 
-		m_Html += '</table> ';
-		m_Html += '<table style="width: 95%;margin:auto" border="1" id="Title" cellspacing="0" cellpadding="3" bgcolor=""><thead><tr bgcolor="#CCCCFF" align="center"><td>序</td><td>客戶姓名</td><td>期數</td><td>應繳款日</td><td>繳款日</td><td>應繳利息</td><td>應償還本金</td></tr></thead><tbody>';
-		
-		console.log(`data.length= ${data.length}`)
-		let index = 1;
-		let sumInterest = 0;
-		let sumRmoney = 0;
-		data.forEach((item) =>{
-			//let trString  = item.court_sale === '1'? `<tr title=${item.RCM_note} style="background:#FFFF66">` : '<tr>';
-			
-			var LogHtml = `
-					<tr> 
-						<td>${index}</td>
-						<td>${item.cs_name}</td>
-						<td>${item.RC_count}</td>
-						<td>${item.RC_date||''}</td>
-						<td>${item.check_pay_date||''}</td>
-						<td>${item.interest}</td>
-						<td>${item.Rmoney}</td>
-					 </tr> `;
-					 
-					 m_Html += LogHtml;
-					 sumInterest += parseInt(item.interest.replace(/,/g, ''));
-					 sumRmoney += parseInt(item.Rmoney.replace(/,/g, ''));
-					 index ++;
-				});
+		const sad = document.getElementById(`dte_${HS_id}`);
+		let aftSAD = sad.getAttribute('orgval');
+		console.log(`[changDate] ad=${aftSAD}`);
 
-		m_Html += `<tr><td colspan="5" style="text-align:right">總計：</td><td>${sumInterest.toLocaleString()}</td><td>${sumRmoney.toLocaleString()}</td></tr></tbody></table>`;
-		m_Html += '   </div>    ';
+		var m_width="450PX";
+	
+		var Title="修改出件日";
+		var m_Html = '<div style="width:'+ m_width +'"> ';
+			m_Html += ' <table style="width: 95%;margin:auto" border="1" id="Title" cellspacing="0" cellpadding="3" bgcolor=""> ';
+			m_Html += ' <tr bgcolor="#CCCCFF" height="35" align="center"> '; 
+			m_Html += `		<td >修改出件日</td>`; 
+			m_Html += '</tr> '; 
+			m_Html += '<tr><td> '; 
+			m_Html += `出件日期:<input type="text" class="datepickerTW" id="EDIT_start_date" name="EDIT_start_date" size="8" maxlength="10" style="width:80px;" value="${aftSAD.replaceAll('-','/')}" > `;
+			m_Html += '</td></tr> '; 
+			m_Html += '<tr><td> '; 
+			m_Html += `    <input type="button" name="OK" value="確定" id="btnDateSave" onclick="Amount_DateSave(${HS_id}, '${aftSAD}')" >`;
+	
+			m_Html += '</td></tr> '; 
+			m_Html += '</table> '; 
+			m_Html += '   </div>    ';
+	
+	
 		var OpenWidth=parseInt(m_width.toUpperCase().replace("PX", ""))+50+"px";
 		var m_themedCSS = {
 			width: OpenWidth,
 			top: '20%',
-			left: '30%',
+			left: '20%',
 			};
 			$.blockUI({
-			onOverlayClick: $.unblockUI,
-			overlayCSS: { backgroundColor: "#FFF", opacity: 0.5, cursor: "default" },
-			theme: true,
-			title: Title, 
-			themedCSS:  m_themedCSS, 
-			message: m_Html
-		});
-	
+				onOverlayClick: $.unblockUI,
+				overlayCSS: { backgroundColor: "#FFF", opacity: 0.5, cursor: "default" },
+				theme: true,
+				title: Title, 
+				themedCSS:  m_themedCSS, 
+				message: m_Html,
+				onBlock: function() {
+						dateTW();
+						//getdate_YMD_onclick('EDIT_start_date','../_include/')
+					} 
+			});
 	}
+
+	function Amount_DateSave(HS_ID, Amount_Date)
+	{
+		
+		console.log(`[Amount_DateSave] HS_ID=${HS_ID}; Amount_Date=${Amount_Date}`);
+		var aftAmount_Date= $("#EDIT_start_date").val();
+		const url = `${BASE_URL}/AE_RPT/Amount_DateSave?HS_ID=${HS_ID}&Amount_Date=${aftAmount_Date}`;
+
+		$.ajax({
+				url: url,
+				type: 'POST',
+				contentType: 'application/json',
+				async: false,
+				success: function(response) 
+				{
+					if(response.resultCode === '000')
+					{
+						var thisTR=$(`#tr${HS_ID}`);
+						$(thisTR).css('background-color', "yellow");
+						$(`#dte_${HS_ID}`).text(aftAmount_Date.replaceAll('-','/'));
+						$(`#dte_${HS_ID}`).attr("OrgVal",$("#EDIT_start_date").val());
+					}
+					else
+					{
+						alert(" Amount_DateSave 存檔失敗,請聯絡IT"+response)
+					}
+					$.unblockUI();
+				 },
+				 error: function(xhr, status, error) 
+				 {
+					alert("Amount_DateSave 存檔失敗,請聯絡IT"+response)
+					Result=false;
+				 }
+			});
+	}
+
 
 </script>	
