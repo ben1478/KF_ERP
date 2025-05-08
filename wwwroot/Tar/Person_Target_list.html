@@ -143,15 +143,16 @@
         }
     }
 
-    //TODO openPopupForm 變更要做HTML跟API
     function openPopupForm(pe_id,titlename,u_name,pe_num,pe_date_s,pe_date_e,pe_target) {
         localStorage.setItem('PE_ID', pe_id);
         localStorage.setItem('titleName', titlename);
-        localStorage.setItem('PE_num', u_name);
+        localStorage.setItem('PE_name', u_name);
+        localStorage.setItem('PE_num', pe_num);
         localStorage.setItem('PE_Date_S', pe_date_s);
         localStorage.setItem('PE_Date_E', pe_date_e);
         localStorage.setItem('PE_target', pe_target);
-        window.open('Person_detail_form.html', '_blank', 'width=500,height=150,top=100,left=200,resizable=yes,scrollbars=yes');   
+        localStorage.setItem('WebUser', WebUser);
+        window.open('Person_detail_form.html', '_blank', 'width=800,height=150,top=100,left=200,resizable=yes,scrollbars=yes');   
     }
 
     function openNewData() {

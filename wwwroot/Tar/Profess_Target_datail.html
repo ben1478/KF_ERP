@@ -131,10 +131,10 @@
             const amountInputs = row.querySelectorAll('input[name="amount"]');
 
             const dataItem = {
-                title: dataKey,
-                startMonth: $('#PR_Date_S').val() || '', 
-                endMonth: $('#PR_Date_E').val() || '',  
-                amount: amountInputs[0]?.value || '',
+                PR_title: dataKey,
+                PR_Date_S: $('#PR_Date_S').val() || '', 
+                PR_Date_E: $('#PR_Date_E').val() || '',  
+                PR_target: amountInputs[0]?.value || '',
                 user: WebUser
             };
 

@@ -6,6 +6,105 @@
     <script src="../Base.js"></script>
 </head>
 <body>
-
+    <table border="0" cellpadding="4" cellspacing="1" bgcolor="#666666">
+        <tr class="header-row" bgcolor="#CCCCFF" align="center">
+            <td width="100">職務名稱</td>
+            <td width="100">業務名稱</td>
+            <td width="100">業務員編</td>
+            <td width="120">責任額起月</td>
+            <td width="120">責任額迄月</td>
+            <td width="140">責任額金額(萬)</td>
+            <td></td>
+        </tr>
+        <tr bgcolor="#FFFFFF" align="center">
+            <td><span id="titleName"></span></td>
+            <td><span id="PE_name"></span></td>
+            <td><span id="PE_num"></span></td>
+            <td id="PE_DATE_S_container"></td>
+            <td id="PE_DATE_E_container"></td>
+            <td><input type="text" id="PE_target" size="7" /></td>
+            <td><input type="button" onclick="saveData()" value="儲存" /></td>
+        </tr>
+    </table>
 </body>
 </html>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const peDateS = localStorage.getItem('PE_Date_S');
+        const peDateE = localStorage.getItem('PE_Date_E');
+
+        const selectS = createYearMonthSelect(peDateS, true);
+        const selectE = createYearMonthSelect(peDateE);
+
+        document.getElementById('PE_DATE_S_container').appendChild(selectS);
+        document.getElementById('PE_DATE_E_container').appendChild(selectE);
+
+        document.getElementById("titleName").innerText = localStorage.getItem('titleName');
+        document.getElementById("PE_name").innerText = localStorage.getItem('PE_name');
+        document.getElementById("PE_num").innerText = localStorage.getItem('PE_num');
+        document.getElementById("PE_target").value = localStorage.getItem('PE_target');
+    });
+
+    function createYearMonthSelect(defaultValue, isDisabled = false) {
+        const now = new Date();
+        const select = document.createElement('select');
+        select.classList.add('box');
+        if (isDisabled) {
+            select.disabled = true;
+        }
+
+        for (let i = 0; i < 12; i++) {
+            const optionDate = new Date(now.getFullYear(), now.getMonth() + i);
+            const year = optionDate.getFullYear();
+            const month = (optionDate.getMonth() + 1).toString().padStart(2, '0');
+            const value = `${year}/${month}`;
+
+            const option = document.createElement('option');
+            option.value = value;
+            option.textContent = `${year}年${month}月`;
+            if (value === defaultValue) {
+                option.selected = true;
+            }
+
+            select.appendChild(option);
+        }
+
+        return select;
+    }
+
+    function saveData() {
+        let Per_Target = {
+            PE_ID: localStorage.getItem('PE_ID'),
+            PE_title: localStorage.getItem('titleName'),
+            PE_num: localStorage.getItem('PE_num'),
+            PE_target: document.getElementById("PE_target").value,
+            PE_Date_S: document.querySelector('#PE_DATE_S_container select').value,
+            PE_Date_E: document.querySelector('#PE_DATE_E_container select').value,
+            user: localStorage.getItem('WebUser')
+        };
+
+        const url = `${BASE_URL}/AE_TAR/Per_Target_Upd`;
+
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(Per_Target)
+        })
+            .then(response => response.json())
+            .then(responseData => {
+                if (responseData.resultCode === '000') {
+                    alert(responseData.resultMsg);
+                    window.close();
+                    window.opener.location.reload();
+                } else {
+                    alert(responseData.resultMsg);
+                }
+            })
+            .catch(error => {
+                alert('請求失敗，請稍後再試。');
+            });
+    }
+    
+</script>

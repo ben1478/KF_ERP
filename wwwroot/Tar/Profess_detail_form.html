@@ -26,8 +26,8 @@
 </html>
 <script>
     document.addEventListener("DOMContentLoaded", function () {
-        const prDateS = localStorage.getItem('startMonth');
-        const prDateE = localStorage.getItem('endMonth');
+        const prDateS = localStorage.getItem('PR_Date_S');
+        const prDateE = localStorage.getItem('PR_Date_E');
 
         const selectS = createYearMonthSelect(prDateS, true);
         const selectE = createYearMonthSelect(prDateE);
@@ -36,7 +36,7 @@
         document.getElementById('PR_DATE_E_container').appendChild(selectE);
 
         document.getElementById("Title_name").innerText = localStorage.getItem('titleName');
-        document.getElementById("PR_target").value = localStorage.getItem('amount');
+        document.getElementById("PR_target").value = localStorage.getItem('PR_target');
     });
 
     function createYearMonthSelect(defaultValue, isDisabled = false) {
@@ -69,10 +69,10 @@
     function saveData() {
         let Pro_Target = {
             PR_ID : localStorage.getItem('PR_ID'),
-            title: localStorage.getItem('title'),
-            startMonth : document.querySelector('#PR_DATE_S_container select').value,
-            endMonth : document.querySelector('#PR_DATE_E_container select').value,
-            amount : document.getElementById("PR_target").value,
+            PR_title: localStorage.getItem('title'),
+            PR_Date_S : document.querySelector('#PR_DATE_S_container select').value,
+            PR_Date_E : document.querySelector('#PR_DATE_E_container select').value,
+            PR_target : document.getElementById("PR_target").value,
             user : localStorage.getItem('WebUser')
         };
 
