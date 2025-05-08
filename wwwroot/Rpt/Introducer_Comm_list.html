@@ -177,6 +177,10 @@
                     case 'U_ID':
                         Id = item['U_ID'];
                         break;
+                    case 'Introducer_name':
+                        cell.textContent = item['Introducer_name1'] || item[key];
+                        row.appendChild(cell);
+                        break;
                     case 'Upd':
                         let encryptedId = encryptParameter(Id);
                         row.appendChild(createButtonCell(
