@@ -294,6 +294,10 @@
 			for (let key of columnOrder) {
                 const cell = document.createElement('td');
                 switch (key) {
+					case 'U_name':
+						cell.innerHTML = item[key] || '';
+						row.appendChild(cell);
+						break;
 					case 'U_leave_date':
 						if(Enable==='' && item[key] !== null)
 						{
@@ -542,7 +546,7 @@
 	function OpenCensDetail(data)
 	{
 		var m_width="450PX;";
-		var m_height="300px;";
+		var m_height="auto;";
 		var Title="撤件資訊";
 		var m_Html = `<div style="width:${m_width};height:${m_height}; overflow: auto; ">`;
 		m_Html += ' <table style="width: 95%;margin:auto" border="1" id="Title" cellspacing="0" cellpadding="3" bgcolor=""> ';
