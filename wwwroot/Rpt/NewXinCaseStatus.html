@@ -120,7 +120,7 @@
     let WebUser = Params.WebUser;
     let WebBC = Params.WebBC;
 
-    const itemsPerPage = 20;  
+    const itemsPerPage = 500;  
     let currentPage = 1;
     let data = []; 
 
@@ -230,7 +230,7 @@
             row.setAttribute('onmouseover', "this.style.background='#FCFCC0';");
             row.setAttribute('onmouseout', "this.style.background='#FFFFFF';");
 			row.setAttribute('id',`tr${item['HS_id']}`);
-            const columnOrder = ['Send_amount_date', 'get_amount_date', 'CS_name', 'CS_ID', 'show_project_title','SCount','get_amount'];
+            const columnOrder = ['Send_amount_date', 'get_amount_date', 'CS_name', 'CS_ID', 'show_project_title','get_amount'];
 			
 			const serialCell = document.createElement('td');
             serialCell.textContent = startIndex + pageData.indexOf(item) + 1;
@@ -249,6 +249,10 @@
 						}
 						cell.textContent = item[key] || 0;
                         row.appendChild(cell);
+						break;
+					case 'CS_name':
+						cell.innerHTML = item[key]  || '';
+						row.appendChild(cell);
 						break;
                     default:
                         cell.textContent = item[key] || '';

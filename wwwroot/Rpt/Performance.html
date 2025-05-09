@@ -68,7 +68,7 @@
 										<option value="1" selected="">業績</option>
 										<option value="2">地區職稱</option>
 									</select>
-									<input type="checkbox" name="ACT" id="ACT" value="">折數後業績
+									<input type="checkbox" name="cbACT" id="cbACT">折數後業績
 									<input type="submit" name="submit" value="查詢" onclick="fetchData();">
 									<input type="button" value="匯出Excel" name="btnExcel" onclick="exportToExcel()">
 								</td>
@@ -229,15 +229,18 @@
     }
 
     function fetchData() {
+		let act = document.getElementById('cbACT');
+		
 		const Req = {
             u_bc_title:document.querySelector('#u_bc_title').value,
             selYear_S: document.getElementById('selYear_S').value,
 			selYear_E: document.getElementById('selYear_E').value,
 			start_date: document.getElementById('start_date').value,
 			Enable: document.getElementById('Enable').value,
-			isACT: document.getElementById('ACT').value,
+			isACT: act.checked ? 'Y':'',
 			OrderBy: document.getElementById('OrderBy').value
         };
+		
         const url = `${BASE_URL}/AE_RPT/Performance_LQuery`;
 
         fetch(url, {
@@ -254,7 +257,7 @@
                     data = JSON.parse(responseData.objResult);
                     showPage(currentPage);
 					GetCensList();
-                    //createPagination();
+     //                //createPagination();
                 } else {
                     alert(response.resultMsg);
                 }
@@ -475,7 +478,7 @@
 		const Req = {
             Date_S: document.getElementById('selYear_S').value,
 			Date_E: document.getElementById('selYear_E').value,
-			isACT: document.getElementById('ACT').value || 'N'
+			isACT: document.getElementById('cbACT').checked? 'Y' : ''
         };
         const url = `${BASE_URL}/AE_RPT/Performance_Cens`;
 
