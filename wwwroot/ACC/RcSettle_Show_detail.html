@@ -125,7 +125,7 @@
                     Over_Amt = data[0].OverAmt;
                     document.getElementById("RP_AMT").innerText = data[0].RP_AMT.toLocaleString();
                     if (data[0].interest_AMT === 0) {
-                        document.getElementById("interestAMT_display").innerText = (Math.round((data[0].interest / 30) * data[0].interestDay)).toLocaleString();
+                        document.getElementById("interestAMT_display").innerText = (Math.ceil((data[0].interest / 30) * data[0].interestDay)).toLocaleString();
                     } else {
                         document.getElementById("interestAMT_display").innerText = data[0].interest_AMT.toLocaleString();
                     }
