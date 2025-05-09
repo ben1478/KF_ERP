@@ -7,6 +7,7 @@
 	<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
 	<script type="text/javascript" src="../tool_js/jquery.blockUI.js"></script>
 	<link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+	<script type="text/javascript" src="http://malsup.github.io/jquery.blockUI.js"></script>
 	<link href="../_include/main.css" rel="stylesheet" type="text/css">
 	<script src="../Base.js"></script>
 	<title>作業平台</title>
@@ -344,7 +345,7 @@
 				message: m_Html,
 				onBlock: function() {
 						dateTW();
-						//getdate_YMD_onclick('EDIT_start_date','../_include/')
+						$('#btnDateSave').focus();
 					} 
 			});
 	}
