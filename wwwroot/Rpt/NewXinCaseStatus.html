@@ -7,6 +7,7 @@
 	<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
 	<script type="text/javascript" src="../tool_js/jquery.blockUI.js"></script>
 	<link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+	<script type="text/javascript" src="http://malsup.github.io/jquery.blockUI.js"></script>
 	<link href="../_include/main.css" rel="stylesheet" type="text/css">
 	<script src="../Base.js"></script>
 	<title>作業平台</title>
@@ -119,7 +120,7 @@
     let WebUser = Params.WebUser;
     let WebBC = Params.WebBC;
 
-    const itemsPerPage = 20;  
+    const itemsPerPage = 500;  
     let currentPage = 1;
     let data = []; 
 
@@ -229,7 +230,7 @@
             row.setAttribute('onmouseover', "this.style.background='#FCFCC0';");
             row.setAttribute('onmouseout', "this.style.background='#FFFFFF';");
 			row.setAttribute('id',`tr${item['HS_id']}`);
-            const columnOrder = ['Send_amount_date', 'get_amount_date', 'CS_name', 'CS_ID', 'show_project_title','SCount','get_amount'];
+            const columnOrder = ['Send_amount_date', 'get_amount_date', 'CS_name', 'CS_ID', 'show_project_title','get_amount'];
 			
 			const serialCell = document.createElement('td');
             serialCell.textContent = startIndex + pageData.indexOf(item) + 1;
@@ -248,6 +249,10 @@
 						}
 						cell.textContent = item[key] || 0;
                         row.appendChild(cell);
+						break;
+					case 'CS_name':
+						cell.innerHTML = item[key]  || '';
+						row.appendChild(cell);
 						break;
                     default:
                         cell.textContent = item[key] || '';
@@ -344,7 +349,7 @@
 				message: m_Html,
 				onBlock: function() {
 						dateTW();
-						//getdate_YMD_onclick('EDIT_start_date','../_include/')
+						$('#btnDateSave').focus();
 					} 
 			});
 	}

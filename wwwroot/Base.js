@@ -497,7 +497,7 @@ function toggleSubRows(clickedRow) {
 
 function dateTW() {
     (function () {
-
+        var _this;
         var yearTextSelector = '.ui-datepicker-year';
 
         var dateNative = new Date(),
@@ -507,11 +507,13 @@ function dateTW() {
                 dateNative.getDate()
             );
 
+        // 年份變動紀錄
         var currentYear = dateNative.getFullYear(); // 當前年份
         var startYear = currentYear - 60;           // 當前年份 - 10
         var endYear = currentYear + 10;             // 當前年份 + 10
+        console.log(`dateNative=${dateNative};dateTW=${dateTW}`);
 
-
+        // 補0函式
         function leftPad(val, length) {
             var str = '' + val;
             while (str.length < length) {
@@ -525,6 +527,9 @@ function dateTW() {
                 basic: function (dateText, inst) {
                     dateNative = new Date(inst.selectedYear, inst.selectedMonth, inst.selectedDay);
 
+                    console.log(`[funcColle.onSelect.basic] dateText=${dateText};inst=${inst};dateNative=${dateNative}`);
+                    console.log(`[funcColle.onSelect.basic] inst.selectedYear=${inst.selectedYear}, inst.selectedMonth=${inst.selectedMonth}, inst.selectedDay=${inst.selectedDay}`);
+                    // 年分小於100會被補成19**, 要做例外處理
                     var yearTW = inst.selectedYear > 1911
                         ? leftPad(inst.selectedYear - 1911, 4)
                         : inst.selectedYear;
@@ -560,19 +565,30 @@ function dateTW() {
             yearSuffix: '年',
 
             onSelect: function (dateText, inst) {
-                $(this).val(funcColle.onSelect.basic(dateText, inst));
+                // dateText 2025-05-21
+                console.log(`[twSettings.onSelect] onSelect dateText=${dateText};inst=${inst}`);
+                console.log(`[twSettings.onSelect] funcColle.onSelect.basic(dateText, inst)=${funcColle.onSelect.basic(dateText, inst)}`);
+                $(this).val(funcColle.onSelect.basic(dateText, inst)); // 114-05-21
                 if (typeof funcColle.onSelect.newFunc === 'function') {
                     funcColle.onSelect.newFunc(dateText, inst);
                 }
-            }
+            },
+            onChangeMonthYear: function (year, month, inst) {
+                _currentYear = (parseInt(year) - 1911);
+            },
+            beforeShow: function (input) {
+                _this = $(input);
+            },
         };
 
+        // 把yearText換成民國
         var replaceYearText = function () {
             var $yearText = $('.ui-datepicker-year');
 
             if (twSettings.changeYear !== true) {
                 $yearText.text('民國' + dateTW.getFullYear());
             } else {
+                // 下拉選單
                 if ($yearText.prev('span.datepickerTW-yearPrefix').length === 0) {
                     $yearText.before("<span class='datepickerTW-yearPrefix'>民國</span>");
                 }
@@ -585,15 +601,18 @@ function dateTW() {
         };
 
         $.fn.datepickerTW = function (options) {
-
+            // setting on init,
             if (typeof options === 'object') {
+                //onSelect例外處理, 避免覆蓋
                 if (typeof options.onSelect === 'function') {
                     funcColle.onSelect.newFunc = options.onSelect;
                     options.onSelect = twSettings.onSelect;
                 }
+                // year range正規化成西元, 小於1911的數字都會被當成民國年
                 if (options.yearRange) {
                     var temp = options.yearRange.split(':');
                     for (var i = 0; i < temp.length; i += 1) {
+                        //民國前處理
                         if (parseInt(temp[i]) < 1) {
                             temp[i] = parseInt(temp[i]) + 1911;
                         } else {
@@ -604,50 +623,81 @@ function dateTW() {
                     }
                     options.yearRange = temp[0] + ':' + temp[1];
                 }
+                // if input val not empty
                 if ($(this).val() !== '') {
                     options.defaultDate = $(this).val();
                 }
             }
-
+            // setting after init
             if (arguments.length > 1) {
+                // 目前還沒想到正常的解法, 先用轉換成init setting obj的形式
                 if (arguments[0] === 'option') {
                     options = {};
                     options[arguments[1]] = arguments[2];
                 }
             }
-
+            // override settings
             $.extend(twSettings, options);
 
-            twSettings.yearRange = startYear + ':' + endYear;
+            //twSettings.yearRange = startYear + ':' + endYear;
 
+            // init
             $(this).datepicker(twSettings);
 
+            // beforeRender
             $(this).click(function () {
                 var isFirstTime = ($(this).val() === '');
+                var currentDateNative = dateNative;
+                var currentDateTW = dateTW;
+
+                if ($(this).val() !== "") {
+                    var _date = $(this).val().split(/-|\/|\\|_|\./g);
+                    currentDateNative = new Date(
+                        parseInt(_date[0]) + 1911,
+                        parseInt(_date[1]) - 1,
+                        _date[2]
+                    );
+                } else {
+                    currentDateNative = new Date();
+                }
+                currentDateTW = new Date(
+                    currentDateNative.getFullYear(),
+                    currentDateNative.getMonth(),
+                    currentDateNative.getDate()
+                );
+                currentDateTW.setFullYear(currentDateTW.getFullYear() - 1911);
+
+                // year range and default date
                 if ((twSettings.defaultDate || twSettings.yearRange) && isFirstTime) {
 
-                    if (twSettings.defaultDate) {
-                        $(this).datepicker('setDate', twSettings.defaultDate);
+                    // 因宣告class="datepickerTW"的關係，只要其中有一個Value有值的話,twSettings.defaultDate會是第一個datepicker的Value值
+                    // 因此需多判斷 && $(this).val() != ''
+                    if (twSettings.defaultDate && $(this).val() != '') {
+                        var setDateVal = currentDateTW.getFullYear() + "-" + (currentDateTW.getMonth() + 1) + "-" + currentDateTW.getDate();
+                        $(this).datepicker('setDate', new Date(setDateVal));
+                    }
+                    else {
+                        // Value值為空的情況下預成當天
+                        $(this).datepicker('setDate', 'today'); // 預設為當天
                     }
 
+                    // 這段處理不好，因為「年」只改了外觀，但javascript實際值還是原本那年
+                    // 當有year range時, select初始化設成range的最末年
                     if (twSettings.yearRange) {
                         var $yearSelect = $('.ui-datepicker-year'),
                             nowYear = twSettings.defaultDate
-                                ? $(this).datepicker('getDate').getFullYear()
-                                : dateNative.getFullYear();
+                                ? ($(this).datepicker('getDate').getFullYear() + 1911)
+                                : currentDateNative.getFullYear();
 
-                        $yearSelect.children(':selected').removeAttr('selected');
-                        if ($yearSelect.children('[value=' + nowYear + ']').length > 0) {
-                            $yearSelect.children('[value=' + nowYear + ']').attr('selected', 'selected');
-                        } else {
-                            $yearSelect.children().last().attr('selected', 'selected');
-                        }
+                        $yearSelect.val(nowYear).trigger("change");
                     }
                 } else {
-                    $(this).datepicker('setDate', dateNative);
+                    $(this).datepicker('setDate', currentDateNative);
                 }
+                // dateTW
+                console.log(`dateTW=${dateTW}`);
+                $(this).val($.datepicker.formatDate(twSettings.dateFormat, currentDateTW));
 
-                $(this).val($.datepicker.formatDate(twSettings.dateFormat, dateTW));
 
                 replaceYearText();
 
@@ -655,7 +705,8 @@ function dateTW() {
                     $(this).val('');
                 }
             });
-            i
+
+            // afterRender
             $(this).focus(function () {
                 replaceYearText();
             });
@@ -669,8 +720,7 @@ function dateTW() {
     $('.datepickerTW').datepickerTW({
         changeYear: true,
         changeMonth: true,
-        dateFormat: 'yy-mm-dd',
-
+        dateFormat: 'yy-mm-dd'
     });
     $('.datepicker').datepicker({
         changeYear: true,
