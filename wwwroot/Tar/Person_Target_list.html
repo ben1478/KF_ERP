@@ -156,6 +156,7 @@
     }
 
     function openNewData() {
-        //TODO
+        let encryptedUser = encryptParameter(WebUser);
+        window.open(`Person_Target_detail.html?User=${encryptedUser}`, '_blank', 'scrollbars=yes,resizable=yes,width=600,height=500,top=50');
     }
 </script>

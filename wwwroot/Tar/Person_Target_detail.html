@@ -1,0 +1,161 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script src="../Base.js"></script>
+    <title>作業平台</title>
+</head>
+<body>
+    <table>
+        <tr bgcolor="#FFFFFF">
+            <td align="right" bgcolor="#CCCCFF">
+                新增業務目標:
+            </td>
+            <td align="left">
+                <input type="text" name="U_num" id="U_num" size="10" maxlength="10" class="box" value="" readonly="">
+                <input type="text" name="U_name" id="U_name" size="10" maxlength="10" class="box" value="" readonly="">
+                <input type="button" value="..." name="_select_user_one" onclick="openUserOne('appUser')">
+                <input type="button" value="新增" onclick="OpenNew();">
+            </td>
+        </tr>
+    </table>
+    <table id="detailsList" border="0" cellpadding="4" cellspacing="1" bgcolor="#666666">
+        <thead>
+            <tr align="center" bgcolor="#CCCCFF" class="c12-k">
+                <td width="70">員工編號</td>
+                <td width="70">業務名稱</td>
+                <td width="85">任額起月</td>
+                <td width="85">任額迄月</td>
+                <td width="90">目標額(萬)</td>
+                <td width="70"></td>
+            </tr>
+        </thead>
+        <tbody>
+        </tbody>
+        <tr class="c12-k" bgcolor="#CCCCFF" height="30" data-ignore="true">
+            <td colspan="6" align="center">
+                <input type="button" value="儲存" onclick="saveData();" />
+            </td>
+        </tr>
+    </table>
+</body>
+</html>
+<script>
+    function OpenNew() {
+        if ($('#U_name').val() === '') {
+            alert('請選擇業務');
+            return;
+        }
+
+        const tbody = document.querySelector('#detailsList tbody');
+       
+        const row = document.createElement('tr');
+        row.setAttribute('align', 'center');
+        row.setAttribute('class', 'c12-k');
+        row.setAttribute('bgcolor', '#FFFFFF');
+
+        const numCell = document.createElement('td');
+        const numSpan = document.createElement('span');
+        numSpan.textContent = $('#U_num').val();
+        const hiddenNum = document.createElement('input');
+        hiddenNum.type = 'hidden';
+        hiddenNum.name = 'U_num';
+        hiddenNum.value = $('#U_num').val();
+        numCell.appendChild(numSpan);
+        numCell.appendChild(hiddenNum);
+        row.appendChild(numCell);
+
+        const nameCell = document.createElement('td');
+        const nameSpan = document.createElement('span');
+        nameSpan.textContent = $('#U_name').val();
+        const hiddenName = document.createElement('input');
+        hiddenName.type = 'hidden';
+        hiddenName.name = 'U_name';
+        hiddenName.value = $('#U_name').val();
+        nameCell.appendChild(nameSpan);
+        nameCell.appendChild(hiddenName);
+        row.appendChild(nameCell);
+
+        const SdateCell = document.createElement('td');
+        const SdateSelect = createYearMonthSelect('Sdate');
+        SdateCell.appendChild(SdateSelect);
+        row.appendChild(SdateCell);
+
+        const DdateCell = document.createElement('td');
+        const DdateSelect = createYearMonthSelect('Ddate');
+        DdateCell.appendChild(DdateSelect);
+        row.appendChild(DdateCell);
+
+        const targetCell = document.createElement('td');
+        const targetInput = document.createElement('input');
+        targetInput.type = 'text';
+        targetInput.name = 'target';
+        targetInput.size = 8;
+        targetCell.appendChild(targetInput);
+        row.appendChild(targetCell);
+
+        const removeCell = document.createElement('td');
+        const removeButton = document.createElement('button');
+        removeButton.type = 'button'; 
+        removeButton.textContent = '移除';
+        removeButton.onclick = function () {
+            row.remove();
+        };
+        removeCell.appendChild(removeButton);
+        row.appendChild(removeCell);
+
+        tbody.appendChild(row);
+    }
+
+    function createYearMonthSelect(name) {
+        const now = new Date();
+        const select = document.createElement('select');
+        select.classList.add('box');
+        select.name = name;
+        select.id = name;
+
+        for (let i = 0; i < 12; i++) {
+            const optionDate = new Date(now.getFullYear(), now.getMonth() + i);
+            const year = optionDate.getFullYear();
+            const month = (optionDate.getMonth() + 1).toString().padStart(2, '0');
+            const value = `${year}/${month}`;
+
+            const option = document.createElement('option');
+            option.value = value;
+            option.textContent = `${year}年${month}月`;
+            select.appendChild(option);
+        }
+        return select;
+    }
+
+    function saveData() {
+        const rows = document.querySelectorAll('#detailsList tbody tr');
+        const allData = [];
+
+        rows.forEach(row => {
+            const data = {};
+
+            const fields = row.querySelectorAll('input[name], select[name]');
+
+            fields.forEach(field => {
+                if (field.type !== 'button' && field.type !== 'submit') {
+                    data[field.name] = field.value;
+                }
+            });
+
+            if (Object.keys(data).length > 0) {
+                allData.push(data);
+            }
+        });
+
+        console.log(allData);
+
+        //TODO 送給API做儲存
+    }
+
+
+</script>
