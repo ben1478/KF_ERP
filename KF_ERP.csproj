@@ -22,6 +22,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <_ContentIncludedByDefault Remove="wwwroot\Tar\Person_Target_detail.html" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Include="wwwroot\Base.js" />
     <None Include="wwwroot\ACC\Debt_certificate_list.html" />
     <None Include="wwwroot\Home\Example.html" />

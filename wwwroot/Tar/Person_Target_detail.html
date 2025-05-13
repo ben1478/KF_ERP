@@ -45,6 +45,9 @@
 </body>
 </html>
 <script>
+    let Params = new URLSearchParams(window.location.search);
+    let WebUser = decryptParameter(Params.get('User'));
+
     function OpenNew() {
         if ($('#U_name').val() === '') {
             alert('請選擇業務');
@@ -138,23 +141,47 @@
 
         rows.forEach(row => {
             const data = {};
-
             const fields = row.querySelectorAll('input[name], select[name]');
-
             fields.forEach(field => {
                 if (field.type !== 'button' && field.type !== 'submit') {
                     data[field.name] = field.value;
                 }
             });
-
             if (Object.keys(data).length > 0) {
                 allData.push(data);
             }
         });
 
-        console.log(allData);
+        const dataList = allData.map(item => ({
+            PE_title: null,
+            PE_num: item.U_num,
+            PE_target: parseInt(item.target),
+            PE_Date_S: item.Sdate,
+            PE_Date_E: item.Ddate,
+            user: WebUser
+        }));
 
-        //TODO 送給API做儲存
+        const url = `${BASE_URL}/AE_TAR/Per_Target_Ins`;
+
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(dataList)
+        })
+            .then(response => response.json())
+            .then(responseData => {
+                if (responseData.resultCode === '000') {
+                    alert(responseData.resultMsg);
+                    window.close();
+                    window.opener.location.reload();
+                } else {
+                    alert(responseData.resultMsg);
+                }
+            }).catch(error => {
+                alert('請求失敗，請稍後再試。');
+            });
     }
 
 
