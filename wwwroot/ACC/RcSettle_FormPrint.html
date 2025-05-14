@@ -106,7 +106,7 @@
                 })
                 var overAmt = parseFloat(Over_Amt || 0)
                 if (overAmt !== 0) {
-                    delayAmtEl.insertAdjacentHTML('afterend', `<br><span><b>溢繳金額：${overAmt.toLocaleString()}元</b></span>`);
+                    delayAmtEl.insertAdjacentHTML('afterend', `<br><span><b>溢繳金額：- ${overAmt.toLocaleString()}元</b></span>`);
                 }
             })
             .catch(error => {
