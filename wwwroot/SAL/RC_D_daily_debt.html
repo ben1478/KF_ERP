@@ -1,0 +1,252 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <link href="../_include/main.css" rel="stylesheet" type="text/css">
+    <script src="../Base.js"></script>
+    <title>作業平台</title>
+</head>
+<body>
+    <table border="0" width="100%">
+        <tbody>
+            <tr>
+                <td width="20">　</td>
+                <td width="200" height="24" background="../../image/title-bk.gif">
+                    <span class="c14k"><strong>呆帳清單</strong></span>
+                </td>
+                <td width="780">
+                    <font color="#FF0000"> ＊＊＊只顯示截至列呆帳且未沖銷資料＊＊＊</font>
+                </td>
+            </tr>
+            <tr class="c12-k">
+                <td></td>
+                <td colspan="2">
+                    <table border="0" with="100%" id="table1">
+                        <tr class="c12-k">
+                            <td colspan="4" align="left" width="80%">
+                                繳款日：
+                                <input type="text" id="Date_E" name="Date_E" size="10" maxlength="10" class="datepickerTW" value="">
+                            </td>
+                        </tr>
+                        <tr class="c12-k">
+                            <td>
+                                <input type="button" value="查詢" onclick="fetchData();" />  &nbsp;
+                                
+                            </td>
+                            <td>
+                                
+                            </td>
+                        </tr>
+                    </table>
+
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    
+    <table width="1050" border="0" cellspacing="0" cellpadding="0">
+        <tbody>
+            <tr>
+                <td valign="top"> </td>
+                <td align="center" valign="top">
+                    <table id="MainTable" width="1050" border="0" cellpadding="4" cellspacing="1" bgcolor="#666666">
+                        <thead>
+                            <tr align="center" bgcolor="#CCCCFF" class="c12-k">
+                                <td width="50">序</td>
+                                <td width="80">客戶姓名</td>
+                                <td width="90">總金額</td>
+                                <td width="30">期數</td>
+                                <td width="30">第<br>幾期</td>
+                                <td width="70">本期繳款日</td>
+                                <td width="70">月付金</td>
+                                <td width="50">沖銷<br>狀態</td>
+                                <td width="70">沖銷日期</td>
+                                <td width="60">沖銷人員</td>
+                                <td width="180">備註</td>
+                                <td width="50">轉呆<br>狀態</td>
+                                <td width="70">轉呆日期</td>
+                                <td width="60">轉呆人員</td>
+                                <td width="40">詳細</td>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr align="center" class="c12-k" bgcolor="#FFFFFF" onmouseover="this.style.background='#FFFF66';" onmouseout="this.style.background='#FFFFFF'; " style="background: rgb(255, 255, 255);">
+                            </tr>
+                            <tr align="center" class="c12-k" bgcolor="#FFFFFF" onmouseover="this.style.background='#FFFF66';" onmouseout="this.style.background='#FFFFFF'; " style="background: rgb(255, 255, 255);">
+                            </tr>
+                            <tr align="center" height="30" bgcolor="#CCCCFF">
+                                <td class="c12-k" colspan="16">
+                                </td>
+                            </tr>
+                        </tbody>
+                        <tfoot>
+                            <tr align="center" height="15" bgcolor="#CCCCFF">
+                                <td class="c12-k" colspan="15">
+                                    <font color="#000080">
+                                        <label id="CountRows"></label>
+                                    </font>
+                                </td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                    <div id="pagination"></div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</body>
+</html>
+<script>
+    const Params = getQueryParams();
+    let WebUser = Params.WebUser;
+    let WebBC = Params.WebBC;
+
+    const itemsPerPage = 20;  
+    let currentPage = 1;
+    let data = []; 
+
+    window.onload = function () {
+        dateTW();
+
+        const currentDate = new Date();
+
+        const Date_E = new Date(currentDate);
+        
+
+        const getRepublicDate = (date) =>
+            `${date.getFullYear() - 1911}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
+
+        document.querySelector('input[name="Date_E"]').value = getRepublicDate(Date_E);
+
+        fetchData();
+    }
+
+
+    function fetchData() {
+        let Date_E = document.getElementById('Date_E').value;
+        const url = `${BASE_URL}/AE_ACC/Rcd_Bad_LQuery?Date_E=${Date_E}`;
+
+        fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+            .then(response => response.json())
+            .then(responseData => {
+                if (responseData.resultCode == "000") {
+                    data = JSON.parse(responseData.objResult);
+                    showPage(currentPage);
+                    createPagination();
+                } else {
+                    alert(response.resultMsg);
+                }
+            })
+            .catch(error => {
+                alert('API 請求失敗:', error);
+            });
+    }
+
+    function showPage(page) {
+        document.getElementById('CountRows').innerHTML = `筆數:${data.length}`;
+        const tbody = document.querySelector('#MainTable tbody');
+        tbody.innerHTML = '';
+
+        const startIndex = (page - 1) * itemsPerPage;
+        const endIndex = Math.min(startIndex + itemsPerPage, data.length);
+        const pageData = data.slice(startIndex, endIndex);
+
+        for (let item of pageData) {
+            const row = document.createElement('tr');
+            row.setAttribute('align', 'center');
+            row.setAttribute('class', 'c12-k');
+            row.setAttribute('bgcolor', '#FFFFFF');
+            row.setAttribute('onmouseover', "this.style.background='#FCFCC0';");
+            row.setAttribute('onmouseout', "this.style.background='#FFFFFF';");
+
+            const columnOrder = ['RCM_id', 'RCD_id', 'CS_name', 'amount_total', 'month_total', 'RC_count', 'RC_date', 'RC_amount', 'check_pay_type','check_pay_date','check_pay_name','RCM_note','bad_debt_type','bad_debt_date','bad_debt_name','Upd'];
+
+            const serialCell = document.createElement('td');
+            serialCell.textContent = startIndex + pageData.indexOf(item) + 1;
+            row.appendChild(serialCell);
+
+            let RCM_id;
+            let RCD_id;
+            let encryptedWebUser = encryptParameter(WebUser);
+            let encryptedRCM_id = '';
+            let encryptedRCD_id = '';
+            for (let key of columnOrder) {
+                const cell = document.createElement('td');
+                switch (key) {
+                    case 'RCM_id':
+                        RCM_id = item[key];
+                        encryptedRCM_id = encryptParameter(RCM_id);
+                        break;
+                    case 'RCD_id':
+                        RCD_id = item[key];
+                        break;
+                    case 'check_pay_type': // 沖銷狀態
+                        encryptedRCD_id = encryptParameter(RCD_id);
+                        const buttonCPT = document.createElement('input');
+                        buttonCPT.type = 'button';
+                        buttonCPT.value = item[key] === 'N' ? '未沖銷' : '已沖銷';
+                        buttonCPT.onclick = function () {
+                            window.open(`RC_D_check.html?Id=${encryptedRCD_id}&User=${encryptedWebUser}`, '_blank', 'scrollbars=yes,resizable=yes,top=100,width=800,height=500');
+                            };
+                        cell.style.textAlign = 'center';
+                        cell.style.verticalAlign = 'middle';
+                        cell.appendChild(buttonCPT);
+                        row.appendChild(cell);
+                        break;
+                    case 'bad_debt_type': // 轉呆狀態
+                        encryptedRCD_id = encryptParameter(RCD_id);
+                        const buttonBDT = document.createElement('input');
+                        buttonBDT.type = 'button';
+                        buttonBDT.value = item[key] === 'N' ? '未轉呆' : '已轉呆';
+                        buttonBDT.onclick = function () {
+                            window.open(`RC_D_debt.html?Id=${encryptedRCD_id}&User=${encryptedWebUser}`, '_blank', 'scrollbars=yes,resizable=yes,top=100,width=800,height=500');
+                            };
+                        cell.style.textAlign = 'center';
+                        cell.style.verticalAlign = 'middle';
+                        cell.appendChild(buttonBDT);
+                        row.appendChild(cell);
+                        break;
+  
+                    case 'Upd':
+                        encryptedRCD_id = encryptParameter(RCD_id);
+                        let encryptedOpt_Upd = encryptParameter('Upd');
+                        row.appendChild(createButtonCell(
+                            "../images/edit.png",
+                            "詳細",
+                            function () {
+                                window.open(`RC_M_detail.html?Id=${encryptedRCD_id}&User=${encryptedWebUser}`, '_blank', 'scrollbars=yes,resizable=yes,top=100,width=800,height=500');
+                            }
+                        ));
+                        break;
+                    default:
+                        cell.textContent = item[key] || '';
+                        row.appendChild(cell);
+                }
+            }
+            
+            tbody.appendChild(row);
+        }
+    }
+
+    function getCurrentDateTime() {
+          var currentDate = new Date();
+
+          var year = currentDate.getFullYear();
+          var month = ('0' + (currentDate.getMonth() + 1)).slice(-2);
+          var day = ('0' + currentDate.getDate()).slice(-2);
+          var hours = ('0' + currentDate.getHours()).slice(-2);
+          var minutes = ('0' + currentDate.getMinutes()).slice(-2);
+
+          var formattedDateTime = year + month + day + hours + minutes;
+          return formattedDateTime;
+        }
+</script>

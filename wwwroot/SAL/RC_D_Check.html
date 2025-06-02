@@ -1,0 +1,258 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <link href="../_include/main.css" rel="stylesheet" type="text/css">
+    <script src="../Base.js"></script>
+    <title>作業平台</title>
+</head>
+<body>
+    <table width="650" border="0" cellspacing="1" cellpadding="2" bgcolor="#999999">
+        <tbody>
+            <tr class="14-k" bgcolor="#FFFFFF" height="25" align="center">
+                <td colspan="2">應收帳款 - 沖銷</td>
+            </tr>
+            <tr align="center" bgcolor="#FFFFFF" class="c12-k">
+                <td width="70">客戶姓名</td>
+                <td width="280" align="left"><label id="CS_name" /></td>
+            </tr>
+            <tr align="center" bgcolor="#FFFFFF" class="c12-k">
+                <td>第幾期</td>
+                <td align="left"><label id="RC_count" /></td>
+            </tr>
+            <tr align="center" bgcolor="#FFFFFF" class="c12-k">
+                <td>本期繳款日</td>
+                <td align="left"><label id="RC_date" /></td>
+            </tr>
+            <tr align="center" bgcolor="#FFFFFF" class="c12-k">
+                <td>月付金</td>
+                <td align="left"><label id="RC_amount" /></td>
+            </tr>
+            <tr style="display:none" align="center" bgcolor="#FFFFFF" class="c12-k">
+                <td>部分結清金額</td>
+                <td align="left">
+                    <input type="text" class="text_box_1" id="PartiallySettled" name="PartiallySettled" size="15" maxlength="15" style="width:120px;" value="0">
+                </td>
+            </tr>
+            <tr align="center" bgcolor="#FFFFFF" class="c12-k">
+                <td>沖銷狀態</td>
+                <td align="left">
+                    <input type="radio" name="check_pay_type" value="N" checked="">未沖銷
+                    <input type="radio" name="check_pay_type" value="Y">已沖銷
+                </td>
+            </tr>
+            <tr align="center" bgcolor="#FFFFFF" class="c12-k">
+                <td>沖銷日期</td>
+                <td align="left">
+                    <input type="text" name="check_pay_date" size="10" maxlength="10" class="datepickerTW" value="">               
+                </td>
+            </tr>
+            <tr align="center" bgcolor="#FFFFFF" class="c12-k">
+                <td>沖銷人員</td>
+                <td align="left"><label id="check_pay_name" /></td>
+            </tr>
+            <tr align="center" bgcolor="#FFFFFF" class="c12-k">
+                <td>發票號碼</td>
+                <td align="left">
+                    <input type="text" class="text_box_1" id="invoice_no" name="invoice_no" size="15" maxlength="15" style="width:120px;" value="">
+                </td>
+            </tr>
+            <tr align="center" bgcolor="#FFFFFF" class="c12-k">
+                <td>發票日期</td>
+                <td align="left">
+                    <input type="text" name="invoice_date" size="10" maxlength="10" class="datepickerTW" value="">
+                </td>
+            </tr>
+            <tr align="center" bgcolor="#FFFFFF" class="c12-k">
+                <td>繳款方式</td>
+                <td align="left">
+                    <select name="RecPayType" id="RecPayType">
+                        <option value="A">預繳</option>
+                        <option value="B">ACH</option>
+                        <option value="C">自行繳款</option>
+                    </select>
+                </td>
+            </tr>
+            <tr align="center" bgcolor="#FFFFFF" class="c12-k">
+                <td>實際繳款金額</td>
+                <td align="left">
+                    <input type="text" class="text_box_1" id="RecPayAmt" onchange="CheckRC_amount()" name="RecPayAmt" size="15" maxlength="15" style="width:120px;" value="54824">
+                    <input type="hidden" class="text_box_1" name="hidRC_amount" id="hidRC_amount" value="54824">
+                </td>
+            </tr>
+            <tr align="center" bgcolor="#FFFFFF" class="c12-k">
+                <td>繳款日期 </td>
+                <td align="left">
+                    <input type="text" name="RecPayDate" size="10" maxlength="10" class="datepickerTW" value="">
+                </td>
+            </tr>
+            <tr align="center" bgcolor="#FFFFFF" class="c12-k">
+                <td>備註</td>
+                <td align="left">
+                    <input type="text" class="text_box_1" id="RC_note" name="RC_note" size="30" maxlength="200" style="width:290px;" value="113.3.6取得債權憑證">
+                </td>
+            </tr>
+            <tr class="14-k" bgcolor="#FFFFFF" height="35" align="center">
+                <td align="center" colspan="2">
+                    <input type="hidden" class="text_box_1" id="hidRCD_id" name="RCD_id" size="6" value="10021828">
+                    <input type="hidden" class="text_box_1" name="RCD_cknum" size="6" value="202201261439011782591525">
+                    <input type="submit" name="submit" value="確認沖銷" onclick="saveData();">
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</body>
+</html>
+<script>
+    let Params = new URLSearchParams(window.location.search);
+    let Id = decryptParameter(Params.get('Id'));
+    let WebUser = decryptParameter(Params.get('User'));
+
+    let ChkRole;
+    dateTW();
+    fetchData();
+   
+    function fetchData() {
+            const url = `${BASE_URL}/AE_ACC/Rcd_Check_Query?RCD_id=${Id}`;
+            fetch(url, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+                .then(response => response.json())
+                .then(response => {
+                    if (response.resultCode === '000') {
+                        const data = JSON.parse(response.objResult)[0];
+
+                        document.getElementById('CS_name').innerHTML = data.CS_name;
+                        document.getElementById('RC_count').innerHTML = data.RC_count;
+                        document.getElementById('RC_date').innerHTML = data.RC_date;
+                        document.getElementById('RC_amount').innerHTML = data.RC_amount;
+                        if (data.check_pay_type === 'Y')
+                            $("input[name='check_pay_type'][value='Y']").prop('checked', true);
+                        else
+                            $("input[name='check_pay_type'][value='N']").prop('checked', true);
+
+                        $("input[name='check_pay_date']").val(data.check_pay_date);
+                        document.getElementById('check_pay_name').innerHTML = data.check_pay_name;
+                        $("input[name='invoice_no']").val(data.invoice_no);
+                        $("input[name='invoice_date']").val(data.invoice_date);
+                        $("input[name='RecPayType']").val(data.RecPayType);
+                        $("input[name='RecPayAmt']").val(data.RecPayAmt);
+                        $("input[name='RecPayDate']").val(data.RecPayDate);
+                        $("input[name='RC_note']").val(data.RC_note);
+                    } else {
+                        alert(response.resultMsg);
+                    }
+                })
+                .catch(error => {
+                    alert('API 請求失敗:', error);
+                });
+
+
+    }
+
+    
+
+    function saveData() {
+
+        if (!jsCheck()) {
+            return;
+        }
+
+        let formData = {
+            Comp_Id: Id,
+            CS_name: $("input[name='CS_name']").val(),
+            Sales_num: $("input[name='Sales_num']").val(),
+            Complaint: $('textarea#Complaint').val(),
+            CompDate: $("input[name='CompDate']").val(),
+            CompTime: document.getElementById('CompTime').value,
+            Remark: $('textarea#Remark').val(),
+            add_date: $("input[name='add_date']").val(),
+            add_num: WebUser,
+            edit_date: $("input[name='edit_date']").val(),
+            edit_num: WebUser
+        };
+
+        if (Id === 'add') {
+
+            const url = `${BASE_URL}/AE_SAL/Complaint_Ins`;
+
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'include',
+                body: JSON.stringify(formData)
+            })
+                .then(response => response.json())
+                .then(response => {
+                    if (response.resultCode === '000') {
+                        alert('新增成功');
+                        window.close();
+                        window.opener.location.reload();
+                    } else {
+                        alert(data.resultMsg);
+                    }
+                })
+                .catch(error => {
+                    alert('請求失敗，請稍後再試。');
+                });
+        } else {
+            const url = `${BASE_URL}/AE_SAL/Complaint_Upd`;
+
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(formData)
+            })
+                .then(response => response.json())
+                .then(response => {
+                    if (response.resultCode === '000') {
+                        alert('修改成功');
+                        window.close();
+                        if (window.opener) {
+                            window.opener.location.reload();
+                        }
+                        
+                    } else {
+                        alert(data.resultMsg);
+                    }
+                })
+                .catch(error => {
+                    alert('請求失敗，請稍後再試。');
+                });
+        }
+
+    }
+
+    function jsCheck() 
+    {
+	
+	    if ($("input[name='CS_name']").val() == '')
+	    {
+		    alert('請輸入[客戶姓名]!!');
+		    $("input[name='CS_name']").focus();
+		    return false;
+	    }
+	
+	    if ($('textarea#Complaint').val() == '')
+	    {
+		    alert('請輸入[客訴事由]!!');
+		    $('textarea#Complaint').focus();
+		    return false;
+	    }
+
+	    return true;
+    }
+
+
+</script>

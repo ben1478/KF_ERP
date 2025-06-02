@@ -1,0 +1,493 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <link href="../_include/main.css" rel="stylesheet" type="text/css">
+    <script src="../Base.js"></script>
+    <title>作業平台</title>
+</head>
+<body>
+    <table width="650" border="0" cellspacing="1" cellpadding="2" bgcolor="#999999">
+        <tbody>
+               <tr class="14-k" bgcolor="#CCCCFF" height="35" align="center">
+   	             <td colspan="6">客戶申辦資訊 </td>
+               </tr>
+               <tr class="12" bgcolor="#CCCCFF" height="25" align="center">
+  	             <td>申請人</td>
+  	             <td>出生</td>
+  	             <td>行動電話</td>
+  	             <td colspan="3">戶籍地址</td>
+              </tr>
+              <tr class="12-k" bgcolor="#FFFFFF" height="25" align="center">
+  	             <td>吳閔詳</td>
+  	             <td>
+                         民國0年
+  	             </td>
+  	             <td>0988962629</td>
+  	             <td colspan="3">
+  	 	            台南市仁德區文心路72號四樓之8
+  	             </td>
+              </tr>
+
+              <tr class="12" bgcolor="#CCCCFF" height="25" align="center">
+  	             <td colspan="2">公司名稱</td>
+  	             <td colspan="3">公司地址</td>
+  	             <td>公司電話</td>
+              </tr>
+              <tr class="12-k" bgcolor="#FFFFFF" height="25" align="center">
+  	             <td colspan="2">艾克夏醫療儀器股份有限公司</td>
+  	             <td colspan="3">
+  	 	            台南市新市區南部科學園區環東路一段31巷18號2樓
+  	             </td>
+  	             <td>06－5055830分機1006</td>
+              </tr>
+
+              <tr class="12" bgcolor="#CCCCFF" height="25" align="center">
+  	             <td>工作類型</td>
+  	             <td>職稱</td>
+  	             <td>年資</td>
+  	             <td>收入方式</td>
+  	             <td>租金收益</td>
+  	             <td>評估每月收入</td>
+              </tr>
+              <tr class="12-k" bgcolor="#FFFFFF" height="25" align="center">
+  	             <td>
+         	              受雇
+  	             </td>
+  	             <td>稽核</td>
+  	             <td>3</td>
+  	             <td>
+         	              薪資轉帳
+  	             </td>
+  	             <td>0</td>
+  	             <td>8~10萬</td>
+              </tr>
+        </tbody>
+    </table>
+    <br>
+    <table width="780" border="0" cellspacing="1" cellpadding="3" bgcolor="#000000">
+	    <tbody>
+            <tr class="14-k" bgcolor="#FFFFFF" height="25" align="center">
+		        <td colspan="2"><div id="reset_div" align="right"><div id="reset_div2">&nbsp;&nbsp; *
+                    <a href="#">重新設定</a>
+                    </div></div> 案件資訊 
+                </td>
+            </tr>
+	        <tr class="12" bgcolor="#99FF99" height="25" align="center">
+		        <td width="120">申貸案號</td>
+                <td width="280" bgcolor="#FFFFFF" align="left" colspan="1">
+			        90041125
+                </td>
+	        </tr>
+		        <tr class="12" bgcolor="#99FF99" height="25" align="center">
+           	         <td>申請人</td>
+           	         <td bgcolor="#FFFFFF" align="left" colspan="1">
+                            吳閔詳
+           	         </td>
+                  </tr>
+	        <tr class="12" bgcolor="#99FF99" height="25" align="center">
+                <td>撥款金額(萬)</td>
+                <td bgcolor="#FFFFFF" align="left" colspan="1">
+			        300萬
+		        </td>
+            </tr>
+        </tbody>
+    </table>
+    <br>
+    <table width="780" border="0" cellspacing="0" cellpadding="0" bgcolor="#FFFFFF">
+        <tbody>
+            <tr class="14-k" bgcolor="#FFFFFF" height="25" align="center">
+   	            <td width="350">
+                    <table width="340" border="0" cellspacing="1" cellpadding="3" bgcolor="#666666">
+                        <tbody>
+                            <tr class="14-k" bgcolor="#FFFFFF" height="25" align="center">
+           	                    <td colspan="2"><div id="reset_div" align="right"></div> 應收帳款內容 </td>
+                            </tr>
+           
+                            <form name="form1" method="post" action="RC_M_editDB.asp" onsubmit="return jsCheck();"></form>
+         <!--  <tr class="12" bgcolor="#99FF99" height="25" align="center">
+          	 <td width="120">申貸案號</td>
+           	 <td width="280" bgcolor="#FFFFFF"  align="left" colspan="1">
+          	        90041125
+           	 </td>
+          </tr>
+           <tr class="12" bgcolor="#99FF99" height="25" align="center">
+           	 <td>申請人</td>
+           	 <td bgcolor="#FFFFFF" align="left" colspan="1">
+                    吳閔詳
+           	 </td>
+          </tr>
+           <tr class="12" bgcolor="#99FF99" height="25" align="center">
+          	 <td>撥款金額(萬)</td>
+           	 <td bgcolor="#FFFFFF"  align="left" colspan="1">
+          	     300
+           	 </td>
+          </tr>-->
+          
+           <tr class="12" bgcolor="#99FF99" height="25" align="center">
+          	 <td>總金額</td>
+           	 <td bgcolor="#FFFFFF" align="left" colspan="1">
+          	     3,000,000元
+           	 </td>
+          </tr>
+          <tr class="12" bgcolor="#99FF99" height="25" align="center">
+          	 <td>承作利率(%)</td>
+           	 <td bgcolor="#FFFFFF" align="left" colspan="1">
+          	     14%
+           	 </td>
+          </tr>
+		  
+		  <tr class="12" bgcolor="#99FF99" height="25" align="center">
+		<td>期數</td>
+        <td bgcolor="#FFFFFF" align="left" colspan="1">
+			144期
+        </td>
+    </tr>
+	
+          <tr class="12" bgcolor="#99FF99" height="25" align="center">
+          	 <td>月付金</td>
+           	 <td bgcolor="#FFFFFF" align="left" colspan="1">
+          	     <input type="text" class="text_box_1" name="amount_per_month" size="10" maxlength="10" value="43134" onblur="is_num('amount_per_month',this.value,'月付金','');">元
+           	 </td>
+          </tr>
+		  <tr class="12" bgcolor="#99FF99" height="25" align="center">
+          	 <td>撥款日期</td>
+           	 <td bgcolor="#FFFFFF" align="left" colspan="1">
+                  <input type="text" class="text_box_1" id="get_amount_date" name="get_amount_date" size="10" maxlength="10" style="width:80px;" value="111/12/16" readonly="">
+           	 </td>
+          </tr>
+          <tr class="12" bgcolor="#99FF99" height="25" align="center">
+          	 <td>繳款開始日</td>
+           	 <td bgcolor="#FFFFFF" align="left" colspan="1">
+                  <input type="text" class="text_box_1" id="date_begin" name="date_begin" size="10" maxlength="10" style="width:80px;" value="112/1/16" readonly="">
+           	     <input type="button" value="..." name="_getdate_pre_agency_date" onclick="getdate_YMD_onclick('date_begin','../_include/');">
+           	 </td>
+          </tr>
+           <tr class="12" bgcolor="#99FF99" height="25" align="center">
+          	 <td>分期備註</td>
+           	 <td bgcolor="#FFFFFF" align="left" colspan="1">
+          	     <textarea name="RCM_note" cols="28" rows="6">[於2025/4/16 06:00:00提前結清]
+1.代墊960000.代墊3％手續費28800
+2.代償新鑫1057569******
+1.代墊960000.代墊3％手續費28800
+2.代償新鑫1057569</textarea>
+           	 </td>
+          </tr>
+           <tr class="14-k" bgcolor="#FFFFFF" height="35" align="center">
+             <td align="center" colspan="2">
+        		 <input type="hidden" class="text_box_1" name="RCM_id" size="6" value="10010394">
+                   <input type="hidden" class="text_box_1" name="RCM_cknum" size="6" value="202212201117200679398506">
+				   
+				   
+				   
+                  
+        		 <input type="submit" name="submit" value="確認修改">
+        		
+           	 </td>
+           </tr>
+        
+        </tbody></table>
+        
+
+      </td>
+   	 <td width="430" bgcolor="#FFFFFF" align="left" colspan="1">
+
+          
+          <table width="420" border="0" cellspacing="1" cellpadding="3" bgcolor="#666666">
+             <tbody><tr class="14-k" bgcolor="#FFFFFF" height="25" align="center">
+             	 <td colspan="2">提前還款結清記錄</td>
+             </tr>
+             
+          <form name="form2" method="post" action="RC_M_settleDB.asp" onsubmit="return jsCheck();"></form>
+		  <input type="hidden" id="isSettle" name="isSettle" value="Y">
+            <!-- <tr class="12" bgcolor="#FFFF66" height="25" align="center">
+            	 <td width="120">申貸案號</td>
+             	 <td width="280" bgcolor="#FFFFFF"  align="left" colspan="1">
+            	        90041125
+             	 </td>
+            </tr>
+             <tr class="12" bgcolor="#FFFF66" height="25" align="center">
+             	 <td>申請人</td>
+             	 <td bgcolor="#FFFFFF" align="left" colspan="1">
+                      吳閔詳
+             	 </td>
+            </tr>
+             <tr class="12" bgcolor="#FFFF66" height="25" align="center">
+            	 <td>撥款金額(萬)</td>
+             	 <td bgcolor="#FFFFFF"  align="left" colspan="1">
+            	     300
+             	 </td>
+            </tr>
+             <tr class="12" bgcolor="#FFFF66" height="25" align="center">
+            	 <td>承作利率(%)</td>
+             	 <td bgcolor="#FFFFFF"  align="left" colspan="1">
+            	     14
+             	 </td>
+            </tr>
+             <tr class="12" bgcolor="#FFFF66" height="25" align="center">
+            	 <td>總金額</td>
+             	 <td bgcolor="#FFFFFF"  align="left" colspan="1">
+            	     3000000元
+             	 </td>
+            </tr>
+             <tr class="12" bgcolor="#FFFF66" height="25" align="center">
+            	 <td>期數</td>
+             	 <td bgcolor="#FFFFFF"  align="left" colspan="1">
+            	     144期
+             	 </td>
+            </tr>
+            <tr class="12" bgcolor="#FFFF66" height="25" align="center">
+            	 <td>月付金</td>
+             	 <td bgcolor="#FFFFFF"  align="left" colspan="1">
+            	     43134元
+             	 </td>
+            </tr>-->
+			<!-- select D.Ex_RemainingPrincipal RP_AMT ,isnull(M.Break_AMT,CEILING(D.Ex_RemainingPrincipal * 0.13))Break_AMT   ,convert(varchar(10),D.RC_date,111)RC_date ,convert(varchar(10),isnull(M.date_begin_settle,SYSDATETIME()),111)OffDate   ,D1.interest,DATEDIFF(day,D.RC_date,convert(varchar(10),isnull(M.date_begin_settle,SYSDATETIME()),111)) interestDay   ,isnull(M.Interest_AMT,CEILING(dbo.DivToFloat(D1.interest ,30) * DATEDIFF(day,D.RC_date,convert(varchar(10),isnull(M.date_begin_settle,SYSDATETIME()),111))))interest_AMT   from   Receivable_D D   Left Join Receivable_D D1 on D.RCM_id=D1.RCM_id and (D.RC_count+1)=D1.RC_count     Left Join Receivable_M M on D.RCM_id=M.RCM_id   where D.RCM_id ='10010394'   and D.RC_count in ( select MAX(RC_count) from Receivable_D where RCM_id ='10010394' and RC_note not like '%清償%' AND check_pay_type <> 'S'  ) --><!-- select D.Ex_RemainingPrincipal RP_AMT ,isnull(M.Break_AMT,CEILING(D.Ex_RemainingPrincipal * 0.13))Break_AMT   ,convert(varchar(10),D.RC_date,111)RC_date ,convert(varchar(10),isnull(M.date_begin_settle,SYSDATETIME()),111)OffDate   ,D1.interest,DATEDIFF(day,D.RC_date,convert(varchar(10),isnull(M.date_begin_settle,SYSDATETIME()),111)) interestDay   ,isnull(M.Interest_AMT,CEILING(dbo.DivToFloat(D1.interest ,30) * DATEDIFF(day,D.RC_date,convert(varchar(10),isnull(M.date_begin_settle,SYSDATETIME()),111))))interest_AMT   from   Receivable_D D   Left Join Receivable_D D1 on D.RCM_id=D1.RCM_id and (D.RC_count+1)=D1.RC_count     Left Join Receivable_M M on D.RCM_id=M.RCM_id   where D.RCM_id ='10010394'   and D.RC_count in ( select MAX(RC_count) from Receivable_D where RCM_id ='10010394' and RC_note not like '%清償%' AND check_pay_type <> 'S'  ) -->
+			
+			
+			
+			
+			<tr class="12" bgcolor="#FFFF66" height="25" align="center">
+				<td>法拍結案</td>
+				<td bgcolor="#FFFFFF" style="text-align: left;">  <input type="checkbox" checked="" name="court_sale" id="court_sale" value="1">法拍結案	   </td>
+            </tr>
+			
+			
+			
+            <tr class="12" bgcolor="#FFFF66" height="25" align="center">
+			
+            	 <td>清償基準日</td>
+             	 <td bgcolor="#FFFFFF" align="left" colspan="1">
+                    <input type="text" class="text_box_1" id="date_begin_settle" name="date_begin_settle" size="10" maxlength="10" style="width:80px;" value="114/4/16" readonly="">
+             	     <input type="button" value="..." name="_date_begin_settle" onclick="getdate_YMD_onclick('date_begin_settle','../_include/');">
+             	     <font color="#FF0000">( 以後期數註記提前結清 )</font>
+             	 </td>
+            </tr>
+             <tr class="12" bgcolor="#FFFF66" height="25" align="center">
+            	 <td>提前結清備註</td>
+             	 <td bgcolor="#FFFFFF" align="left" colspan="1">
+            	     <textarea name="RCM_note" cols="34" rows="5">[於2025/4/16 06:00:00提前結清]
+1.代墊960000.代墊3％手續費28800
+2.代償新鑫1057569******
+1.代墊960000.代墊3％手續費28800
+2.代償新鑫1057569</textarea>
+             	 </td>
+            </tr>
+			<tr class="12" bgcolor="#FFFF66" height="25" align="center">
+			    <td>預計違約金利率</td>
+				<td bgcolor="#FFFFFF" align="left" colspan="1">
+				    <input type="text" class="text_box_1" id="sett_rate" name="sett_rate" size="5" maxlength="5" style="width:80px;" value="13" onblur="updateSettRate()"> %
+				</td>
+			</tr>
+			<tr class="12" bgcolor="#FFFF66" height="25" align="center">
+                <td>利息起訖日</td>
+                <td bgcolor="#FFFFFF" align="left" colspan="1">
+                    <input type="text" class="text_box_1" id="sett_date_s" name="sett_date_s" size="10" maxlength="10" style="width:80px;" value="114/3/16" readonly="">
+                    <input type="button" value="..." name="_sett_date_s" onclick="getdate_YMD_onclick('sett_date_s','../_include/');">
+                    ~
+                    <input type="text" class="text_box_1" id="sett_date_e" name="sett_date_e" size="10" maxlength="10" style="width:80px;" value="114/4/16" readonly="">
+                    <input type="button" value="..." name="_sett_date_e" onclick="getdate_YMD_onclick('sett_date_e','../_include/');">
+                </td>
+            </tr>
+			<tr class="12" bgcolor="#FFFF66" height="25" align="center">
+				<td>清償明細</td>
+				
+				<td bgcolor="#FFFFFF" style="text-align: left;">
+				結清本金：2,744,232	   <br>
+				預計違約金：<span id="BreakAmt_display">371,564</span>(結清本金*<span id="rate_display">13</span>%)<br>
+				
+				
+				利息：<span id="interestAMT_display">405,698</span><br>
+				計息公式：(32,016/30)*<span name="interestDay">31</span>(<span name="date_s_display">2025/03/16</span>~<span name="date_e_display">2025/04/16</span>)<br>
+				計息金額：32,016	　計息天數：<span name="interestDay">31</span>	   <br>
+				利息起算日：<span name="date_s_display">2025/03/16</span>~<span name="date_e_display">2025/04/16</span><br>
+				
+				</td>
+            </tr>
+			<tr class="12" bgcolor="#FFFF66" height="25" align="center">
+            	 <td>實際違約金</td>
+             	 <td bgcolor="#FFFFFF" align="left" colspan="1">
+                    <input type="text" class="text_box_1" id="Break_AMT" name="Break_AMT" size="10" maxlength="10" style="width:80px;" value="371564">   
+					<input type="hidden" name="interest_AMT" id="interest_AMT" value="405698">
+					<input type="hidden" name="SubTotAMT" id="SubTotAMT" value="3149930">
+				 </td>
+			</tr>
+            
+				 <tr class="12" bgcolor="#FFFF66" height="25" align="center">
+            	 <td>延滯總利息</td>
+             	 <td bgcolor="#FFFFFF" align="left" colspan="1">
+                    <input type="text" class="text_box_1" id="Delay_AMT" name="Delay_AMT" size="10" maxlength="10" style="width:80px;" value="633042">   
+				 </td>
+			</tr>
+				 
+			
+			<tr class="12" bgcolor="#FFFF66" height="25" align="center">
+			 <td>清償總金額</td>
+             	 <td bgcolor="#FFFFFF" align="left" colspan="1">
+                    <span id="spTot_Break_AMT"> 4,154,536 </span>
+					<input type="hidden" name="Tot_Break_AMT" id="Tot_Break_AMT" value="4154536">					
+					(<span id="Tot_Break_AMT_DESC">2,744,232 + <span id="spBreak_AMT">371,564</span> + 405,698 + <span id="spDelay_AMT">633,042</span></span>)
+				</td>
+			</tr>
+             <tr class="14-k" bgcolor="#FFFFFF" height="35" align="center">
+               <td align="center" colspan="2">
+          		 <input type="hidden" class="text_box_1" name="RCM_id" size="6" value="10010394">
+                     <input type="hidden" class="text_box_1" name="RCM_cknum" size="6" value="202212201117200679398506">
+          		 <input type="submit" name="submit" value="確認提前還款結清">
+
+             	 </td>
+             </tr>
+          
+          </tbody></table>
+		
+   	 </td>
+   </tr>
+</tbody></table>
+</body>
+</html>
+<script>
+    let Params = new URLSearchParams(window.location.search);
+    let Id = decryptParameter(Params.get('Id'));
+    let WebUser = decryptParameter(Params.get('User'));
+    
+    let ChkRole;
+    dateTW();
+    fetchData();
+
+    function fetchData() {
+            const url = `${BASE_URL}/AE_ACC/Rc_Deatil_M_SQuery?RCM_id=${Id}`;
+            fetch(url, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+                .then(response => response.json())
+                .then(response => {
+                    if (response.resultCode === '000') {
+                        const data = JSON.parse(response.objResult)[0];
+                        $("input[name='Comp_Id']").val(data.Comp_Id);
+                        $("input[name='CS_name']").val(data.CS_name);
+                        $("input[name='Sales_num']").val(data.Sales_num);
+                        $("input[name='Sales_name']").val(data.Sales_name);
+                        $('textarea#Complaint').val(data.Complaint);
+                        $("input[name='CompDate']").val(data.CompDate);
+                        $("input[name='CompTime']").val(data.CompTime);
+                        $('textarea#Remark').val(data.Remark);
+                        $("input[name='add_date']").val(data.add_date);
+                        $("input[name='add_num']").val(data.add_num);
+                        document.getElementById('add_name').innerHTML = data.add_name;
+                        document.getElementById('edit_name').innerHTML = data.edit_name;
+                        
+                    } else {
+                        alert(response.resultMsg);
+                    }
+                })
+                .catch(error => {
+                    alert('API 請求失敗:', error);
+                });
+    }
+
+    
+
+    function saveData() {
+
+        if (!jsCheck()) {
+            return;
+        }
+
+        let formData = {
+            Comp_Id: Id,
+            CS_name: $("input[name='CS_name']").val(),
+            Sales_num: $("input[name='Sales_num']").val(),
+            Complaint: $('textarea#Complaint').val(),
+            CompDate: $("input[name='CompDate']").val(),
+            CompTime: document.getElementById('CompTime').value,
+            Remark: $('textarea#Remark').val(),
+            add_date: $("input[name='add_date']").val(),
+            add_num: WebUser,
+            edit_date: $("input[name='edit_date']").val(),
+            edit_num: WebUser
+        };
+
+        if (Id === 'add') {
+
+            const url = `${BASE_URL}/AE_SAL/Complaint_Ins`;
+
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'include',
+                body: JSON.stringify(formData)
+            })
+                .then(response => response.json())
+                .then(response => {
+                    if (response.resultCode === '000') {
+                        alert('新增成功');
+                        window.close();
+                        window.opener.location.reload();
+                    } else {
+                        alert(data.resultMsg);
+                    }
+                })
+                .catch(error => {
+                    alert('請求失敗，請稍後再試。');
+                });
+        } else {
+            const url = `${BASE_URL}/AE_SAL/Complaint_Upd`;
+
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(formData)
+            })
+                .then(response => response.json())
+                .then(response => {
+                    if (response.resultCode === '000') {
+                        alert('修改成功');
+                        window.close();
+                        if (window.opener) {
+                            window.opener.location.reload();
+                        }
+                        
+                    } else {
+                        alert(data.resultMsg);
+                    }
+                })
+                .catch(error => {
+                    alert('請求失敗，請稍後再試。');
+                });
+        }
+
+    }
+
+    function jsCheck() 
+    {
+	
+	    if ($("input[name='CS_name']").val() == '')
+	    {
+		    alert('請輸入[客戶姓名]!!');
+		    $("input[name='CS_name']").focus();
+		    return false;
+	    }
+	
+	    if ($('textarea#Complaint').val() == '')
+	    {
+		    alert('請輸入[客訴事由]!!');
+		    $('textarea#Complaint').focus();
+		    return false;
+	    }
+
+	    return true;
+    }
+
+
+</script>

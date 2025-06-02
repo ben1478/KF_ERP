@@ -1,0 +1,148 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <link href="../_include/main.css" rel="stylesheet" type="text/css">
+    <script src="../Base.js"></script>
+    <title>作業平台</title>
+</head>
+<body>
+    <table width="650" border="0" cellspacing="1" cellpadding="2" bgcolor="#999999">
+        <tbody>
+            <tr class="14-k" bgcolor="#FFFFFF" height="25" align="center">
+                <td colspan="2">應收帳款 - 轉呆帳</td>
+            </tr>
+            <tr align="center" bgcolor="#FFFFFF" class="c12-k">
+                <td width="70">客戶姓名</td>
+                <td width="280" align="left"><label id="CS_name" /></td>
+            </tr>
+            <tr align="center" bgcolor="#FFFFFF" class="c12-k">
+                <td>第幾期</td>
+                <td align="left"><label id="RC_count" /></td>
+            </tr>
+            <tr align="center" bgcolor="#FFFFFF" class="c12-k">
+                <td>本期繳款日</td>
+                <td align="left"><label id="RC_date" /></td>
+            </tr>
+            <tr align="center" bgcolor="#FFFFFF" class="c12-k">
+                <td>月付金</td>
+                <td align="left"><label id="RC_amount" /></td>
+            </tr>
+            <tr align="center" bgcolor="#FFFFFF" class="c12-k">
+                <td>轉呆帳狀態</td>
+                <td align="left">
+                    <input type="radio" name="bad_debt_type" value="N" checked="">未轉呆帳
+                    <input type="radio" name="bad_debt_type" value="Y">已轉呆帳
+                </td>
+            </tr>
+            <tr align="center" bgcolor="#FFFFFF" class="c12-k">
+                <td>轉呆帳日期</td>
+                <td align="left">
+                    <input type="text" name="bad_debt_date" size="10" maxlength="10" class="datepickerTW" value="">
+                </td>
+            </tr>
+            <tr align="center" bgcolor="#FFFFFF" class="c12-k">
+                <td>轉呆帳人員</td>
+                <td align="left"><label id="bad_debt_name" /></td>
+            </tr>
+            <tr align="center" bgcolor="#FFFFFF" class="c12-k">
+                <td>備註</td>
+                <td align="left">
+                    <input type="text" class="text_box_1" id="RC_note" name="RC_note" size="30" maxlength="200" style="width:290px;" value="113.3.6取得債權憑證">
+                </td>
+            </tr>
+            <tr class="14-k" bgcolor="#FFFFFF" height="35" align="center">
+                <td align="center" colspan="2">
+                    <input type="hidden" class="text_box_1" name="RCD_id" size="6" value="10021828">
+                    <input type="hidden" class="text_box_1" name="RCD_cknum" size="6" value="202201261439011782591525">
+                    <input type="submit" name="submit" value="確認轉呆帳" onclick="saveData();">
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</body>
+</html>
+<script>
+    let Params = new URLSearchParams(window.location.search);
+    let Id = decryptParameter(Params.get('Id'));
+    let WebUser = decryptParameter(Params.get('User'));
+    
+    let ChkRole;
+    dateTW();
+    fetchData();
+    
+    function fetchData() {
+        
+            const url = `${BASE_URL}/AE_ACC/Rcd_Check_Query?RCD_id=${Id}`;
+            fetch(url, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+                .then(response => response.json())
+                .then(response => {
+                    if (response.resultCode === '000') {
+                        const data = JSON.parse(response.objResult)[0];
+                        document.getElementById('CS_name').innerHTML = data.CS_name;
+                        document.getElementById('RC_count').innerHTML = data.RC_count;
+                        document.getElementById('RC_date').innerHTML = data.RC_date;
+                        document.getElementById('RC_amount').innerHTML = data.RC_amount;
+                        
+                    } else {
+                        alert(response.resultMsg);
+                    }
+                })
+                .catch(error => {
+                    alert('API 請求失敗:', error);
+                });
+
+    }
+
+    
+
+    function saveData() {
+
+        if (!jsCheck()) {
+            return;
+        }
+
+        let formData = {
+            Comp_Id: Id,
+            CS_name: $("input[name='CS_name']").val(),
+            edit_date: $("input[name='edit_date']").val(),
+            edit_num: WebUser
+        };
+
+            const url = `${BASE_URL}/AE_SAL/Complaint_Upd`;
+
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(formData)
+            })
+                .then(response => response.json())
+                .then(response => {
+                    if (response.resultCode === '000') {
+                        alert('修改成功');
+                        window.close();
+                        if (window.opener) {
+                            window.opener.location.reload();
+                        }
+                        
+                    } else {
+                        alert(data.resultMsg);
+                    }
+                })
+                .catch(error => {
+                    alert('請求失敗，請稍後再試。');
+                });
+
+    }
+</script>
