@@ -14,10 +14,8 @@
         <tbody>
             <tr class="c12-k">
                 <td width="86%">
-                    責任額起訖：
-                    <span id="yearMonthStartContainer"></span>
-                    ~
-                    <span id="yearMonthEndContainer"></span>
+                    責任額月份：
+                    <span id="yearMonthContainer"></span>
                 </td>
             </tr>
         </tbody>
@@ -55,11 +53,9 @@
     fetchData();
 
     document.addEventListener('DOMContentLoaded', function () {
-        const startSelect = createYearMonthSelect('PR_Date_S');
-        const endSelect = createYearMonthSelect('PR_Date_E');
+        const startSelect = createYearMonthSelect('PR_Date');
 
-        document.getElementById('yearMonthStartContainer').appendChild(startSelect);
-        document.getElementById('yearMonthEndContainer').appendChild(endSelect);
+        document.getElementById('yearMonthContainer').appendChild(startSelect);
     });
 
     function fetchData() {
@@ -89,7 +85,14 @@
                     row.appendChild(cell_1);
 
                     const cell_4 = document.createElement('td');
-                    cell_4.innerHTML = '<input type="text" size="10" maxlength="10" class="box" name="amount">';
+                    const input = document.createElement('input');
+                    input.type = 'text';
+                    input.size = 10;
+                    input.maxLength = 10;
+                    input.className = 'box';
+                    input.name = 'amount';
+                    input.value = item.targetInt;
+                    cell_4.appendChild(input);
                     row.appendChild(cell_4);
 
                     tbody.appendChild(row);
@@ -111,11 +114,11 @@
             const optionDate = new Date(now.getFullYear(), now.getMonth() + i);
             const year = optionDate.getFullYear();
             const month = (optionDate.getMonth() + 1).toString().padStart(2, '0');
-            const value = `${year}/${month}`;
+            const value = `${year}-${month}`;
 
             const option = document.createElement('option');
             option.value = value;
-            option.textContent = `${year}年${month}月`;
+            option.textContent = `${year-1911}年${month}月`;
             select.appendChild(option);
         }
 
@@ -132,8 +135,7 @@
 
             const dataItem = {
                 PR_title: dataKey,
-                PR_Date_S: $('#PR_Date_S').val() || '', 
-                PR_Date_E: $('#PR_Date_E').val() || '',  
+                PR_Date: $('#PR_Date').val() || '', 
                 PR_target: amountInputs[0]?.value || '',
                 user: WebUser
             };

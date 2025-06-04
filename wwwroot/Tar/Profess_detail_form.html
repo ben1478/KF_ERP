@@ -9,15 +9,13 @@
     <table border="0" cellpadding="4" cellspacing="1" bgcolor="#666666">
         <tr class="header-row" bgcolor="#CCCCFF" align="center">
             <td width="100">職務名稱</td>
-            <td width="120">責任額起月</td>
-            <td width="120">責任額迄月</td>
+            <td width="120">責任額月</td>
             <td width="140">責任額金額(萬)</td>
             <td></td>
         </tr>
         <tr bgcolor="#FFFFFF" align="center">
             <td><span id="Title_name"></span></td>
-            <td id="PR_DATE_S_container"></td>
-            <td id="PR_DATE_E_container"></td>
+            <td><span id="PR_Date_Minguo"></span></td>
             <td><input type="text" id="PR_target" size="7" /></td>
             <td><input type="button" onclick="saveData()" value="儲存" /></td>
         </tr>
@@ -26,52 +24,16 @@
 </html>
 <script>
     document.addEventListener("DOMContentLoaded", function () {
-        const prDateS = localStorage.getItem('PR_Date_S');
-        const prDateE = localStorage.getItem('PR_Date_E');
-
-        const selectS = createYearMonthSelect(prDateS, true);
-        const selectE = createYearMonthSelect(prDateE);
-
-        document.getElementById('PR_DATE_S_container').appendChild(selectS);
-        document.getElementById('PR_DATE_E_container').appendChild(selectE);
-
+        document.getElementById("PR_Date_Minguo").innerText = localStorage.getItem('PR_Date_Minguo');
         document.getElementById("Title_name").innerText = localStorage.getItem('titleName');
         document.getElementById("PR_target").value = localStorage.getItem('PR_target');
     });
-
-    function createYearMonthSelect(defaultValue, isDisabled = false) {
-        const now = new Date();
-        const select = document.createElement('select');
-        select.classList.add('box');
-        if (isDisabled) {
-            select.disabled = true;
-        }
-
-        for (let i = 0; i < 12; i++) {
-            const optionDate = new Date(now.getFullYear(), now.getMonth() + i);
-            const year = optionDate.getFullYear();
-            const month = (optionDate.getMonth() + 1).toString().padStart(2, '0');
-            const value = `${year}/${month}`;
-
-            const option = document.createElement('option');
-            option.value = value;
-            option.textContent = `${year}年${month}月`;
-            if (value === defaultValue) {
-                option.selected = true;
-            }
-
-            select.appendChild(option);
-        }
-
-        return select;
-    }
 
     function saveData() {
         let Pro_Target = {
             PR_ID : localStorage.getItem('PR_ID'),
             PR_title: localStorage.getItem('title'),
-            PR_Date_S : document.querySelector('#PR_DATE_S_container select').value,
-            PR_Date_E : document.querySelector('#PR_DATE_E_container select').value,
+            PR_Date: localStorage.getItem('PR_Date'),
             PR_target : document.getElementById("PR_target").value,
             user : localStorage.getItem('WebUser')
         };

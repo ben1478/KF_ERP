@@ -84,8 +84,8 @@
                     職務名稱：
                     <input type="text" name="Title_name" id="Title_name" size="10" maxlength="10" class="box">
                     &nbsp;
-                    任額起月：
-                    <input type="text" name="DATE_S" id="DATE_S" size="10" maxlength="10" class="box">
+                    任額月：
+                    <input type="text" name="DATE_T" id="DATE_T" size="10" maxlength="10" class="box">
                     <input type="button" value="查詢" onclick="fetchData();" />
                     <input type="button" value="新增" onclick="openNewData();" />
                     <input type="button" value="比照上期新增" onclick="clone();" />
@@ -103,8 +103,7 @@
                             <tr align="center" height="30" bgcolor="#CCCCFF" class="c12-k">
                                 <td width="30">序號</td>
                                 <td width="40">職務名稱</td>
-                                <td width="40">任額起月</td>
-                                <td width="40">任額迄月</td>
+                                <td width="40">任額月</td>
                                 <td width="50">責任額(萬)</td>
                                 <td width="30"></td>
                             </tr>
@@ -142,9 +141,9 @@
     function fetchData() {
 
         let Title_name = $('#Title_name').val();
-        let DATE_S = $('#DATE_S').val();
+        let DATE_T = $('#DATE_T').val();
 
-        const url = `${BASE_URL}/AE_TAR/Pro_Target_LQuery?Title_name=${Title_name}&PR_DATE_S=${DATE_S}`;
+        const url = `${BASE_URL}/AE_TAR/Pro_Target_LQuery?Title_name=${Title_name}&PR_DATE=${DATE_T}`;
         fetch(url, {
             method: 'GET',
             headers: {
@@ -179,7 +178,7 @@
             row.setAttribute('onmouseover', "this.style.background='#FCFCC0';");
             row.setAttribute('onmouseout', "this.style.background='#FFFFFF';");
 
-            const columnOrder = ['PR_title_Name', 'PR_Date_S', 'PR_Date_E', 'PR_target'];
+            const columnOrder = ['PR_title_Name', 'PR_Date_Minguo', 'PR_target'];
 
             const serialCell = document.createElement('td');
             serialCell.textContent = startIndex + pageData.indexOf(item) + 1;
@@ -203,7 +202,7 @@
             button.style.padding = '5px 10px';
             button.style.cursor = 'pointer';
             button.addEventListener('click', function () {
-                openPopupForm(item['PR_ID'], item['PR_title'], item['PR_title_Name'], item['PR_Date_S'], item['PR_Date_E'], item['PR_target']
+                openPopupForm(item['PR_ID'], item['PR_title'], item['PR_title_Name'], item['PR_Date'], item['PR_Date_Minguo'], item['PR_target']
                 );
             });
 
@@ -214,12 +213,12 @@
         }
     }
 
-    function openPopupForm(pr_id, pr_title, pr_title_Name,pr_date_s, pr_date_e, pr_target) {
+    function openPopupForm(pr_id, pr_title, pr_title_Name, pr_date,pr_date_minguo, pr_target) {
         localStorage.setItem('PR_ID', pr_id);
         localStorage.setItem('title', pr_title);
         localStorage.setItem('titleName', pr_title_Name);
-        localStorage.setItem('PR_Date_S', pr_date_s);
-        localStorage.setItem('PR_Date_E', pr_date_e);
+        localStorage.setItem('PR_Date', pr_date);
+        localStorage.setItem('PR_Date_Minguo', pr_date_minguo);
         localStorage.setItem('PR_target', pr_target);
         localStorage.setItem('WebUser', WebUser);
         window.open('Profess_detail_form.html', '_blank', 'width=500,height=150,top=100,left=200,resizable=yes,scrollbars=yes');   
@@ -239,11 +238,11 @@
             const optionDate = new Date(now.getFullYear(), now.getMonth() + i);
             const year = optionDate.getFullYear();
             const month = (optionDate.getMonth() + 1).toString().padStart(2, '0');
-            const value = `${year}/${month}`;
+            const value = `${year}-${month}`;
 
             const option = document.createElement('option');
             option.value = value;
-            option.textContent = `${year}年${month}月`;
+            option.textContent = `${year-1911}年${month}月`;
 
             if (value === selectedValue) {
                 option.selected = true;
@@ -261,12 +260,8 @@
         modal.className = 'modal-box';
 
         const startLabel = document.createElement('label');
-        startLabel.textContent = '任額起月：';
+        startLabel.textContent = '任額月：';
         const startSelect = createYearMonthSelect();
-
-        const endLabel = document.createElement('label');
-        endLabel.textContent = '任額迄月：';
-        const endSelect = createYearMonthSelect();
 
         const btnContainer = document.createElement('div');
         btnContainer.className = 'btn-container';
@@ -302,7 +297,7 @@
     }
 
     function cloneData(startDate, endDate) {
-        const url = `${BASE_URL}/AE_TAR/Pro_Target_Clone?PR_DATE_S=${startDate}&PR_DATE_E=${endDate}&User=${WebUser}`;
+        const url = `${BASE_URL}/AE_TAR/Pro_Target_Clone?PR_DATE=${startDate}&User=${WebUser}`;
 
         fetch(url, {
             method: 'GET',
