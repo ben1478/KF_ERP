@@ -85,7 +85,9 @@
                     <input type="text" name="Title_name" id="Title_name" size="10" maxlength="10" class="box">
                     &nbsp;
                     任額月：
-                    <input type="text" name="DATE_T" id="DATE_T" size="10" maxlength="10" class="box">
+                    <select name="DATE_T" id="DATE_T" class="box">
+                        <option value="">請選擇日期</option>
+                    </select>
                     <input type="button" value="查詢" onclick="fetchData();" />
                     <input type="button" value="新增" onclick="openNewData();" />
                     <input type="button" value="比照上期新增" onclick="clone();" />
@@ -137,6 +139,32 @@
     let data = [];
 
     fetchData();
+    GetDateSelect();
+
+    function GetDateSelect() {
+        const url = `${BASE_URL}/AE_TAR/GetTargetYM`;
+        fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include'
+        })
+            .then(response => response.json())
+            .then(responseData => {
+                const data = JSON.parse(responseData.objResult);
+                data.forEach(function (item) { 
+                    $('#DATE_T').append($('<option>', {
+                        value: item.PR_Date,
+                        text: item.PR_Date_Minguo
+                    }));
+                });
+            })
+            .catch(error => {
+                alert('API 請求失敗，請稍後再試。');
+            });
+    }
+
 
     function fetchData() {
 
@@ -269,9 +297,8 @@
         const confirmBtn = document.createElement('button');
         confirmBtn.textContent = '確定';
         confirmBtn.onclick = () => {
-            const startDate = startSelect.value;
-            const endDate = endSelect.value;
-            cloneData(startDate, endDate);
+            const cDate = startSelect.value;
+            cloneData(cDate);
             document.body.removeChild(overlay);
             document.body.removeChild(modal);
         };
@@ -288,15 +315,13 @@
 
         modal.appendChild(startLabel);
         modal.appendChild(startSelect);
-        modal.appendChild(endLabel);
-        modal.appendChild(endSelect);
         modal.appendChild(btnContainer);
 
         document.body.appendChild(overlay);
         document.body.appendChild(modal);
     }
 
-    function cloneData(startDate, endDate) {
+    function cloneData(startDate) {
         const url = `${BASE_URL}/AE_TAR/Pro_Target_Clone?PR_DATE=${startDate}&User=${WebUser}`;
 
         fetch(url, {

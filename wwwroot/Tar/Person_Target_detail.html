@@ -12,7 +12,7 @@
 <body>
     <table>
         <tr bgcolor="#FFFFFF">
-            <td align="right" bgcolor="#CCCCFF">
+            <td align="right">
                 新增業務目標:
             </td>
             <td align="left">
@@ -28,8 +28,7 @@
             <tr align="center" bgcolor="#CCCCFF" class="c12-k">
                 <td width="70">員工編號</td>
                 <td width="70">業務名稱</td>
-                <td width="85">任額起月</td>
-                <td width="85">任額迄月</td>
+                <td width="85">任額月</td>
                 <td width="90">目標額(萬)</td>
                 <td width="70"></td>
             </tr>
@@ -88,11 +87,6 @@
         SdateCell.appendChild(SdateSelect);
         row.appendChild(SdateCell);
 
-        const DdateCell = document.createElement('td');
-        const DdateSelect = createYearMonthSelect('Ddate');
-        DdateCell.appendChild(DdateSelect);
-        row.appendChild(DdateCell);
-
         const targetCell = document.createElement('td');
         const targetInput = document.createElement('input');
         targetInput.type = 'text';
@@ -125,11 +119,11 @@
             const optionDate = new Date(now.getFullYear(), now.getMonth() + i);
             const year = optionDate.getFullYear();
             const month = (optionDate.getMonth() + 1).toString().padStart(2, '0');
-            const value = `${year}/${month}`;
+            const value = `${year}-${month}`;
 
             const option = document.createElement('option');
             option.value = value;
-            option.textContent = `${year}年${month}月`;
+            option.textContent = `${year-1911}年${month}月`;
             select.appendChild(option);
         }
         return select;
@@ -156,8 +150,7 @@
             PE_title: null,
             PE_num: item.U_num,
             PE_target: parseInt(item.target),
-            PE_Date_S: item.Sdate,
-            PE_Date_E: item.Ddate,
+            PE_Date: item.Sdate,
             user: WebUser
         }));
 

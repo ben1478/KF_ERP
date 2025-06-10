@@ -17,8 +17,10 @@
                     業務名稱：
                     <input type="text" name="c_name" id="c_name" size="10" maxlength="10" class="box">
                     &nbsp;
-                    任額起月：
-                    <input type="text" name="DATE_S" id="DATE_S" size="10" maxlength="10" class="box">
+                    任額月：
+                    <select name="DATE_T" id="DATE_T" class="box">
+                        <option value="">請選擇日期</option>
+                    </select>
                     <input type="button" value="查詢" onclick="fetchData();" />
                     <input type="button" value="新增" onclick="openNewData();" />
                 </td>
@@ -37,8 +39,7 @@
                                 <td width="40">職務名稱</td>
                                 <td width="40">業務名稱</td>
                                 <td width="40">員工編號</td>
-                                <td width="40">任額起月</td>
-                                <td width="40">任額迄月</td>
+                                <td width="40">任額月</td>
                                 <td width="50">責任額(萬)</td>
                                 <td width="30"></td>
                             </tr>
@@ -71,12 +72,37 @@
     let data = [];
 
     fetchData();
+    GetDateSelect();
+
+    function GetDateSelect() {
+        const url = `${BASE_URL}/AE_TAR/GetTargetYM`;
+        fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include'
+        })
+            .then(response => response.json())
+            .then(responseData => {
+                const data = JSON.parse(responseData.objResult);
+                data.forEach(function (item) {
+                    $('#DATE_T').append($('<option>', {
+                        value: item.PR_Date,
+                        text: item.PR_Date_Minguo
+                    }));
+                });
+            })
+            .catch(error => {
+                alert('API 請求失敗，請稍後再試。');
+            });
+    }
 
     function fetchData() {
         let c_name = $('#c_name').val();
-        let DATE_S = $('#DATE_S').val();
+        let DATE_T = $('#DATE_T').val();
 
-        const url = `${BASE_URL}/AE_TAR/Per_Target_LQuery?c_name=${c_name}&PE_DATE_S=${DATE_S}`;
+        const url = `${BASE_URL}/AE_TAR/Per_Target_LQuery?c_name=${c_name}&PE_DATE=${DATE_T}`;
 
         fetch(url, {
             method: 'GET',
@@ -112,7 +138,7 @@
             row.setAttribute('onmouseover', "this.style.background='#FCFCC0';");
             row.setAttribute('onmouseout', "this.style.background='#FFFFFF';");
 
-            const columnOrder = ['titleName', 'U_name', 'PE_num', 'PE_Date_S', 'PE_Date_E', 'PE_target'];
+            const columnOrder = ['titleName', 'U_name', 'PE_num', 'PE_Date_Minguo', 'PE_target'];
 
             const serialCell = document.createElement('td');
             serialCell.textContent = startIndex + pageData.indexOf(item) + 1;
@@ -120,7 +146,7 @@
 
             for (let key of columnOrder) {
                 const cell = document.createElement('td');
-                cell.innerHTML = item[key] || '';
+                cell.innerHTML = item[key];
                 row.appendChild(cell);
             }
 
@@ -132,7 +158,7 @@
             button.style.padding = '5px 10px';
             button.style.cursor = 'pointer';
             button.addEventListener('click', function () {
-                openPopupForm(item['PE_ID'], item['titleName'], item['U_name'], item['PE_num'], item['PE_Date_S'], item['PE_Date_E'], item['PE_target']
+                openPopupForm(item['PE_ID'], item['titleName'], item['U_name'], item['PE_num'], item['PE_Date'], item['PE_target'], item['PE_Date_Minguo']
                 );
             });
 
@@ -143,13 +169,13 @@
         }
     }
 
-    function openPopupForm(pe_id,titlename,u_name,pe_num,pe_date_s,pe_date_e,pe_target) {
+    function openPopupForm(pe_id, titlename, u_name, pe_num, pe_date, pe_target, pe_date_m) {
         localStorage.setItem('PE_ID', pe_id);
         localStorage.setItem('titleName', titlename);
         localStorage.setItem('PE_name', u_name);
         localStorage.setItem('PE_num', pe_num);
-        localStorage.setItem('PE_Date_S', pe_date_s);
-        localStorage.setItem('PE_Date_E', pe_date_e);
+        localStorage.setItem('PE_Date', pe_date);
+        localStorage.setItem('PE_Date_Minguo', pe_date_m);
         localStorage.setItem('PE_target', pe_target);
         localStorage.setItem('WebUser', WebUser);
         window.open('Person_detail_form.html', '_blank', 'width=800,height=150,top=100,left=200,resizable=yes,scrollbars=yes');   
