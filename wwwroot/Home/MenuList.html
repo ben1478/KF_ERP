@@ -129,7 +129,9 @@
                                 <td width="13%" align="center">
                                     <input type="button" name="add" value="委對單" onclick="openHouse_agency_list();">
                                 </td>
-                                <td width="13%" align="center"></td>
+                                <td width="13%" align="center">
+                                    <input type="button" name="add" value="各區業績平均表" onclick="AvgTatget_Rpt();">
+                                </td>
                                 <td width="13%" align="center"></td>
                             </tr>
                             <tr>
@@ -345,5 +347,9 @@
 
     function openTargetP() {
         window.open(`/Tar/Person_Target_list.html?User=${WebUser}&U_BC=${WebBC}`, 'list', 'scrollbars=yes,resizable=yes,width=1000,height=500,left=250,top=100')
+    }
+
+    function AvgTatget_Rpt() {
+        window.open(`/Rpt/AvgTarget_Rpt.html?User=${WebUser}&U_BC=${WebBC}`, 'list', 'scrollbars=yes,resizable=yes,width=1000,height=500,left=250,top=100')
     }
 </script>
