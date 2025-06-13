@@ -1,0 +1,68 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script src="../Base.js"></script>
+    <title>作業平台</title>
+</head>
+<body>
+    <table border="0" width="100%">
+        <tbody>
+            <tr class="c12-k">
+                <td width="86%">
+                    部門區域：
+                    <select name="U_BC" id="U_BC" class="">
+                        <option value="">不限</option>
+                        <option value="BC0100">台北</option>
+                        <option value="BC0100-1">台北1</option>
+                        <option value="BC0100-2">台北2</option>
+                        <option value="BC0200">新北</option>
+                        <option value="BC0600">桃園</option>
+                        <option value="BC0300">台中</option>
+                        <option value="BC0500">台南</option>
+                        <option value="BC0400">高雄</option>
+                    </select>
+                    &nbsp;
+                    年度：
+                    <select name="yyyy" id="yyyy" class="">
+                        <option value="">請選擇</option>
+                    </select>
+                    &nbsp;
+                    <input type="button" value="查詢" onclick="fetchData();" />
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</body>
+</html>
+<script>
+    GetDateSelect();
+
+    function GetDateSelect() {
+        const url = `${BASE_URL}/AE_TAR/GetTargetYYYY`;
+        fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include'
+        })
+            .then(response => response.json())
+            .then(responseData => {
+                const data = JSON.parse(responseData.objResult);
+                data.forEach(function (item) {
+                    $('#yyyy').append($('<option>', {
+                        value: item.yyyy,
+                        text: item.yyy_Minguo
+                    }));
+                });
+            })
+            .catch(error => {
+                alert('API 請求失敗，請稍後再試。');
+            });
+    }
+</script>
