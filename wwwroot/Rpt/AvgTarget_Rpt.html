@@ -16,7 +16,6 @@
                 <td width="86%">
                     部門區域：
                     <select name="U_BC" id="U_BC" class="">
-                        <option value="">不限</option>
                         <option value="BC0100">台北</option>
                         <option value="BC0100-1">台北1</option>
                         <option value="BC0100-2">台北2</option>
@@ -33,6 +32,35 @@
                     </select>
                     &nbsp;
                     <input type="button" value="查詢" onclick="fetchData();" />
+                    &nbsp;
+                    <input type="button" value="產出年度報表" onclick="Achieve_Excel();" />
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table width="650" border="0" cellspacing="0" cellpadding="0">
+        <tbody>
+            <tr>
+                <td valign="top"> </td>
+                <td align="center" valign="top">
+                    <table id="MainTable" width="980" border="0" cellpadding="4" cellspacing="1" bgcolor="#666666">
+                        <thead>
+                            <tr align="center" height="30" bgcolor="#CCCCFF">
+                                <td colspan="6"><span id="area">地區</span></td>
+                            </tr>
+                            <tr align="center" height="30" bgcolor="#CCCCFF" class="c12-k">
+                                <td>月份</td>
+                                <td>總業績</td>
+                                <td>折數後總業績</td>
+                                <td>責任額</td>
+                                <td>達成率</td>
+                                <td>折數後達成率</td>
+                            </tr>
+                        </thead>
+                        <tbody>
+
+                        </tbody>
+                    </table>
                 </td>
             </tr>
         </tbody>
@@ -40,6 +68,8 @@
 </body>
 </html>
 <script>
+    let data = [];
+
     GetDateSelect();
 
     function GetDateSelect() {
@@ -64,5 +94,94 @@
             .catch(error => {
                 alert('API 請求失敗，請稍後再試。');
             });
+    }
+
+    function fetchData() {
+        let yyyy = $('#yyyy').val();
+        let U_BC = $('#U_BC').val();
+
+        const url = `${BASE_URL}/AE_TAR/GetTargetAchieve?YYYY=${yyyy}&U_BC=${U_BC}`;
+        document.body.style.cursor = 'wait';
+
+        fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include'
+        })
+            .then(response => response.json())
+            .then(responseData => {
+                data = JSON.parse(responseData.objResult);
+                const tbody = document.querySelector('#MainTable tbody');
+
+                tbody.innerHTML = '';
+                if (!data || data.length === 0) {
+                    $('#area').text("");
+                    return;
+                }
+
+                const areaMap = {
+                    "BC0100": "台北",
+                    "BC0100-1": "台北1",
+                    "BC0100-2": "台北2",
+                    "BC0200": "新北",
+                    "BC0600": "桃園",
+                    "BC0300": "台中",
+                    "BC0500": "台南",
+                    "BC0400": "高雄"
+                };
+
+                $('#area').text(areaMap[data[0].U_BC_NEW]);
+                let totalPerf = 0, totalPerfAfter = 0, totalTarget = 0;
+
+                data.forEach(item => {
+                    const month = parseInt(item.month.split('-')[1]);
+                    totalPerf += item.total_perf;
+                    totalPerfAfter += item.total_perf_after_discount ?? 0;
+                    totalTarget += item.total_target;
+
+                    const row = document.createElement('tr');
+                    row.style.backgroundColor = '#FFFFFF';
+                    row.style.textAlign = 'center';
+
+                    row.innerHTML = `
+                        <td>${month}月(${item.Leader}+${item.Subord})</td>
+                        <td>${item.total_perf.toLocaleString()}</td>
+                        <td>${item.total_perf_after_discount?.toLocaleString() ?? '-'}</td>
+                        <td>${item.total_target.toLocaleString()}</td>
+                        <td>${item.achieve_rate || '-'}</td>
+                        <td>${item.achieve_rate_after_discount || '-'}</td>
+                    `;
+                    tbody.appendChild(row);
+                });
+
+                const achieveRate = totalTarget !== 0 ? (totalPerf / totalTarget * 100).toFixed(2) + '%' : '-';
+                const achieveRateAfter = totalTarget !== 0 ? (totalPerfAfter / totalTarget * 100).toFixed(2) + '%' : '-';
+
+                const totalRow = document.createElement('tr');
+                totalRow.style.backgroundColor = '#F0F0F0';
+                totalRow.style.fontWeight = 'bold';
+                totalRow.style.textAlign = 'center';
+                totalRow.innerHTML = `
+                    <td>總計</td>
+                    <td>${totalPerf.toLocaleString()}</td>
+                    <td>${totalPerfAfter.toLocaleString()}</td>
+                    <td>${totalTarget.toLocaleString()}</td>
+                    <td>${achieveRate}</td>
+                    <td>${achieveRateAfter}</td>
+                `;
+                tbody.appendChild(totalRow);
+            })
+            .catch(error => {
+                alert('API 請求失敗:', error);
+            })
+            .finally(() => {
+                document.body.style.cursor = 'default';
+            });
+    }
+
+    function Achieve_Excel() {
+        alert("XXX");
     }
 </script>
