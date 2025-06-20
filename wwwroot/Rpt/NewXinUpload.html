@@ -1,212 +1,145 @@
 ﻿<!DOCTYPE html>
 <html>
 <head>
-	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-	<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
-	<script type="text/javascript" src="../tool_js/jquery.blockUI.js"></script>
-	<link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
-	<script type="text/javascript" src="../tool_js/jquery.table2excel.js"></script>
-	<link href="../_include/main.css" rel="stylesheet" type="text/css">
-	<script src="../Base.js"></script>
-	<title>作業平台</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <script type="text/javascript" src="../tool_js/jquery.blockUI.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <link href="../_include/main.css" rel="stylesheet" type="text/css">
+    <script src="../Base.js"></script>
+    <script src="../_include/exceljs.min.js"></script>
+    <script src="../_include/filesaver.min.js"></script>
+    <title>作業平台</title>
 </head>
 <body>
-	<style type="text/css">
-		#MainTable td.Link {
-			text-decoration: underline;
-			font-weight: bold;
-			color: blue;
-			cursor: pointer;
-		}
+    <style type="text/css">
+        #MainTable td.Link {
+            text-decoration: underline;
+            font-weight: bold;
+            color: blue;
+            cursor: pointer;
+        }
 
-		#MainTable tr.DIS td {
-			color: #8E8E8E;
-			size: 18;
-		}
+        #MainTable tr.DIS td {
+            color: #8E8E8E;
+            size: 18;
+        }
 
-		td.LogEDIT {
-			text-decoration: underline;
-			font-weight: bold;
-			color: blue;
-			cursor: pointer;
-			background: #FFF4C1;
-		}
-	</style>
+        td.LogEDIT {
+            text-decoration: underline;
+            font-weight: bold;
+            color: blue;
+            cursor: pointer;
+            background: #FFF4C1;
+        }
+    </style>
 
-	<table width="1180" border="0" cellspacing="0" cellpadding="0">
-		<tbody>
-			<tr>
-				<td align="left" valign="top">
-					<table width="100%" border="0" cellspacing="0" cellpadding="0">
-						<tbody>
-							<tr>
-								<td width="20">　</td>
-								<td width="200" height="24">　<span class="c14k">　<strong>全區業績表</strong></span></td>
-							</tr>
-							<tr>
-								<td></td>
-								<td align="left" width="80%">
-									<h2>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;新鑫案件核對表</h2>
-										<div style="margin:5px;">
-										<form method="post" enctype="multipart/form-data" id="form1" name="form1" action=`${BASE_URL}/AE_RPT/UploadUserList_LQuery`>
-											<input type="hidden" name="KeyID" id="hidKeyID"  maxlength="20" value="202505120917414105" >
-											<input type="hidden" name="TableNa" id="TableNa"  maxlength="20" value="NewXinCase" >
-											<label class="label" >上傳新鑫Excel：</label><input type="file" name="file"  id ="fileInput" style="font-size:17px;" required>
-											<input class="label" type="submit"  value="上傳" style="padding:3px 10px;" onclick="loadData();">
-										</form>
-										撥款年月：
-											<select name="selYear_S" id="selYear_S" >
-													<option  value="2025-05">114-5</option>
-													<option selected value="2025-04">114-4</option>
-													<option  value="2025-03">114-3</option>
-													<option  value="2025-02">114-2</option>
-													<option  value="2025-01">114-1</option>
-											</select>
-										<BR>
-											<input type="checkbox" name="isDiff" value="Y" id="isDiff">
-											<label class="label" for="isDiff">不相等or未對應or難字</label>
-											<label class="label" style="background:#D2E9FF;">不相等(成數,利率)</label>
-											<label class="label" style="background:#FFD2D2;">　未對應　</label>
-											<label class="label" style="background:#FFFF37;">　難字　</label>
-											<input type="button" class="label" value="匯出Excel" name="btnExcel" onclick="exportToExcel()">
-										</div>
-								</td>
-							</tr>
-						</tbody>
-					</table>
-				</td>
-			</tr>
-			<tr>
-				<td align="center" valign="top">
-					<table width="1180" border="0" cellspacing="0" cellpadding="0">
-						<tbody>
-							<tr>
-								<td valign="top" background="../image/form_04.gif">　</td>
-								<td align="left" valign="top" background="../image/form_05.gif">
-									<table width="1150" border="0" cellspacing="0" cellpadding="1">
-										<tbody>
-											<tr>
-												<td height="100" align="center" valign="top" nowrap>
-													<table width="1100px" id="MainTable" border="0" cellpadding="4" cellspacing="1" bgcolor="#666666">
-														<thead>
-															<tr align="center" style="display:none" bgcolor="#CCCCFF" class="TrHead"> 
-																<td width="5%">No.</td>
-																<td width="7%">申購人</td>
-																<td width="7%">據點</td>
-																<td width="9%">適用專案</td>
-																<td width="7%">成數</td>
-																<td width="10%">合約利率</td>
-																<td width="10%">申請人</td>
-																<td width="8%">區</td>
-																<td width="10%">業務</td>
-																<td width="10%">專案</td>
-																<td width="7%">貸款成數</td>
-																<td width="10%">承作利率</td>
-															</tr>
-														</thead>
-														<tbody>
-															<tr align="center" class="c12-k" bgcolor="#FFFFFF" onmouseover="this.style.background='#FFFF66';" onmouseout="this.style.background='#FFFFFF'; " style="background: rgb(255, 255, 255);">
-															</tr>
-															<tr align="center" class="c12-k" bgcolor="#FFFFFF" onmouseover="this.style.background='#FFFF66';" onmouseout="this.style.background='#FFFFFF'; " style="background: rgb(255, 255, 255);">
-															</tr>
-															<tr align="center" height="30" bgcolor="#CCCCFF">
-																<td class="c12-k" colspan="20">
-																</td>
-															</tr>
-														</tbody>
-														<tfoot>
-															<tr align="center" height="30" bgcolor="#CCCCFF">
-																<td class="c12-k" colspan="4"><font color="#000080"><label id="CountRows"></label></font></td>
-																<td class="c12-k"><font color="#000080"> 合計:</font></td>
-																<td class="c12-k"><font color="#000080"><label id='Jan'></label></font></td>
-																<td class="c12-k"><font color="#000080"><label id='Feb'></label></font></td>
-																<td class="c12-k"><font color="#000080"><label id='Mar'></label></font></td>
-																<td class="c12-k"><font color="#000080"><label id='Apr'></label></font></td>
-																<td class="c12-k"><font color="#000080"><label id='May'></label></font></td>
-																<td class="c12-k"><font color="#000080"><label id='Jun'></label></font></td>
-																<td class="c12-k"><font color="#000080"><label id='Jul'></label></font></td>
-																<td class="c12-k"><font color="#000080"><label id='Aug'></label></font></td>
-																<td class="c12-k"><font color="#000080"><label id='Sep'></label></font></td>
-																<td class="c12-k"><font color="#000080"><label id='Oct'></label></font></td>
-																<td class="c12-k"><font color="#000080"><label id='Nov'></label></font></td>
-																<td class="c12-k"><font color="#000080"><label id='Dec'></label></font></td>
-																<td class="c12-k"><font color="#000080"><label id='Totle'></label></font></td>
-																<td class="c12-k"><font color="#000080">　</font></td>
-																<td class="c12-k"><font color="#000080">　</font></td>
-															</tr>
-
-														</tfoot>
-													</table>
-
-												</td>
-											</tr>
-											<tr>
-												<td height="100" align="center" valign="top" colspan="20">
-													<div id="pagination"></div>
-												</td>
-											</tr>
-										</tbody>
-									</table>
-								</td>
-							</tr>
-						</tbody>
-					</table>
-				</td>
-			</tr>
-		</tbody>
-	</table>
-	<div id="tables-container">
-	</div>
+    <table width="1180" border="0" cellspacing="0" cellpadding="0">
+        <tbody>
+            <tr>
+                <td align="left" valign="top">
+                    <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                        <tbody>
+                            <tr>
+                                <td width="20">　</td>
+                                <td width="200" height="24">　<span class="c14k">　<strong>新鑫案件核對表</strong></span></td>
+                            </tr>
+                            <tr>
+                                <td></td>
+                                <td align="left" width="80%">
+                                    <div style="margin:5px;">
+                                        <label class="label">上傳新鑫Excel：</label><input type="file" id="excelFile" style="font-size:17px;" accept=".xlsx,.xls" required>
+                                        <button id="uploadBtn" onclick="fetchData();">上傳</button>
+                                        撥款年月：
+                                        <select name="selYear_S" id="selYear_S">
+                                        </select>
+                                        <BR>
+                                        <input type="checkbox" name="isDiff" value="Y" id="isDiff">
+                                        <label class="label" for="isDiff">不相等or未對應or難字</label>
+                                        <label class="label" style="background:#D2E9FF;">不相等(成數,利率)</label>
+                                        <label class="label" style="background:#FFD2D2;">　未對應　</label>
+                                        <label class="label" style="background:#FFFF37;">　難字　</label>
+                                        <input type="button" class="label" value="匯出Excel" name="btnExcel" onclick="exportToExcel()">
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </td>
+            </tr>
+            <tr>
+                <td align="center" valign="top" valign="top" nowrap>
+                    <table width="1100px" id="MainTable" border="0" cellpadding="4" cellspacing="1" bgcolor="#666666">
+                        <thead>
+                            <tr align="center" bgcolor="#CCCCFF" class="TrHead">
+                                <td width="5%">No.</td>
+                                <td width="7%">申購人</td>
+                                <td width="7%">據點</td>
+                                <td width="9%">適用專案</td>
+                                <td width="7%">成數</td>
+                                <td width="10%">合約利率</td>
+                                <td width="10%">申請人</td>
+                                <td width="8%">區</td>
+                                <td width="10%">業務</td>
+                                <td width="10%">專案</td>
+                                <td width="7%">貸款成數</td>
+                                <td width="10%">承作利率</td>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr align="center" class="c12-k" bgcolor="#FFFFFF" onmouseover="this.style.background='#FFFF66';" onmouseout="this.style.background='#FFFFFF'; " style="background: rgb(255, 255, 255);">
+                            </tr>
+                            <tr align="center" class="c12-k" bgcolor="#FFFFFF" onmouseover="this.style.background='#FFFF66';" onmouseout="this.style.background='#FFFFFF'; " style="background: rgb(255, 255, 255);">
+                            </tr>
+                            <tr align="center" height="30" bgcolor="#CCCCFF">
+                                <td class="c12-k" colspan="20">
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <div id="tables-container">
+    </div>
 </body>
 </html>
 <script>
-	const Params = getQueryParams();
+    const Params = getQueryParams();
     let WebUser = Params.WebUser;
     let WebBC = Params.WebBC;
 
-    const itemsPerPage = 500;  
+    const itemsPerPage = 500;
     let currentPage = 1;
-    let data = []; 
+    let data = [];
 
-	window.onload = function () {
-		loadYYYMMDown();
-	}
+    window.onload = function () {
+        loadYYYMMDown();
+    }
 
-	function loadYYYMMDown() {
-		const url = `${BASE_URL}/AE_RPT/GetSendcaseYYYMM`;
+    $('#isDiff').on('change', function () {
+        showPage(currentPage);
+    });
+    function loadYYYMMDown() {
+        const url = `${BASE_URL}/AE_RPT/NewXinUpload_loadYYYMMDown`;
 
         fetch(url)
         .then(response => response.json())
         .then(data => {
             if (data.resultCode === "000") {
                 const selectElementS = document.getElementById('selYear_S');
-				const selectElementE = document.getElementById('selYear_E');
                 const options = JSON.parse(data.objResult);
 
-                let isFirstOption = true;
                 options.forEach(option => {
-                    if(isFirstOption)
-                    {
-                        selectElementS.innerHTML = `<option value=${option.yyyymm} selected>${option.yyyMM}</option>`;
-						selectElementE.innerHTML = `<option value=${option.yyyymm} selected>${option.yyyMM}</option>`;
-                        //optionElement.selected = isFirstOption;
-                    }else{
                         const optionElementS = document.createElement('option');
-                        optionElementS.value = option.yyyymm; 
+                        optionElementS.selected = option.op===1;
+                        optionElementS.value = option.yyyymm;
                         optionElementS.textContent = option.yyyMM;
                         selectElementS.appendChild(optionElementS);
-						const optionElementE = document.createElement('option');
-                        optionElementE.value = option.yyyymm; 
-                        optionElementE.textContent = option.yyyMM;
-						selectElementE.appendChild(optionElementE);
-                    }
-                    
-                    isFirstOption = false;
                 });
-
-                //fetchData();
             } else {
                 alert('錯誤: ' + (data.resultMsg || '未知錯誤'));
             }
@@ -218,76 +151,40 @@
             alert('無法載入資料，請稍後再試。');
         });
     }
-
-	/*
-	function loadData() {
-		
-			 var fileUpload = $("#fileInput").get(0);
-			 var files = fileUpload.files; 
-			 var fileData = new FormData();
-
-			 // 取得上傳的檔案
-			 for (var i = 0; i < files.length; i++) { 
-				fileData.append(files[i].name, files[i]);
-			 }
-			 // 將檔案POST至後端
-			 $.ajax({ 
-				   url: '/User/UploadUserList', 
-				   type: "POST", 
-				   contentType: false, // Not to set any content header 
-				   processData: false, // Not to process data 
-				   data: fileData, 
-				   success: function (result) { 
-					   alert(result); 
-				   }, 
-				   error: function (err) { 
-				   alert(err.statusText); 
-				  } 
-			   }); 
-	}
-	*/
-
     function fetchData() {
-		const Req = {
-            u_bc_title:document.querySelector('#u_bc_title').value,
-            selYear_S: document.getElementById('selYear_S').value,
-			selYear_E: document.getElementById('selYear_E').value,
-			start_date: document.getElementById('start_date').value,
-			Enable: document.getElementById('Enable').value,
-			isACT: document.getElementById('ACT').checked ? 'Y':'',
-			OrderBy: document.getElementById('OrderBy').value
-        };
-		
-        const url = `${BASE_URL}/AE_RPT/Performance_LQuery`;
+        var file = $('#excelFile')[0].files[0];
+        if (!file) {
+            alert("請選擇一個 Excel 檔案");
+            return;
+        }
 
-        fetch(url, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            credentials: 'include',
-            body: JSON.stringify(Req)
-        })
-            .then(response => response.json())
-            .then(responseData => {
-                if (responseData.resultCode == "000") {
-                    data = JSON.parse(responseData.objResult);
+        var formData = new FormData();
+        formData.append('file', file);
+        formData.append('selYear_S', $('#selYear_S').val());
+
+        const url = `${BASE_URL}/AE_RPT/NewXinUpload_LQuery`;
+        $.ajax({
+            url: url,
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function (resData) {
+                if (resData.resultCode == "000") {
+                    data = JSON.parse(resData.objResult);
                     showPage(currentPage);
-					GetCensList();
-     //                //createPagination();
                 } else {
                     alert(response.resultMsg);
                 }
-            })
-            .catch(error => {
-				console.log(`API 請求失敗: error=${error}`);
-                alert('API 請求失敗:', error);
-            });
-    }
+            },
+            error: function (err) {
+                alert("上傳失敗: " + err.responseText);
+            }
+        });
 
-   
-	function showPage(page) {
-		document.getElementById('CountRows').innerHTML = `筆數:${data.length}`;
+
+    }
+    function showPage(page) {
         const tbody = document.querySelector('#MainTable tbody');
         tbody.innerHTML = '';
 
@@ -295,150 +192,87 @@
         const endIndex = Math.min(startIndex + itemsPerPage, data.length);
         const pageData = data.slice(startIndex, endIndex);
 
-		let Enable = document.getElementById('Enable').value;
-		let Jan=0, Feb=0, Mar=0, Apr=0, May=0, Jun=0, Jul=0, Aug=0, Sep=0, Oct=0, Nov=0, Dec=0, Totle=0;
+        // 取得checkbox狀態
+        const isDiffChecked = $('#isDiff').prop('checked');
 
         for (let item of pageData) {
             const row = document.createElement('tr');
             row.setAttribute('align', 'center');
             row.setAttribute('bgcolor', '#FFFFFF');
-            row.setAttribute('onmouseover', "this.style.background='#FCFCC0';");
-            row.setAttribute('onmouseout', "this.style.background='#FFFFFF';");
-			
-            const columnOrder = ['U_BC_name', 'title', 'U_name', 'U_arrive_date', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct',	'Nov', 'Dec','Totle','MonAVG','YearAVG','U_leave_date'];
 
-			const serialCell = document.createElement('td');
+            const columnOrder = ['CS_name_xls', 'U_BC_xls', 'Pro_Na_xls', 'Loan_rate_xls', 'interest_rate_pass_xls', 'CS_name', 'U_BC_name', 'plan_name', 'show_project_title', 'Loan_rate', 'interest_rate_pass','isMate','isDiff','isHaveNCR'];
+
+            const serialCell = document.createElement('td');
             serialCell.textContent = startIndex + pageData.indexOf(item) + 1;
             row.appendChild(serialCell);
-            
-			for (let key of columnOrder) {
+
+            let isMate = false;
+            let isDiff = false;
+            let isHaveNCR = false;
+
+            for (let key of columnOrder) {
                 const cell = document.createElement('td');
                 switch (key) {
-					case 'U_name':
-						cell.innerHTML = item[key] || '';
-						row.appendChild(cell);
-						break;
-					case 'U_leave_date':
-						if(Enable==='' && item[key] !== null)
-						{
-							row.setAttribute('class', 'c12-k DIS');
-						}
-						else
-						{
-							row.setAttribute('class', 'c12-k');
-						}
-						break;
-					case 'Jan':
-						cell.textContent = `${item[key] || 0} 萬`;
+                    case 'Loan_rate_xls':
+                        cell.textContent = `${item[key] || 0}%`;
                         row.appendChild(cell);
-						Jan = Jan + parseInt(item[key].replace(/,/g, ''));
-						cell.id = `${item['U_num']}${item['yyyy']}-01`;
-						break;
-					case 'Feb':
-						cell.textContent = `${item[key] || 0} 萬`;
-						row.appendChild(cell);
-						Feb += parseInt(item[key].replace(/,/g, ''));
-						cell.id = `${item['U_num']}${item['yyyy']}-02`;
-						break;
-					case 'Mar':
-						cell.textContent = `${item[key] || 0} 萬`;
+                        break;
+                    case 'Loan_rate':
+                        cell.textContent = `${item[key] || 0}%`;
                         row.appendChild(cell);
-						Mar += parseInt(item[key].replace(/,/g, ''));
-						cell.id = `${item['U_num']}${item['yyyy']}-03`;
-						break;
-					case 'Apr':
-						cell.textContent = `${item[key] || 0} 萬`;
-						row.appendChild(cell);
-						Apr += parseInt(item[key].replace(/,/g, ''));
-						cell.id = `${item['U_num']}${item['yyyy']}-04`;
-						break;
-					case 'May':
-						cell.textContent = `${item[key] || 0} 萬`;
+                        break;
+                    case 'interest_rate_pass_xls':
+                        cell.textContent = `${item[key] || 0}%`;
                         row.appendChild(cell);
-						May += parseInt(item[key].replace(/,/g, ''));
-						cell.id = `${item['U_num']}${item['yyyy']}-05`;
-						break;
-					case 'Jun':
-						cell.textContent = `${item[key] || 0} 萬`;
-						row.appendChild(cell);
-						Jun += parseInt(item[key].replace(/,/g, ''));
-						cell.id = `${item['U_num']}${item['yyyy']}-06`;
-						break;
-					case 'Jul':
-						cell.textContent = `${item[key] || 0} 萬`;
+                        break;
+                    case 'interest_rate_pass':
+                        cell.textContent = `${item[key] || 0}%`;
                         row.appendChild(cell);
-						Jul += parseInt(item[key].replace(/,/g, ''));
-						cell.id = `${item['U_num']}${item['yyyy']}-07`;
-						break;
-					case 'Aug':
-						cell.textContent = `${item[key] || 0} 萬`;
-						row.appendChild(cell);
-						Aug += parseInt(item[key].replace(/,/g, ''));
-						cell.id = `${item['U_num']}${item['yyyy']}-08`;
-						break;
-					case 'Sep':
-						cell.textContent = `${item[key] || 0} 萬`;
+                        break;
+                    case 'show_project_title':
+                        cell.innerHTML = item[key] || '';
                         row.appendChild(cell);
-						Sep += parseInt(item[key].replace(/,/g, ''));
-						cell.id = `${item['U_num']}${item['yyyy']}-09`;
-						break;
-					case 'Oct':
-						cell.textContent = `${item[key] || 0} 萬`;
-						row.appendChild(cell);
-						Oct += parseInt(item[key].replace(/,/g, ''));
-						cell.id = `${item['U_num']}${item['yyyy']}-10`;
-						break;
-					case 'Nov':
-						cell.textContent = `${item[key] || 0} 萬`;
-                        row.appendChild(cell);
-						Nov += parseInt(item[key].replace(/,/g, ''));
-						cell.id = `${item['U_num']}${item['yyyy']}-11`;
-						break;
-					case 'Dec':
-						cell.textContent = `${item[key] || 0} 萬`;
-						row.appendChild(cell);
-						Dec += parseInt(item[key].replace(/,/g, ''));
-						cell.id = `${item['U_num']}${item['yyyy']}-12`;
-						break;
-					case 'Totle':
-						cell.textContent = `${item[key] || 0} 萬`;
-						row.appendChild(cell);
-						Totle += parseInt(item[key]);
-						break;
-					case 'MonAVG':
-						cell.textContent = `${item[key] || 0} 萬`;
-                        row.appendChild(cell);
-						break;
-					case 'YearAVG':
-						cell.textContent = `${item[key] || 0} 萬`;
-						row.appendChild(cell);
-						break;
+                    case 'isHaveNCR':
+                        isHaveNCR = item[key];
+                        if(isHaveNCR==true)
+                        {
+                            row.setAttribute("bgcolor","#FFFF37");
+                        }
+                        break;
+                    case 'isMate':
+                        isMate = item[key];
+                        if(isMate)
+                        {
+                            row.setAttribute("bgcolor","#FFD2D2");
+                        }
+                        break;
+                    case 'isDiff':
+                            isDiff = item[key];
+                            if(isDiff)
+                            {
+                                row.setAttribute("bgcolor","#D2E9FF");
+                            }
+                            break;
                     default:
-						
                         cell.textContent = item[key] || '';
                         row.appendChild(cell);
                 }
             }
-            
+            if(isMate == false && isDiff == false && isHaveNCR == false)
+            {
+                row.setAttribute('onmouseover', "this.style.background='#FCFCC0';");
+                row.setAttribute('onmouseout', "this.style.background='#FFFFFF';");
+            }
+            // 若有勾選，只顯示 isMate==true || isDiff==true || isHaveNCR==true
+            if (isDiffChecked) {
+                if (!(isMate==true || isDiff==true || isHaveNCR==true)) {
+                    continue; // 不符合則跳過
+                }
+            }
             tbody.appendChild(row);
         }
-		document.getElementById('Jan').innerHTML = `${Jan.toLocaleString()} 萬`;
-		document.getElementById('Feb').innerHTML = `${Feb.toLocaleString()} 萬`;
-		document.getElementById('Mar').innerHTML = `${Mar.toLocaleString()} 萬`;
-		document.getElementById('Apr').innerHTML = `${Apr.toLocaleString()} 萬`;
-		document.getElementById('May').innerHTML = `${May.toLocaleString()} 萬`;
-		document.getElementById('Jun').innerHTML = `${Jun.toLocaleString()} 萬`;
-		document.getElementById('Jul').innerHTML = `${Jul.toLocaleString()} 萬`;
-		document.getElementById('Aug').innerHTML = `${Aug.toLocaleString()} 萬`;
-		document.getElementById('Sep').innerHTML = `${Sep.toLocaleString()} 萬`;
-		document.getElementById('Oct').innerHTML = `${Oct.toLocaleString()} 萬`;
-		document.getElementById('Nov').innerHTML = `${Nov.toLocaleString()} 萬`;
-		document.getElementById('Dec').innerHTML = `${Dec.toLocaleString()} 萬`;
-		document.getElementById('Totle').innerHTML = `${Totle.toLocaleString()} 萬`;
-		
     }
-
-	function getCurrentDateTime() {
+    function getCurrentDateTime() {
       var currentDate = new Date();
 
       var year = currentDate.getFullYear();
@@ -450,169 +284,49 @@
       var formattedDateTime = year + month + day + hours + minutes;
       return formattedDateTime;
     }
-
 	function exportToExcel() {
+		if (data.length ===0) {
+			alert("沒有資料可以匯出");
+			return;
+		}
+        let filename = `新鑫案件核對表-${getCurrentDateTime()}`;
+        
+        exportTableToExcel('MainTable', filename);
+	}
+    function exportTableToExcel(tableId, filename) {
+        var workbook = new ExcelJS.Workbook();
+        var sheet = workbook.addWorksheet('Sheet1');
+        var table = document.getElementById(tableId);
 
-		const Req = {
-            u_bc_title:document.querySelector('#u_bc_title').value,
-            selYear_S: document.getElementById('selYear_S').value,
-			selYear_E: document.getElementById('selYear_E').value,
-			start_date: document.getElementById('start_date').value,
-			Enable: document.getElementById('Enable').value,
-			isACT: document.getElementById('ACT').checked ? 'Y':'',
-			OrderBy: document.getElementById('OrderBy').value
-        };
-        const url = `${BASE_URL}/AE_RPT/Performance_Exccel`;
-		
-        $.ajax({
-            url: url,
-            method: 'POST',
-            xhrFields: {
-                responseType: 'blob'
-            },
-            credentials: 'include',
-            data: JSON.stringify(Req),
-            contentType: 'application/json',
-            success: function (response) {
-                const url = window.URL.createObjectURL(response);
-                const a = document.createElement('a');
-                a.style.display = 'none';
-                a.href = url;
-                a.download = `全區業績表業績-${getCurrentDateTime()}.xlsx`;
-                document.body.appendChild(a);
-                a.click();
-                window.URL.revokeObjectURL(url);
-            },
-            error: function (err) {
-                alert('Error generating file');
+        // 取得所有列
+        for (var i = 0, row; row = table.rows[i]; i++) {
+            var rowData = [];
+            for (var j = 0, col; col = row.cells[j]; j++) {
+                rowData.push(col.innerText);
             }
+            sheet.addRow(rowData);
+        }
+
+        workbook.xlsx.writeBuffer().then(function(buffer) {
+            saveAs(new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }), filename + ".xlsx");
         });
     }
-
-	function GetCensList() {
-		// 撤件資訊
-		// 
-		const Req = {
-            Date_S: document.getElementById('selYear_S').value,
-			Date_E: document.getElementById('selYear_E').value,
-			isACT: document.getElementById('ACT').checked? 'Y' : ''
-        };
-        const url = `${BASE_URL}/AE_RPT/Performance_Cens`;
-
-        fetch(url, {
-            method: 'POST',
-            headers: {
-				'Content-Type': 'application/json'
-            },
-			credentials: 'include',
-			body: JSON.stringify(Req),
-            contentType: 'application/json'
-        })
-            .then(response => response.json())
-            .then(responseData => {
-                if (responseData.resultCode === "000") {
-                    const data = JSON.parse(responseData.objResult);
-                    MarkCens(data);
-                }
-            }).catch(error => {
-                console.error('載入選項時出錯:', error);
-            });
-    }
-
-	function MarkCens(data)
-	{
-		data.forEach((item) =>{
-			let td = document.getElementById(item.Key);
-			
-			if(td != null)
-			{
-				let tdText = td.innerHTML;
-				console.log(`MarkCens.click item.Key=${item.Key};td=${tdText}`);
-				td.className = 'LogEDIT';
-				td.classList.toggle('Link')
-				td.addEventListener('click', function(){
-					GetCensDetail(item.Key);
-				});
-			}
-		});
+	function chineseToUnicode(text) {
+	  var unicode = '';
+	  for (var i = 0; i < text.length; i++) {
+		var charCode = text.charCodeAt(i).toString(16);
+		while (charCode.length < 4) {
+		  charCode = '0' + charCode;
+		}
+		unicode += '\\u' + charCode;
+	  }
+	  return unicode;
+	}
+	function unicodeToChinese(text) {
+	  return text.replace(/\\u[\dA-Fa-f]{4}/g, function (match) {
+		return String.fromCharCode(parseInt(match.slice(2), 16));
+	  });
 	}
 
-	function GetCensDetail(key) {
-		// 撤件資訊明細
-		// 
-		let	isACT = document.getElementById('ACT').checked? 'Y' : 'N';
-        
-        const url = `${BASE_URL}/AE_RPT/Performance_Cens_Detail?key=${key}&isACT=${isACT}`;
 
-        fetch(url, {
-            method: 'GET',
-            headers: {
-				'Content-Type': 'application/json'
-            },
-			credentials: 'include',
-            contentType: 'application/json'
-        })
-            .then(response => response.json())
-            .then(responseData => {
-                if (responseData.resultCode === "000") {
-                    const data = JSON.parse(responseData.objResult);
-                    OpenCensDetail(data);
-                }
-            }).catch(error => {
-                console.error('載入選項時出錯:', error);
-            });
-    }
-
-	function OpenCensDetail(data)
-	{
-		var m_width="450PX;";
-		var m_height="auto;";
-		var Title="撤件資訊";
-		var m_Html = `<div style="width:${m_width};height:${m_height}; overflow: auto; ">`;
-		m_Html += ' <table style="width: 95%;margin:auto" border="1" id="Title" cellspacing="0" cellpadding="3" bgcolor=""> ';
-		m_Html += ' <tr bgcolor="#CCCCFF" height="35" align="center"> '; 
-		m_Html += '  <td >'+ Title +'</td> '; 
-		m_Html += '</tr> '; 
-		m_Html += '<tr><td> '; 
-		m_Html += '</td></tr> '; 
-		m_Html += '</table> ';
-		m_Html += '<table style="width: 95%;margin:auto" border="1" id="Title" cellspacing="0" cellpadding="3" bgcolor=""><thead><tr bgcolor="#CCCCFF" align="center"> 	  <td> 撥款日 </td><td>業績</td><td>撤件金額</td> <td>撤件基準日</td><td>撤件人</td>  </tr></thead><tbody>';
-		
-		console.log(`data.length= ${data.length}`)
-		let sumGet_amount = 0;
-		let sumCancel_amount = 0;
-		data.forEach((item) =>{
-			var LogHtml = `
-					<tr> 
-						<td>${item.yyyymmdd}</td>
-						<td>${item.get_amount || 0} 萬</td>
-						<td>${item.Cancel_amount || 0} 萬</td>
-						<td>${item.CancelDate|| ''}</td>
-						<td>${item.Cancel_Na || ''}</td>
-					 </tr> `;
-					 
-					 m_Html += LogHtml;
-					 sumGet_amount += parseInt(item.get_amount);
-					 sumCancel_amount += parseInt(item.Cancel_amount);
-				});
-
-		m_Html += `<tr bgcolor="#CCCCFF">     <td> 合計</td><td>${sumGet_amount}萬</td><td>${sumCancel_amount}萬</td><td colspan="2">總和:${sumGet_amount - sumCancel_amount}萬</td> </tr></tbody></table>`;
-		m_Html += '   </div>    ';
-		var OpenWidth=parseInt(m_width.toUpperCase().replace("PX", ""))+50+"px";
-		var m_themedCSS = {
-			width: OpenWidth,
-			top: '20%',
-			left: '30%',
-			};
-			$.blockUI({
-			onOverlayClick: $.unblockUI,
-			overlayCSS: { backgroundColor: "#FFF", opacity: 0.5, cursor: "default" },
-			theme: true,
-			title: Title, 
-			themedCSS:  m_themedCSS, 
-			message: m_Html
-		});
-	}
-
-	
-</script>	
+</script>
