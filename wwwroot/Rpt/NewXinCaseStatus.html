@@ -197,12 +197,13 @@
         })
             .then(response => response.json())
             .then(responseData => {
+				console.log(`responseData.resultCode:${responseData.resultCode}`);
                 if (responseData.resultCode == "000") {
                     data = JSON.parse(responseData.objResult);
                     showPage(currentPage);
                     createPagination();
                 } else {
-                    alert(response.resultMsg);
+                    alert(responseData.resultMsg);
                 }
             })
             .catch(error => {
@@ -210,8 +211,6 @@
                 alert('API 請求失敗:', error);
             });
     }
-
-   
 	function showPage(page) {
 		document.getElementById('CountRows').innerHTML = `筆數:${data.length}`;
         const tbody = document.querySelector('#MainTable tbody');
@@ -263,7 +262,6 @@
             tbody.appendChild(row);
         }
     }
-
 	function getCurrentDateTime() {
       var currentDate = new Date();
 
@@ -276,23 +274,23 @@
       var formattedDateTime = year + month + day + hours + minutes;
       return formattedDateTime;
     }
-
 	function exportToExcel() {
 
-		
-        let sdate = document.querySelector('input[name="start_date"]').value;
-        let edate = document.querySelector('input[name="end_date"]').value;
-        let selYear_S = document.getElementById('selYear_S').value;
-        
-        const url = `${BASE_URL}/AE_RPT/NewXinCaseStatus_Exccel?DateS=${sdate}&DateE=${edate}&selYear_S=${selYear_S}`;
-		
+        var formData = new FormData();
+		formData.append('start_date', $('#start_date').val());
+		formData.append('end_date', $('#end_date').val());
+		formData.append('selYear_S', $('#selYear_S').val());
+		console.log(`formData=${formData}`);
+        const url = `${BASE_URL}/AE_RPT/NewXinCaseStatus_Exccel`;
         $.ajax({
             url: url,
             method: 'POST',
+			data: formData,
+            processData: false,
+            contentType: false,
             xhrFields: {
                 responseType: 'blob'
             },
-            contentType: 'application/json',
             success: function (response) {
                 const url = window.URL.createObjectURL(response);
                 const a = document.createElement('a');
