@@ -296,6 +296,7 @@
     function exportTableToExcel(tableId, filename) {
         var workbook = new ExcelJS.Workbook();
         var sheet = workbook.addWorksheet('Sheet1');
+        sheet.columns = [{width:4},{width:18},{width:10},{width:17},{width:10},{width:10},{width:18},{width:13},{width:8},{width:20},{width:10},{width:10}];
         var table = document.getElementById(tableId);
 
         // 取得所有列
@@ -311,22 +312,4 @@
             saveAs(new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }), filename + ".xlsx");
         });
     }
-	function chineseToUnicode(text) {
-	  var unicode = '';
-	  for (var i = 0; i < text.length; i++) {
-		var charCode = text.charCodeAt(i).toString(16);
-		while (charCode.length < 4) {
-		  charCode = '0' + charCode;
-		}
-		unicode += '\\u' + charCode;
-	  }
-	  return unicode;
-	}
-	function unicodeToChinese(text) {
-	  return text.replace(/\\u[\dA-Fa-f]{4}/g, function (match) {
-		return String.fromCharCode(parseInt(match.slice(2), 16));
-	  });
-	}
-
-
 </script>
