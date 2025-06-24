@@ -100,6 +100,11 @@
         let yyyy = $('#yyyy').val();
         let U_BC = $('#U_BC').val();
 
+        if (!yyyy) {
+            alert('請選擇年度');
+            return;
+        }
+
         const url = `${BASE_URL}/AE_TAR/GetTargetAchieve?YYYY=${yyyy}&U_BC=${U_BC}`;
         document.body.style.cursor = 'wait';
 
@@ -182,6 +187,38 @@
     }
 
     function Achieve_Excel() {
-        alert("XXX");
+        let yyyy = $('#yyyy').val();
+
+        if (!yyyy) {
+            alert('請選擇年度');
+            return;
+        }
+
+        const url = `${BASE_URL}/AE_TAR/TR_Rpt_Excel?YYYY=${yyyy}`;
+        document.body.style.cursor = 'wait';
+
+        $.ajax({
+            url: url,
+            method: 'GET',
+            xhrFields: {
+                responseType: 'blob' 
+            },
+            contentType: 'application/json',
+            success: function (response, status, xhr) {
+                const contentType = xhr.getResponseHeader('Content-Type') || 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+                const blob = new Blob([response], { type: contentType });
+                const downloadUrl = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = downloadUrl;
+                a.download = `${yyyy-1911}年度各區平均業績表.xlsx`; 
+                document.body.appendChild(a);
+                a.click();
+                URL.revokeObjectURL(downloadUrl);
+                document.body.style.cursor = 'default';
+            },
+            error: function (err) {
+                alert('Error generating file');
+            }
+        });
     }
 </script>
