@@ -215,18 +215,34 @@
                 switch (key) {
                     case 'Loan_rate_xls':
                         cell.textContent = `${item[key] || 0}%`;
+                        if(item['isDiff'] && (item['Loan_rate_xls'] !== item['Loan_rate']))
+                        {
+                            cell.style.color = 'red';      
+                        }
                         row.appendChild(cell);
                         break;
                     case 'Loan_rate':
                         cell.textContent = `${item[key] || 0}%`;
+                        if(item['isDiff'] && (item['Loan_rate_xls'] !== item['Loan_rate']))
+                        {
+                            cell.style.color = 'red';      
+                        }
                         row.appendChild(cell);
                         break;
                     case 'interest_rate_pass_xls':
                         cell.textContent = `${item[key] || 0}%`;
+                        if(item['isDiff'] && (item['interest_rate_pass_xls'] !== item['interest_rate_pass']))
+                        {
+                            cell.style.color = 'red';      
+                        }
                         row.appendChild(cell);
                         break;
                     case 'interest_rate_pass':
                         cell.textContent = `${item[key] || 0}%`;
+                        if(item['isDiff'] && (item['interest_rate_pass_xls'] !== item['interest_rate_pass']))
+                        {
+                            cell.style.color = 'red';      
+                        }
                         row.appendChild(cell);
                         break;
                     case 'show_project_title':
