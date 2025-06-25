@@ -73,7 +73,7 @@
     GetDateSelect();
 
     function GetDateSelect() {
-        const url = `${BASE_URL}/AE_TAR/GetTargetYYYY`;
+        const url = `${BASE_URL}/AE_RPT/GetTargetYYYY`;
         fetch(url, {
             method: 'GET',
             headers: {
@@ -105,7 +105,7 @@
             return;
         }
 
-        const url = `${BASE_URL}/AE_TAR/GetTargetAchieve?YYYY=${yyyy}&U_BC=${U_BC}`;
+        const url = `${BASE_URL}/AE_RPT/GetTargetAchieve?YYYY=${yyyy}&U_BC=${U_BC}`;
         document.body.style.cursor = 'wait';
 
         fetch(url, {
@@ -194,7 +194,7 @@
             return;
         }
 
-        const url = `${BASE_URL}/AE_TAR/TR_Rpt_Excel?YYYY=${yyyy}`;
+        const url = `${BASE_URL}/AE_RPT/TR_Rpt_Excel?YYYY=${yyyy}`;
         document.body.style.cursor = 'wait';
 
         $.ajax({
