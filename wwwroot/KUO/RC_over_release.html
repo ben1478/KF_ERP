@@ -86,7 +86,7 @@
                                 </td>
                             </tr>
                         </tbody>
-                        <tfoot>
+                        <!-- <tfoot>
                             <tr align="center" height="15" bgcolor="#CCCCFF">
                                 <td class="c12-k" colspan="15">
                                     <font color="#000080">
@@ -94,7 +94,7 @@
                                     </font>
                                 </td>
                             </tr>
-                        </tfoot>
+                        </tfoot> -->
                     </table>
                     <div id="pagination"></div>
                 </td>
@@ -276,7 +276,7 @@
     }
     function showPage(page) {
         let overDay = document.getElementById('overDay').value;
-        document.getElementById('CountRows').innerHTML = `筆數:${data.length}`;
+        // document.getElementById('CountRows').innerHTML = `筆數:${data.length}`;
         const tbody = document.querySelector('#MainTable tbody');
         tbody.innerHTML = '';
 
@@ -315,6 +315,10 @@
                     case 'OV_total':
                         let ovt =  item[key];
                         cell.textContent = ovt.toLocaleString();
+                        row.appendChild(cell);
+                        break;
+                    case 'OV_Rate':
+                        cell.textContent = `${item[key]}%` || `0%`;
                         row.appendChild(cell);
                         break;
                     default:
