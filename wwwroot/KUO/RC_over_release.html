@@ -20,6 +20,7 @@
             color: blue;
             cursor: pointer;
         }
+
         .grid-section {
             margin-bottom: 24px;
         }
@@ -46,7 +47,7 @@
                                     <option value="90">90天以上</option>
                                 </select>
                                 金額基準：
-                                <input type="text" id="Base_AMT" name="Base_AMT" value="50" size="10" class="c12-k">(萬)
+                                <input type="text" id="Base_AMT" name="Base_AMT" value="50" size="10" class="c12-k" oninput="this.value = this.value.replace(/[^0-9]/g, '')">(萬)
                                 <input type="button" value="查詢" onclick="getData();" />
                                 <input type="button" value="匯出Excel" name="btnExcel" onclick="exportToExcel()">
                             </td>
@@ -211,7 +212,8 @@
             </tr>
         </tbody>
     </table>
-    <div id="report-container">
+    <!-- 這個容器將被 blockUI 用來顯示彈出式報表 -->
+    <div id="report-container" style="display: none;">
         <!-- 報表內容將由 JavaScript 動態生成並填入此處 -->
     </div>
 </body>
@@ -229,10 +231,24 @@
 
     function getData()
     {
+        // 在查詢前先驗證輸入並更新標題
+        const baseAmtInput = document.getElementById('Base_AMT');
+        const baseAmtValue = baseAmtInput.value;
+
+        if (!baseAmtValue || isNaN(baseAmtValue)) {
+            alert('請在「金額基準」欄位輸入有效的數字。');
+            return;
+        }
+
+        // 更新 CaseTableD 和 CaseTableU 的標題
+        const titleD = document.querySelector('#CaseTableD thead tr:first-child td');
+        const titleU = document.querySelector('#CaseTableU thead tr:first-child td');
+        if (titleD) titleD.textContent = `${baseAmtValue}萬以下`;
+        if (titleU) titleU.textContent = `${baseAmtValue}萬以上`;
+
         fetchData();
         fetchDataArea();
         fetchDataCase();
-        $('#report-container').hide();
     }
     function fetchData() {
         let overDay = document.getElementById('overDay').value;
@@ -737,38 +753,62 @@
                 return;
             }
             this.container.innerHTML = ''; // 清空舊內容或錯誤訊息
-        
+            // --- 建立頂部控制列 ---
+            const controlBar = document.createElement('div');
+            controlBar.className = 'popup-controls';
+            // 建立標籤
+            const label = document.createElement('label');
+            label.textContent = '逾放天數：';
+            controlBar.appendChild(label);
+            // 建立並同步下拉選單
+            const popupSelect = document.createElement('select');
+            popupSelect.className = 'popup-overday-select'; // 給予 class 以便選取
+            const mainSelect = document.getElementById('overDay');
+            popupSelect.innerHTML = mainSelect.innerHTML; // 複製所有選項
+            popupSelect.value = mainSelect.value; // 同步目前選中的值
+            controlBar.appendChild(popupSelect);
+            // 建立彈出視窗內的查詢按鈕
+            const queryButton = document.createElement('button');
+            queryButton.className = 'popup-query-btn';
+            queryButton.textContent = '查詢';
+            controlBar.appendChild(queryButton);            
             // 建立頂部關閉按鈕
             const topCloseButton = document.createElement('button');
             topCloseButton.className = 'close-report-btn';
             topCloseButton.textContent = '關閉報表';
             this.container.appendChild(topCloseButton);
+            // 將整個控制列加入容器
+            this.container.appendChild(controlBar);
 
+            // 建立一個 div 來放置所有表格，方便重新查詢時只更新此區塊
+            const tablesContainer = document.createElement('div');
+            tablesContainer.id = 'popup-tables-container';
+            this.container.appendChild(tablesContainer);
             // 遍歷並產生所有表格
             this.amountRanges.forEach(range => {
                 const filteredData = GridManager.filterDataByRangeName(range, reportData);
                 const gridComponent = GridManager.createGridComponent(range, filteredData);
-                this.container.appendChild(gridComponent);
+                tablesContainer.appendChild(gridComponent);
             });
 
-            // **新增功能**：建立底部關閉按鈕
+            // 建立底部關閉按鈕
             const bottomCloseButton = document.createElement('button');
             bottomCloseButton.className = 'close-report-btn';
             bottomCloseButton.textContent = '關閉報表';
-            // 為底部按鈕增加一些上方間距，使其與最後一個表格分開
             bottomCloseButton.style.marginTop = '20px'; 
             this.container.appendChild(bottomCloseButton);
         }
     }
     // 當DOM完全載入後，初始化應用程式並綁定事件
     document.addEventListener('DOMContentLoaded', () => {
+        const reportGenerator = new ReportGenerator('report-container');
         // 1. 為 "顯示報表" 連結加上點擊事件
         $('#showReportLink').on('click', async function(e) {
             e.preventDefault(); // 防止超連結跳轉
 
+            $.blockUI({ message: '<h1><img src="../../image/loading.gif" /> 資料載入中...</h1>' });
              // 2. 準備好報表內容
             let overDay = document.getElementById('overDay').value;
-            const reportGenerator = new ReportGenerator('report-container');
             const data = await reportGenerator.fetchReportData(overDay);
             reportGenerator.render(data);
 
@@ -796,9 +836,31 @@
                 }
             });
         });
-
-        // 4. **新增功能**：為關閉按鈕加上點擊事件 (使用事件委派)
         // 因為按鈕是動態加入的，所以監聽事件要綁定在父層容器上
+        // 4.為彈出視窗內的查詢按鈕加上點擊事件 ---
+        $('#report-container').on('click', '.popup-query-btn', async function() {
+            const popupSelect = document.querySelector('.popup-overday-select');
+            const newOverDay = popupSelect.value;
+            
+            // 在表格區塊顯示載入中
+            const tablesContainer = document.getElementById('popup-tables-container');
+            if(tablesContainer) {
+                tablesContainer.innerHTML = '<h1><img src="../../image/loading.gif" /> 資料重新查詢中...</h1>';
+            }
+
+            const data = await reportGenerator.fetchReportData(newOverDay);
+
+            // 只重新渲染表格區塊，保留頂部控制列
+            if(tablesContainer) {
+                tablesContainer.innerHTML = ''; // 清空載入提示
+                reportGenerator.amountRanges.forEach(range => {
+                    const filteredData = GridManager.filterDataByRangeName(range, data);
+                    const gridComponent = GridManager.createGridComponent(range, filteredData);
+                    tablesContainer.appendChild(gridComponent);
+                });
+            }
+        });
+        // 5.為關閉按鈕加上點擊事件 (使用事件委派)
         $('#report-container').on('click', '.close-report-btn', function() {
             $.unblockUI();
         });
