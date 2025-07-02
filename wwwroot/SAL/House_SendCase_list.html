@@ -447,17 +447,17 @@
                         break;
                     case 'CS_name':
                         cell.width = '10%';
-                        cell.textContent = item[key] || '';
+                        cell.innerHTML = item[key] || '';
                         row.appendChild(cell);
                         break;
                     case 'CS_introducer':
                         cell.width = '18%';
-                        cell.textContent = item[key] || '';
+                        cell.innerHTML = item[key] || '';
                         row.appendChild(cell);
                         break;
                     case 'plan_name':
                         cell.width = '7%';
-                        cell.textContent = item[key] || '';
+                        cell.innerHTML = item[key] || '';
                         row.appendChild(cell);
                         break;
                     case 'get_amount_date':
@@ -465,8 +465,6 @@
                         cell.textContent = item[key] || '';
                         row.appendChild(cell);
                         break;
-                    
-                    
                     case 'get_amount':
                         cell.width = '10%';
                         sumAmount +=  parseInt(item[key]);
