@@ -1,0 +1,249 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <link href="../_include/main.css" rel="stylesheet" type="text/css">
+    <script src="../Base.js"></script>
+    <title>作業平台</title>
+
+    <style type="text/css">
+        body {
+            font-family: sans-serif;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+
+        #report-wrapper {
+            max-width: 1100px;
+            margin: auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        .grid-section {
+            margin-bottom: 24px;
+        }
+
+        .popup-controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+            .popup-controls label {
+                font-weight: bold;
+                margin-right: 8px;
+            }
+
+            .popup-controls select, .popup-controls button {
+                padding: 8px;
+                border-radius: 5px;
+                border: 1px solid #ccc;
+                margin: 0 5px;
+                font-size: 14px;
+            }
+
+        .no-data {
+            text-align: center;
+            color: #888;
+            font-style: italic;
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div id="report-wrapper">
+        <h3 style="text-align: center;">應收帳款-逾放比</h3>
+            <div id="report-container">
+                <!-- 報表內容將由 JavaScript 動態生成 -->
+            </div>
+</div>
+
+    <script>
+        // --- 輔助函式與變數定義 ---
+        function getQueryParams() {
+            const params = {};
+            const queryString = window.location.search.substring(1);
+            const regex = /([^&=]+)=([^&]*)/g;
+            let m;
+            while (m = regex.exec(queryString)) {
+                params[decodeURIComponent(m[1])] = decodeURIComponent(m[2]);
+            }
+            return params;
+        }
+
+        // --- 報表頁面邏輯 ---
+        class GridManager {
+            static filterDataByRangeName(rangeName, data) {
+                const rangeMapping = {
+                    '500萬以上': '501', '401萬~500萬': '500', '301萬~400萬': '400',
+                    '201萬~300萬': '300', '101萬~200萬': '200', '50萬~100萬': '100',
+                    '50萬以下': '050'
+                };
+                const targetType = rangeMapping[rangeName];
+                if (!targetType) return [];
+                return data.filter(item => item.amount_type === targetType);
+            }
+
+            static createGridComponent(title, data) {
+                const section = document.createElement('div');
+                section.className = 'grid-section';
+                const table = document.createElement('table');
+                table.setAttribute('width', '100%');
+                table.setAttribute('border', '0');
+                table.setAttribute('cellpadding', '4');
+                table.setAttribute('cellspacing', '1');
+                table.setAttribute('bgcolor', '#666666');
+                const thead = document.createElement('thead');
+                const tbody = document.createElement('tbody');
+                thead.innerHTML = `
+                    <tr align="center" bgcolor="#FFFFFF" class="c12-k"><th colspan="9">${title}</th></tr>
+                    <tr align="center" bgcolor="#CCCCFF" class="c12-k">
+                        <th>序</th><th>專案名稱</th><th>總件數</th><th>總金額</th>
+                        <th>逾期案件</th><th>逾放金額</th><th>逾放比%</th>
+                        <th>結清件數</th><th>結清金額</th>
+                    </tr>`;
+                if (data.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="9" class="no-data">此區間無資料</td></tr>`;
+                } else {
+                    data.forEach((item, index) => {
+                        const row = document.createElement('tr');
+                        row.setAttribute('align', 'center');
+                        row.setAttribute('class', 'c12-k');
+                        row.setAttribute('bgcolor', '#FFFFFF');
+                        row.setAttribute('onmouseover', "this.style.background='#FCFCC0';");
+                        row.setAttribute('onmouseout', "this.style.background='#FFFFFF';");
+                        row.innerHTML = `
+                            <td>${index + 1}</td>
+                            <td>${item.pro_name}</td>
+                            <td>${(item.TOT_Count || 0).toLocaleString()}</td>
+                            <td>${(parseFloat(item.amount_total) || 0).toLocaleString()}</td>
+                            <td>${(item.OV_Count || 0).toLocaleString()}</td>
+                            <td>${(parseFloat(item.OV_total) || 0).toLocaleString()}</td>
+                            <td>${(parseFloat(item.OV_Rate) || 0).toFixed(2)}%</td>
+                            <td>${(item.SCount || 0).toLocaleString()}</td>
+                            <td>${(parseFloat(item.RemainingPrincipal) || 0).toLocaleString()}</td>
+                        `;
+                        tbody.appendChild(row);
+                    });
+                }
+                table.appendChild(thead);
+                table.appendChild(tbody);
+                section.appendChild(table);
+                return section;
+            }
+        }
+
+        class ReportGenerator {
+            constructor(containerId) {
+                this.container = document.getElementById(containerId);
+                if (!this.container) throw new Error(`Container with id "${containerId}" not found.`);
+                this.amountRanges = ['500萬以上', '401萬~500萬', '301萬~400萬', '201萬~300萬', '101萬~200萬', '50萬~100萬', '50萬以下'];
+            }
+
+            async fetchReportData(overDay) {
+                const apiUrl = `${BASE_URL}/AE_ACC/RC_Over_RelSection_LQuery?overDay=${overDay}`;
+                console.log(`正在向 ${apiUrl} 查詢...`);
+                try {
+                    const response = await fetch(apiUrl, { method: 'GET', headers: { 'Content-Type': 'application/json' } });
+                    if (!response.ok) throw new Error(`伺服器錯誤: ${response.status} ${response.statusText}`);
+                    const responseData = await response.json();
+                    if (responseData.resultCode == "000") {
+                        return JSON.parse(responseData.objResult);
+                    } else {
+                        alert(responseData.resultMsg);
+                        return [];
+                    }
+                } catch (error) {
+                    console.error('API 呼叫失敗:', error);
+                    this.container.innerHTML = `<p class="no-data" style="color: red;">資料載入失敗: ${error.message}</p>`;
+                    return null;
+                }
+            }
+
+            render(reportData, initialOverDay) {
+                if (!reportData) return;
+                this.container.innerHTML = '';
+
+                const controlBar = document.createElement('div');
+                controlBar.className = 'popup-controls';
+                const label = document.createElement('label');
+                label.textContent = '逾放天數：';
+                controlBar.appendChild(label);
+                const popupSelect = document.createElement('select');
+                popupSelect.className = 'popup-overday-select';
+                // 建立選項
+                ['30', '60', '90'].forEach(val => {
+                    const option = document.createElement('option');
+                    option.value = val;
+                    option.textContent = `${val}天以上`;
+                    if (val === initialOverDay) {
+                        option.selected = true;
+                    }
+                    popupSelect.appendChild(option);
+                });
+                controlBar.appendChild(popupSelect);
+                const queryButton = document.createElement('button');
+                queryButton.id = 'popup-query-button';
+                queryButton.textContent = '查詢';
+                controlBar.appendChild(queryButton);
+                this.container.appendChild(controlBar);
+
+                const tablesContainer = document.createElement('div');
+                tablesContainer.id = 'popup-tables-container';
+                this.container.appendChild(tablesContainer);
+
+                this.amountRanges.forEach(range => {
+                    const filteredData = GridManager.filterDataByRangeName(range, reportData);
+                    const gridComponent = GridManager.createGridComponent(range, filteredData);
+                    tablesContainer.appendChild(gridComponent);
+                });
+            }
+        }
+
+        // --- 頁面載入後執行 ---
+        document.addEventListener('DOMContentLoaded', async () => {
+            const reportGenerator = new ReportGenerator('report-container');
+            const params = getQueryParams();
+            const initialOverDay = params.overDay || '60'; // 從 URL 獲取參數，若無則預設為 60
+
+            // 顯示載入中
+            $('#report-container').html('<h3>資料載入中...</h3>');
+
+            // 獲取並渲染初始資料
+            const data = await reportGenerator.fetchReportData(initialOverDay);
+            reportGenerator.render(data, initialOverDay);
+
+            // --- 事件綁定 ---
+            $('#report-wrapper').on('click', '#popup-query-button', async function() {
+                const popupSelect = document.querySelector('.popup-overday-select');
+                const newOverDay = popupSelect.value;
+
+                const tablesContainer = document.getElementById('popup-tables-container');
+                if(tablesContainer) {
+                    tablesContainer.innerHTML = '<h3> 資料重新查詢中...</h3>';
+                }
+
+                const data = await reportGenerator.fetchReportData(newOverDay);
+
+                if(tablesContainer) {
+                    tablesContainer.innerHTML = '';
+                    reportGenerator.amountRanges.forEach(range => {
+                        const filteredData = GridManager.filterDataByRangeName(range, data);
+                        const gridComponent = GridManager.createGridComponent(range, filteredData);
+                        tablesContainer.appendChild(gridComponent);
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>

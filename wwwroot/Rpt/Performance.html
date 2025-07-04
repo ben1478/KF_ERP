@@ -227,7 +227,6 @@
             alert('無法載入資料，請稍後再試。');
         });
     }
-
     function fetchData() {
 		const Req = {
             u_bc_title:document.querySelector('#u_bc_title').value,
@@ -265,8 +264,6 @@
                 alert('API 請求失敗:', error);
             });
     }
-
-   
 	function showPage(page) {
 		document.getElementById('CountRows').innerHTML = `筆數:${data.length}`;
         const tbody = document.querySelector('#MainTable tbody');
@@ -286,7 +283,7 @@
             row.setAttribute('onmouseover', "this.style.background='#FCFCC0';");
             row.setAttribute('onmouseout', "this.style.background='#FFFFFF';");
 			
-            const columnOrder = ['U_BC_name', 'title', 'U_name', 'U_arrive_date', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct',	'Nov', 'Dec','Totle','MonAVG','YearAVG','U_leave_date'];
+            const columnOrder = ['U_BC_name', 'title', 'U_name', 'U_arrive_date', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct',	'Nov', 'Dec','Totle','MonAVG','cal_yearAvg','U_leave_date'];
 
 			const serialCell = document.createElement('td');
             serialCell.textContent = startIndex + pageData.indexOf(item) + 1;
@@ -311,63 +308,63 @@
 						break;
 					case 'Jan':
 						cell.textContent = `${item[key] || 0} 萬`;
+						cell.id = `${item['U_num']}${item['yyyy']}-01`;
                         row.appendChild(cell);
 						Jan = Jan + parseInt(item[key].replace(/,/g, ''));
-						cell.id = `${item['U_num']}${item['yyyy']}-01`;
 						break;
 					case 'Feb':
 						cell.textContent = `${item[key] || 0} 萬`;
+						cell.id = `${item['U_num']}${item['yyyy']}-02`;
 						row.appendChild(cell);
 						Feb += parseInt(item[key].replace(/,/g, ''));
-						cell.id = `${item['U_num']}${item['yyyy']}-02`;
 						break;
 					case 'Mar':
 						cell.textContent = `${item[key] || 0} 萬`;
+						cell.id = `${item['U_num']}${item['yyyy']}-03`;
                         row.appendChild(cell);
 						Mar += parseInt(item[key].replace(/,/g, ''));
-						cell.id = `${item['U_num']}${item['yyyy']}-03`;
 						break;
 					case 'Apr':
 						cell.textContent = `${item[key] || 0} 萬`;
+						cell.id = `${item['U_num']}${item['yyyy']}-04`;
 						row.appendChild(cell);
 						Apr += parseInt(item[key].replace(/,/g, ''));
-						cell.id = `${item['U_num']}${item['yyyy']}-04`;
 						break;
 					case 'May':
 						cell.textContent = `${item[key] || 0} 萬`;
+						cell.id = `${item['U_num']}${item['yyyy']}-05`;
                         row.appendChild(cell);
 						May += parseInt(item[key].replace(/,/g, ''));
-						cell.id = `${item['U_num']}${item['yyyy']}-05`;
 						break;
 					case 'Jun':
 						cell.textContent = `${item[key] || 0} 萬`;
+						cell.id = `${item['U_num']}${item['yyyy']}-06`;
 						row.appendChild(cell);
 						Jun += parseInt(item[key].replace(/,/g, ''));
-						cell.id = `${item['U_num']}${item['yyyy']}-06`;
 						break;
 					case 'Jul':
 						cell.textContent = `${item[key] || 0} 萬`;
+						cell.id = `${item['U_num']}${item['yyyy']}-07`;
                         row.appendChild(cell);
 						Jul += parseInt(item[key].replace(/,/g, ''));
-						cell.id = `${item['U_num']}${item['yyyy']}-07`;
 						break;
 					case 'Aug':
 						cell.textContent = `${item[key] || 0} 萬`;
+						cell.id = `${item['U_num']}${item['yyyy']}-08`;
 						row.appendChild(cell);
 						Aug += parseInt(item[key].replace(/,/g, ''));
-						cell.id = `${item['U_num']}${item['yyyy']}-08`;
 						break;
 					case 'Sep':
 						cell.textContent = `${item[key] || 0} 萬`;
+						cell.id = `${item['U_num']}${item['yyyy']}-09`;
                         row.appendChild(cell);
 						Sep += parseInt(item[key].replace(/,/g, ''));
-						cell.id = `${item['U_num']}${item['yyyy']}-09`;
 						break;
 					case 'Oct':
 						cell.textContent = `${item[key] || 0} 萬`;
+						cell.id = `${item['U_num']}${item['yyyy']}-10`;
 						row.appendChild(cell);
 						Oct += parseInt(item[key].replace(/,/g, ''));
-						cell.id = `${item['U_num']}${item['yyyy']}-10`;
 						break;
 					case 'Nov':
 						cell.textContent = `${item[key] || 0} 萬`;
@@ -377,9 +374,9 @@
 						break;
 					case 'Dec':
 						cell.textContent = `${item[key] || 0} 萬`;
+						cell.id = `${item['U_num']}${item['yyyy']}-12`;
 						row.appendChild(cell);
 						Dec += parseInt(item[key].replace(/,/g, ''));
-						cell.id = `${item['U_num']}${item['yyyy']}-12`;
 						break;
 					case 'Totle':
 						cell.textContent = `${item[key] || 0} 萬`;
@@ -390,12 +387,11 @@
 						cell.textContent = `${item[key] || 0} 萬`;
                         row.appendChild(cell);
 						break;
-					case 'YearAVG':
+					case 'cal_yearAvg':
 						cell.textContent = `${item[key] || 0} 萬`;
 						row.appendChild(cell);
 						break;
                     default:
-						
                         cell.textContent = item[key] || '';
                         row.appendChild(cell);
                 }
@@ -418,58 +414,6 @@
 		document.getElementById('Totle').innerHTML = `${Totle.toLocaleString()} 萬`;
 		
     }
-
-	function getCurrentDateTime() {
-      var currentDate = new Date();
-
-      var year = currentDate.getFullYear();
-      var month = ('0' + (currentDate.getMonth() + 1)).slice(-2);
-      var day = ('0' + currentDate.getDate()).slice(-2);
-      var hours = ('0' + currentDate.getHours()).slice(-2);
-      var minutes = ('0' + currentDate.getMinutes()).slice(-2);
-
-      var formattedDateTime = year + month + day + hours + minutes;
-      return formattedDateTime;
-    }
-
-	function exportToExcel() {
-
-		const Req = {
-            u_bc_title:document.querySelector('#u_bc_title').value,
-            selYear_S: document.getElementById('selYear_S').value,
-			selYear_E: document.getElementById('selYear_E').value,
-			start_date: document.getElementById('start_date').value,
-			Enable: document.getElementById('Enable').value,
-			isACT: document.getElementById('ACT').checked ? 'Y':'',
-			OrderBy: document.getElementById('OrderBy').value
-        };
-        const url = `${BASE_URL}/AE_RPT/Performance_Exccel`;
-		
-        $.ajax({
-            url: url,
-            method: 'POST',
-            xhrFields: {
-                responseType: 'blob'
-            },
-            credentials: 'include',
-            data: JSON.stringify(Req),
-            contentType: 'application/json',
-            success: function (response) {
-                const url = window.URL.createObjectURL(response);
-                const a = document.createElement('a');
-                a.style.display = 'none';
-                a.href = url;
-                a.download = `全區業績表業績-${getCurrentDateTime()}.xlsx`;
-                document.body.appendChild(a);
-                a.click();
-                window.URL.revokeObjectURL(url);
-            },
-            error: function (err) {
-                alert('Error generating file');
-            }
-        });
-    }
-
 	function GetCensList() {
 		// 撤件資訊
 		// 
@@ -499,7 +443,6 @@
                 console.error('載入選項時出錯:', error);
             });
     }
-
 	function MarkCens(data)
 	{
 		data.forEach((item) =>{
@@ -517,21 +460,20 @@
 			}
 		});
 	}
-
 	function GetCensDetail(key) {
 		// 撤件資訊明細
 		// 
-		let	isACT = document.getElementById('ACT').checked? 'Y' : 'N';
-        
-        const url = `${BASE_URL}/AE_RPT/Performance_Cens_Detail?key=${key}&isACT=${isACT}`;
+        const Req = {
+            Date_S: document.getElementById('selYear_S').value,
+			Date_E: document.getElementById('selYear_E').value,
+			isACT: document.getElementById('ACT').checked? 'Y' : 'N',
+			key:key
+        };
+		const queryString = new URLSearchParams(Req).toString();
+        const url = `${BASE_URL}/AE_RPT/Performance_Cens_Detail?${queryString}`;
 
         fetch(url, {
-            method: 'GET',
-            headers: {
-				'Content-Type': 'application/json'
-            },
-			credentials: 'include',
-            contentType: 'application/json'
+            method: 'GET'
         })
             .then(response => response.json())
             .then(responseData => {
@@ -543,7 +485,6 @@
                 console.error('載入選項時出錯:', error);
             });
     }
-
 	function OpenCensDetail(data)
 	{
 		var m_width="450PX;";
@@ -594,7 +535,54 @@
 			message: m_Html
 		});
 	}
+	function getCurrentDateTime() {
+      var currentDate = new Date();
+      var year = currentDate.getFullYear();
+      var month = ('0' + (currentDate.getMonth() + 1)).slice(-2);
+      var day = ('0' + currentDate.getDate()).slice(-2);
+      var hours = ('0' + currentDate.getHours()).slice(-2);
+      var minutes = ('0' + currentDate.getMinutes()).slice(-2);
 
+      var formattedDateTime = year + month + day + hours + minutes;
+      return formattedDateTime;
+    }
+	function exportToExcel() {
+
+		const Req = {
+            u_bc_title:document.querySelector('#u_bc_title').value,
+            selYear_S: document.getElementById('selYear_S').value,
+			selYear_E: document.getElementById('selYear_E').value,
+			start_date: document.getElementById('start_date').value,
+			Enable: document.getElementById('Enable').value,
+			isACT: document.getElementById('ACT').checked ? 'Y':'',
+			OrderBy: document.getElementById('OrderBy').value
+        };
+        const url = `${BASE_URL}/AE_RPT/Performance_Exccel`;
+		
+        $.ajax({
+            url: url,
+            method: 'POST',
+            xhrFields: {
+                responseType: 'blob'
+            },
+            credentials: 'include',
+            data: JSON.stringify(Req),
+            contentType: 'application/json',
+            success: function (response) {
+                const url = window.URL.createObjectURL(response);
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = url;
+                a.download = `全區業績表業績-${getCurrentDateTime()}.xlsx`;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+            },
+            error: function (err) {
+                alert('Error generating file');
+            }
+        });
+    }
 	function load6BCDropdown() {
 		const url = `${BASE_URL}/AE_RPT/Get6UB`;
 		fetch(url)
