@@ -248,21 +248,20 @@
             credentials: 'include',
             body: JSON.stringify(Req)
         })
-            .then(response => response.json())
-            .then(responseData => {
-                if (responseData.resultCode == "000") {
-                    data = JSON.parse(responseData.objResult);
-                    showPage(currentPage);
-					GetCensList();
-     //                //createPagination();
-                } else {
-                    alert(response.resultMsg);
-                }
-            })
-            .catch(error => {
-				console.log(`API 請求失敗: error=${error}`);
-                alert('API 請求失敗:', error);
-            });
+		.then(response => response.json())
+		.then(responseData => {
+			if (responseData.resultCode == "000") {
+				data = JSON.parse(responseData.objResult);
+				showPage(currentPage);
+				GetCensList();
+			} else {
+				alert(responseData.resultMsg);
+			}
+		})
+		.catch(error => {
+			console.log(`API 請求失敗: error=${error}`);
+			alert('API 請求失敗:', error);
+		});
     }
 	function showPage(page) {
 		document.getElementById('CountRows').innerHTML = `筆數:${data.length}`;
