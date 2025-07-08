@@ -1,0 +1,827 @@
+﻿<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <script type="text/javascript" src="../tool_js/jquery.blockUI.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script type="text/javascript" src="../tool_js/jquery.table2excel.js"></script>
+    <link href="../_include/main.css" rel="stylesheet" type="text/css">
+    <script src="../Base.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <title>作業平台</title>
+    <style type="text/css">
+        /* 強制修正盒模型，確保不受任何外部 CSS 檔案干擾 */
+        #gridContainer *, #gridContainer *::before, #gridContainer *::after {
+            box-sizing: border-box !important;
+        }
+
+        /* 基本樣式 */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 1em;
+        }
+
+        .container {
+            max-width: 95%;
+            margin: auto;
+        }
+
+        .filter-form {
+            margin-bottom: 1em;
+            display: flex;
+            gap: 1em;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .info-bar {
+            display: flex;
+            gap: 20px; /* 兩個標籤之間的間距 */
+            align-items: center;
+            margin-bottom: 1em;
+            font-size: 16px;
+        }
+
+        .status-label {
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+
+        .status-label.unfulfilled {
+            background-color: #FFD2D2; /* 未齊件的背景色 */
+            color: #c00;
+            font-size: 12px;
+        }
+
+        /* 1.單一滾動容器 */
+        #gridContainer {
+            width: 100%;
+            height: 80vh; /* 根據需要調整高度 */
+            overflow: auto;
+            border: 1px solid #999;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 2800px; /* 根據您的欄位寬度總和設定 */
+            table-layout: fixed;
+            border-spacing: 0;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+            white-space: nowrap;
+            background-color: #fff;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* 2. 表頭 (thead) 的黏性定位 */
+        thead th {
+            background-color: #CCCCFF;
+            font-weight: bold;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        /* 3. 凍結欄 (tbody .frozen-col) 的黏性定位 */
+        tbody .frozen-col {
+            background-color: #f8f9fa; /* 給凍結欄一個淡淡的底色以區別 */
+            position: sticky;
+            z-index: 5;
+        }
+
+        /* 4. 左上角凍結表頭 (thead .frozen-col) 的最優先級 */
+        thead .frozen-col {
+            z-index: 20; /* 確保它在滾動時永遠在最上層 */
+        }
+
+        /* --- 欄位寬度與凍結位置設定 --- */
+        th:nth-child(1), td:nth-child(1) {
+            width: 50px;
+        }
+
+        th.frozen-col:nth-child(1), td.frozen-col:nth-child(1) {
+            left: 0px;
+        }
+
+        th:nth-child(2), td:nth-child(2) {
+            width: 100px;
+        }
+
+        th.frozen-col:nth-child(2), td.frozen-col:nth-child(2) {
+            left: 50px;
+        }
+
+        th:nth-child(3), td:nth-child(3) {
+            width: 110px;
+        }
+
+        th.frozen-col:nth-child(3), td.frozen-col:nth-child(3) {
+            left: 150px;
+        }
+
+        th:nth-child(4), td:nth-child(4) {
+            width: 100px;
+        }
+
+        th.frozen-col:nth-child(4), td.frozen-col:nth-child(4) {
+            left: 260px;
+        }
+
+        th:nth-child(5), td:nth-child(5) {
+            width: 150px;
+        }
+
+        th.frozen-col:nth-child(5), td.frozen-col:nth-child(5) {
+            left: 360px;
+        }
+
+        /* 其他欄位寬度... */
+        th:nth-child(6), td:nth-child(6) {
+            width: 120px;
+        }
+
+        th:nth-child(7), td:nth-child(7) {
+            width: 140px;
+        }
+
+        th:nth-child(8), td:nth-child(8) {
+            width: 100px;
+        }
+
+        th:nth-child(9), td:nth-child(9) {
+            width: 110px;
+        }
+
+        th:nth-child(10), td:nth-child(10) {
+            width: 110px;
+        }
+
+        th:nth-child(11), td:nth-child(11) {
+            width: 110px;
+        }
+
+        th:nth-child(12), td:nth-child(12) {
+            width: 110px;
+        }
+
+        th:nth-child(13), td:nth-child(13) {
+            width: 180px;
+        }
+
+        th:nth-child(14), td:nth-child(14) {
+            width: 100px;
+        }
+
+        th:nth-child(15), td:nth-child(15) {
+            width: 100px;
+        }
+
+        th:nth-child(16), td:nth-child(16) {
+            width: 100px;
+        }
+
+        th:nth-child(17), td:nth-child(17) {
+            width: 90px;
+        }
+
+        th:nth-child(18), td:nth-child(18) {
+            width: 90px;
+        }
+
+        th:nth-child(19), td:nth-child(19) {
+            width: 90px;
+        }
+
+        th:nth-child(20), td:nth-child(20) {
+            width: 90px;
+        }
+
+        th:nth-child(21), td:nth-child(21) {
+            width: 90px;
+        }
+
+        th:nth-child(22), td:nth-child(22) {
+            width: 120px;
+        }
+
+        th:nth-child(23), td:nth-child(23) {
+            width: 110px;
+        }
+
+        th:nth-child(24), td:nth-child(24) {
+            width: 110px;
+        }
+
+        th:nth-child(25), td:nth-child(25) {
+            width: 110px;
+        }
+
+        th:nth-child(26), td:nth-child(26) {
+            width: 100px;
+        }
+
+        /* 權限控制：隱藏欄位的 CSS */
+        .hide-column-23 th:nth-child(23),
+        .hide-column-23 td:nth-child(23) {
+            display: none;
+        }
+
+        /* 狀態顏色 */
+        tr.is-cancel td {
+            text-decoration: line-through;
+            color: #999;
+        }
+
+        tr.is-red td {
+            background-color: #FFD2D2 !important;
+        }
+
+        /* ... 其他 CSS ... */
+
+        /* 「預估退佣金」的超連結樣式 */
+        .commission-link {
+            color: red;
+            text-decoration: underline;
+            cursor: pointer;
+        }
+
+            .commission-link:hover {
+                color: darkred;
+            }
+
+        /* BlockUI 彈出視窗內的表格樣式 */
+        #RefInfo {
+            width: 95%;
+            margin: auto;
+            border: 1px solid #666;
+        }
+
+        #RefInfo th, #RefInfo td {
+            padding: 8px;
+            text-align: center;
+            border: 1px solid #666;
+        }
+
+        #RefInfo thead th {
+            background-color: #CCCCFF;
+        }
+
+        #RefInfo tr.Sel td,
+        div.blockMsg table#RefInfo tr.Sel td {
+            font-weight: bold;
+            background-color: #FFD2D2; /* 使用 !important 強制覆蓋 */
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h3>核准放款表/佣金表</h3>
+
+        <form id="filterForm" class="filter-form">
+            <span id="filter-wrapper-bc">
+                <label for="U_bc_title">區：</label>
+                <select name="U_bc_title" id="U_bc_title">
+                    <option value="">全部</option>
+                    <option value="666">六區</option>
+                </select>
+            </span>
+            <span id="filter-wrapper-plan">
+                <label for="plan_num">業務：</label>
+                <input type="text" id="plan_num" name="plan_num">
+            </span>
+            <label for="CS_introducer">介紹人：</label>
+            <input type="text" id="CS_introducer" name="CS_introducer">
+
+            <label for="SelYear_S">撥款年月：</label>
+            <input type="month" id="SelYear_S" name="SelYear_S">
+
+            <label for="OrderBy">排序：</label>
+            <select name="OrderBy" id="OrderBy">
+                <option value="2" selected>區-業務</option>
+                <option value="1">撥款日期</option>
+            </select>
+            <input type="hidden" id="U_num" name="U_num" />
+            <input type="hidden" id="U_BC" name="U_BC" />
+            <button type="submit">查詢</button>
+            <button type="button" id="btnExport">匯出 Excel</button>
+
+
+        </form>
+        <div class="info-bar">
+            <span class="status-label unfulfilled">＊未齊件＊</span>
+            <span id="otherFeesText" class="status-label other-fees"></span>
+        </div>
+        <div id="gridContainer" class="grid-container">
+            <table id="MainTable">
+                <thead>
+                    <tr>
+                        <th style="--col-index: 0;">No.</th>
+                        <th style="--col-index: 1;">區</th>
+                        <th style="--col-index: 2;">進件日</th>
+                        <th style="--col-index: 3;">申請人</th>
+                        <th style="--col-index: 4;">介紹人/ID</th>
+                        <th>銀行名稱</th>
+                        <th>銀行帳號</th>
+                        <th>業務</th>
+                        <th>核准日</th>
+                        <th>核准金額(萬)</th>
+                        <th>撥款日</th>
+                        <th>撥款金額(萬)</th>
+                        <th>專案</th>
+                        <th>貸款成數(%)</th>
+                        <th>原始利率(%)</th>
+                        <th>承作利率(%)</th>
+                        <th>收費</th>
+                        <th>代書費用</th>
+                        <th>對保費</th>
+                        <th>結餘</th>
+                        <th>補貼息</th>
+                        <th>退傭備註</th>
+                        <th>預估退佣金</th>
+                        <th>作業服務費</th>
+                        <th>實際退佣金</th>
+                        <th>委對/外對</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+                <tfoot>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+</body>
+</html >
+<script >
+    document.addEventListener('DOMContentLoaded', () => {
+            const form = document.getElementById('filterForm');
+            const tbody = document.querySelector('#MainTable tbody');
+            const tfoot = document.querySelector('#MainTable tfoot');
+            const gridContainer = document.getElementById('gridContainer');
+            const exportButton = document.getElementById('btnExport');
+            const monthInput = document.getElementById('SelYear_S');
+            const otherFeesText = document.getElementById('otherFeesText');
+            // const orderByInput = document.getElementById('OrderBy');
+            
+            // API 端點
+            const API_URL = `${BASE_URL}/AE_RPT/Approval_Loan_Sales_LQuery`;
+            const ROLE_API_URL = `${BASE_URL}/AE_RPT/GetRleNum`;
+            const commissionApiUrl = `${BASE_URL}/AE_RPT/GetCommissionRules`;
+
+            // 權限標籤變數宣告
+            let displayAMT = 'Y';
+            let isEditOtherFee = false;
+
+            // 事件委派監聽
+            tbody.addEventListener('click', (e) => {
+                // 尋找被點擊元素或其父層中，最近的帶有 data-action 的元素
+                const target = e.target.closest('[data-action="open-commission-rules"]');
+                if (target) {
+                    const hsId = target.dataset.hsId;
+                    const isConfirm = target.dataset.isConfirm;
+                    openCommissionRulesModal(hsId, isConfirm);
+                }
+            });
+
+            // 事件監聽與初始化
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const params = buildQueryParams();
+                await fetchDataAndRender(params.toString());
+            });
+
+            // 匯出 Excel
+            exportButton.addEventListener('click', () => {
+                const table = document.getElementById('MainTable');
+                // 使用 xlsx.js library
+                const wb = XLSX.utils.table_to_book(table, { sheet: "佣金表" });
+                XLSX.writeFile(wb, "核准放款表_佣金表.xlsx");
+            });
+
+            // 4. 核心功能：獲取資料並渲染表格
+            async function fetchDataAndRender(queryParams) {
+                tbody.innerHTML = '<tr><td colspan="26">讀取中...</td></tr>';
+                let body = JSON.stringify(Object.fromEntries(new URLSearchParams(queryParams)));
+
+                console.log(`body=${body}`);
+
+                try {
+                    const response = await fetch(API_URL, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: body
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    const responseData = await response.json();
+                    let data = [];
+                    if (responseData.resultCode == "000") {
+				        data = JSON.parse(responseData.objResult);
+                        renderTable(data);
+			        } else {
+				        alert(responseData.resultMsg);
+			        }
+                    
+
+                } catch (error) {
+                    tbody.innerHTML = `<tr><td colspan="26">資料載入失敗: ${error.message}</td></tr>`;
+                    console.error('Fetch error:', error);
+                }
+            }
+
+            // 5. 渲染表格內容
+            function renderTable(data) {
+                const tbody = document.querySelector('#MainTable tbody');
+                const tfoot = document.querySelector('#MainTable tfoot');
+                tbody.innerHTML = ''; // 清空舊資料
+                tfoot.innerHTML = ''; // 清空總計
+
+                if (data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="26">查無資料</td></tr>';
+                    return;
+                }
+
+                // 初始化總計物件
+                const totals = {
+                    getAmount: 0,
+                    chargeFlow: 0,
+                    chargeAgent: 0,
+                    chargeCheck: 0,
+                    getAmountFinal: 0,
+                    subsidizedInterest: 0,
+                    expe_comm_amt: 0,
+                    act_service_amt: 0,
+                    actCommAmt: 0
+                };
+
+                data.forEach((row, index) => {
+                    const tr = document.createElement('tr');
+
+                    // 根據資料狀態添加 class
+                    if (row.isCancel === 'Y') {
+                        tr.classList.add('is-cancel');
+                    }
+                    if (row.ismisaligned === 'ThisMon') { // 模擬未齊件邏輯
+                         tr.classList.add('is-red');
+                    }
+                    // 使用防呆處理 (|| '') 來避免 null.replace 的錯誤
+                    const introducerDisplay = `${row.CS_introducer || ''}<br>${(row.Introducer_PID || '').replace('NA', '')}`;
+
+                    // 根據 DisplayAMT 決定「退傭備註」的顯示內容
+                    const commRemarkDisplay = (displayAMT === 'Y') ? (row.Comm_Remark || '') : 'NA';
+
+                    // 創建凍結列和滾動列
+                    tr.innerHTML = `
+                        <td class="frozen-col">${index + 1}</td>
+                        <td class="frozen-col">${row.U_BC_name || ''}</td>
+                        <td class="frozen-col">${row.Send_amount_date || ''}</td>
+                        <td class="frozen-col">${row.CS_name || ''}</td>
+                        <td class="frozen-col">${introducerDisplay}</td>
+                        <td>${row.Bank_name || ''}</td>
+                        <td>${row.Bank_account || ''}</td>
+                        <td>${row.plan_name || ''}</td>
+                        <td>${row.Send_result_date || ''}</td>
+                        <td>${formatNumber(row.pass_amount)}</td>
+                        <td>${row.get_amount_date || ''}</td>
+                        <td>${formatNumber(row.get_amount)}</td>
+                        <td>${row.show_fund_company || ''}-${row.show_project_title || ''}</td>
+                        <td>${row.Loan_rate || ''}</td>
+                        <td>${row.interest_rate_original || ''}</td>
+                        <td>${row.interest_rate_pass || ''}</td>
+                        <td>${formatNumber(row.charge_flow)}</td>
+                        <td>${formatNumber(row.charge_agent)}</td>
+                        <td>${formatNumber(row.charge_check)}</td>
+                        <td>${formatNumber(row.get_amount_final)}</td>
+                        <td>${formatNumber(row.subsidized_interest)}</td>
+                        <td>${commRemarkDisplay}</td>
+                        <td class="commission-link" 
+                            data-action="open-commission-rules" 
+                            data-hs-id="${row.HS_id}" 
+                            data-is-confirm="${row.IsConfirm}">
+                            ${formatNumber(row.Expe_comm_amt)}
+                        </td>
+                        <td>${formatNumber(row.act_service_amt)}</td>
+                        <td>${formatNumber(row.act_comm_amt)}</td>
+                        <td>${row.Comparison || ''}</td>
+                    `;
+                    tbody.appendChild(tr);
+
+                    // 累加總計
+                    // 注意：ASP 中的累加邏輯非常複雜，包含各種條件判斷 (isCancel, isThisMonCancel, IsmisalignedSUM)
+                    // 這裡做一個簡化的累加，真實情況需要將後端計算好的總計傳過來，或在前端完整重現該邏輯。
+                    totals.pass_amount += Number(row.pass_amount) || 0;
+                    totals.getAmount += Number(row.get_amount) || 0;
+                    totals.chargeFlow += Number(row.charge_flow) || 0;
+                    totals.chargeAgent += Number(row.charge_agent) || 0;
+                    totals.chargeCheck += Number(row.charge_check) || 0;
+                    totals.getAmountFinal += Number(row.get_amount_final) || 0;
+                    totals.subsidizedInterest += Number(row.subsidized_interest) || 0;
+                    totals.expe_comm_amt += Number(row.Expe_comm_amt) || 0;
+                    totals.act_service_amt += Number(row.act_service_amt) || 0;
+                    totals.actCommAmt += Number(row.act_comm_amt) || 0;
+                });
+
+                // 渲染總計列
+                const footerRow = document.createElement('tr');
+                footerRow.innerHTML = `
+                    <td colspan="5">筆數: ${data.length}</td>
+                    <td colspan="6" style="text-align:right;">合計:</td>
+                    <td>${formatNumber(totals.getAmount)}</td>
+                    <td colspan="4"></td>
+                    <td>${formatNumber(totals.chargeFlow)}</td>
+                    <td>${formatNumber(totals.chargeAgent)}</td>
+                    <td>${formatNumber(totals.chargeCheck)}</td>
+                    <td>${formatNumber(totals.getAmountFinal)}</td>
+                    <td>${formatNumber(totals.subsidizedInterest)}</td>
+                    <td></td>
+                    <td>${formatNumber(totals.expe_comm_amt)}</td>
+                    <td>${formatNumber(totals.act_service_amt)}</td>
+                    <td>${formatNumber(totals.actCommAmt)}</td>
+                    <td></td>
+                `;
+                tfoot.appendChild(footerRow);
+            }
+
+            function formatNumber(num) {
+                if (num === null || num === undefined) return '';
+                // 簡單的千分位格式化，不處理小數
+                return Math.round(num).toLocaleString('en-US');
+            }
+
+            /**
+             * 根據角色代碼返回權限角色字串
+             * @param {string} roleNum - 使用者角色代碼
+             * @returns {string} 'Adm', 'Man', 'Asi', 'Sal'
+             */
+            function getAuth(roleNum) {
+                const manRoles = ["1008", "1014"];
+                const salRoles = ["1009", "1017"];
+                const asiRoles = ["1010"];
+                const admRoles = ["1004", "1007", "1001"];
+
+                if (manRoles.includes(roleNum)) return 'Man';
+                if (salRoles.includes(roleNum)) return 'Sal';
+                if (asiRoles.includes(roleNum)) return 'Asi';
+                if (admRoles.includes(roleNum)) return 'Adm';
+        
+                return 'Guest'; // 預設或未知角色
+            }
+
+            /**
+             * 根據權限角色初始化UI介面(顯示/隱藏元件)
+             * @param {string} auth - 權限角色 ('Adm', 'Man', etc.)
+             */
+            function initializeUI(auth) {
+                const bcFilterWrapper = document.getElementById('filter-wrapper-bc');
+                const planFilterWrapper = document.getElementById('filter-wrapper-plan');
+
+                // 預設全部隱藏
+                bcFilterWrapper.style.display = 'none';
+                planFilterWrapper.style.display = 'none';
+        
+                // 根據權限顯示
+                // 1. 區(U_bc_title) 只限 adm
+                if (auth === 'Adm') {
+                    bcFilterWrapper.style.display = 'inline-block';
+                }
+        
+                // 2. 業務(plan_num) 只限 adm or Man
+                if (auth === 'Adm' || auth === 'Man') {
+                    planFilterWrapper.style.display = 'inline-block';
+                }
+
+                // 根據 DisplayAMT 標籤控制「預估退佣金」欄位的顯示
+                if (displayAMT === 'N') {
+                    gridContainer.classList.add('hide-column-23');
+                } else {
+                    gridContainer.classList.remove('hide-column-23');
+                }
+            }
+
+            /**
+             * 獲取使用者角色
+             * 根據 U_num 非同步獲取 Role_num
+             * @param {string} userNum - 使用者編號
+             * @returns {Promise<string>} 使用者角色代碼
+             */
+            async function fetchRoleNum(userNum) {
+                if (!userNum) {
+                    console.warn("U_num 不存在，無法獲取角色。");
+                    return 'Guest'; // 返回一個訪客角色
+                }
+                try {
+                    // 假設 API 是 GET 請求，並透過 query string 傳遞參數
+                    const response = await fetch(`${ROLE_API_URL}?U_num=${userNum}`);
+                    if (!response.ok) {
+                        throw new Error(`獲取角色失敗，伺服器回應: ${response.status}`);
+                    }
+                    const responseData = await response.json();
+                    if (responseData.resultCode=="400" || !responseData.objResult) {
+                         throw new Error("查無資料");
+                    }
+                    return responseData.objResult;
+                } catch (error) {
+                    console.error("fetchRoleNum 函式出錯:", error);
+                    alert("無法獲取您的使用者權限，部分功能可能無法使用。");
+                    return 'Guest'; // 發生錯誤時，返回安全的訪客角色
+                }
+            }
+
+            /**
+             * 建立並返回查詢參數，包含新的預設日期邏輯
+             * @returns {URLSearchParams}
+             */
+            function buildQueryParams() {
+                const formData = new FormData(form);
+                const params = new URLSearchParams(formData);
+                let selectedMonthValue = params.get('SelYear_S');
+
+                if (!selectedMonthValue) {
+                    const today = new Date();
+                    const dayOfMonth = today.getDate();
+    
+                    // 建立一個新的日期物件來計算目標月份，避免修改到 `today`
+                    let targetDate = new Date(); 
+
+                    // 如果今天是 20 號以前（1-19號），將目標月份設為上個月
+                    if (dayOfMonth < 20) {
+                        targetDate.setMonth(targetDate.getMonth() - 1);
+                    }
+    
+                    // 'targetDate' 現在已經是正確的目標月份（本月或上個月）
+                    const year = targetDate.getFullYear();
+                    const month = (targetDate.getMonth() + 1).toString().padStart(2, '0');
+                    selectedMonthValue = `${year}-${month}`;
+    
+                    // 設定參數並同步更新輸入框的顯示值
+                    params.set('SelYear_S', selectedMonthValue);
+                    monthInput.value = selectedMonthValue;
+                }
+
+                if (otherFeesText) {
+                    // 從參數中取得最終的年月值來顯示
+                    otherFeesText.textContent = `其他費用(${selectedMonthValue}): 0`;
+                }
+                const URLParams = getQueryParams();
+                params.set('U_num', URLParams.WebUser);
+                params.set('U_BC', URLParams.WebBC);
+
+                return params;
+            }
+            // ===== START: 佣金彈窗相關函式 =====
+            /**
+             * 根據從 API 獲取的資料，建立彈出視窗的 HTML 內容
+             * @param {Array} data - 佣金規則陣列
+             * @param {string} isConfirm - 是否已確認 ('Y' or 'N')
+             * @param {string} mainKey - 當前查詢的年月 (e.g., '2025-06')
+             * @returns {string} HTML 字串
+             */
+            function buildCommissionModalHtml(data, isConfirm, mainKey) {
+                if (!data || data.length === 0) {
+                    return '<p>查無佣金參考資料。</p>';
+                }
+
+                let title = "退佣參考-";
+                let refHead = "";
+                let colspan = 4;
+    
+                if (isConfirm === "Y") {
+                    title = "退佣參考-" + mainKey;
+                    refHead = "<th>參考維護人</th><th>參考建立時間</th>";
+                    colspan = 6;
+                }
+
+                let tableHtml = '<table id="RefInfo"><thead>';
+                
+    
+                // 處理案件資訊
+                const caseInfo = data.find(d => d.sel === 'Y') || data[0];
+                if (caseInfo) {
+                    tableHtml += `<tr><th colspan="${colspan}">案件資訊</th></tr>`;
+                    tableHtml += `<tr><td colspan="${colspan}" style="text-align:left; padding-left:10px;">` +
+                                 `貸款成數: ${caseInfo.RefRateL}%; 承作利率: ${caseInfo.RefRateI}%; ` +
+                                 `佣金: ${caseInfo.FR_D_discount}%; 撥款金額: ${caseInfo.GetAmount};<br>` +
+                                 `(${caseInfo.GetAmount} * ${caseInfo.Discount} = ${caseInfo.Expe_comm_amt})` +
+                                 `</td></tr>`;
+                }
+                tableHtml += `<tr><th colspan="${colspan}">${title}</th></tr>`;
+                tableHtml += `<tr><th>專案名稱</th><th>貸款成數</th><th>承作利率</th><th>佣金</th>${refHead}</tr></thead><tbody>`;
+
+                data.forEach(row => {
+                    const trClass = row.Sel === 'Y' ? 'class="Sel"' : '';
+                    let refBody = "";
+                    if (isConfirm === "Y") {
+                        refBody = `<td>${row.RefName || ''}</td><td>${row.RefDate || ''}</td>`;
+                    }
+                    tableHtml += `<tr ${trClass}>
+                                    <td>${row.FR_M_name}</td>
+                                    <td>${row.FR_D_ratio_A}～${row.FR_D_ratio_B}%</td>
+                                    <td>${row.FR_D_rate}%</td>
+                                    <td>${row.FR_D_discount}%</td>
+                                    ${refBody}
+                                  </tr>`;
+                });
+
+                tableHtml += '</tbody></table>';
+                return tableHtml;
+            }
+
+            /**
+             * 開啟佣金參考的彈出視窗
+             * @param {string} hsId - 案件 ID
+             * @param {string} isConfirm - 是否已確認 ('Y' or 'N')
+             */
+            async function openCommissionRulesModal(hsId, isConfirm) {
+                const mainKey = document.getElementById('SelYear_S').value;
+                try {
+                    const response = await fetch(`${commissionApiUrl}?hsId=${hsId}&isConfirm=${isConfirm}&mainKey=${mainKey}`);
+                    if (!response.ok) {
+                        throw new Error(`API 請求失敗: ${response.status}`);
+                    }
+                    const responseData = await response.json();
+                    if (responseData.resultCode=="400" || !responseData.objResult) {
+                         throw new Error("查無資料");
+                    }
+                    const data = await JSON.parse(responseData.objResult);
+                    const modalHtml = buildCommissionModalHtml(data, isConfirm, mainKey);
+
+                    $.blockUI({
+                        message: modalHtml,
+                        onOverlayClick: $.unblockUI,
+                        css: {
+                            width: isConfirm === 'Y' ? '650px' : '550px',
+                            top: '20%',
+                            left: '30%',
+                            border: 'none',
+                            padding: '15px',
+                            backgroundColor: '#fff',
+                            '-webkit-border-radius': '10px',
+                            '-moz-border-radius': '10px',
+                            opacity: 1,
+                            color: '#000',
+                            cursor: 'default'
+                        },
+                        overlayCSS: {
+                            backgroundColor: '#000',
+                            opacity: 0.6,
+                            cursor: 'wait'
+                        }
+                    });
+
+                } catch (error) {
+                    console.error("開啟佣金參考視窗失敗:", error);
+                    alert("無法獲取佣金參考資料。");
+                }
+            }
+            // ===== END: 佣金彈窗相關函式 =====
+
+            // 頁面初始化主流程 (使用 async/await) =====
+            async function main() {
+                try {
+                    // 步驟 1: 從 Base.js 獲取 U_num
+                    const URLParams = getQueryParams();
+                    const userNum = URLParams.WebUser;
+                    const userBC = URLParams.WebBC; // 獲取分公司代碼
+
+                    // 步驟 2: 非同步獲取角色代碼
+                    const currentUserRoleNum = await fetchRoleNum(userNum);
+                    const currentUserAuth = getAuth(currentUserRoleNum);
+
+                    // 計算權限標籤
+                    if (currentUserAuth === 'Asi' && !['BC0400', 'BC0500', 'BC0200'].includes(userBC)) {
+                        displayAMT = 'N';
+                    }
+                    // 計算 isEditOtherFee
+                    if (['Man', 'Asi', 'Adm'].includes(currentUserAuth)) {
+                        isEditOtherFee = true;
+                    }
+
+                    // 步驟 3: 根據權限設定 UI
+                    initializeUI(currentUserAuth);
+
+                    // 步驟 4: UI 設定完成後，觸發第一次資料查詢
+                    form.dispatchEvent(new Event('submit'));
+
+                } catch (error) {
+                    console.error("頁面初始化失敗:", error);
+                    alert("頁面初始化過程中發生錯誤，請聯絡管理員。");
+                }
+            }
+            // 執行初始化主流程(觸發第一次查詢)
+            main();
+            
+        });
+</script >
