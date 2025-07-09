@@ -280,6 +280,22 @@
             font-weight: bold;
             background-color: #FFD2D2; /* 使用 !important 強制覆蓋 */
         }
+
+        .LogEDIT_P {
+            text-decoration: underline;
+            font-weight: bold;
+            color: #B15BFF;
+            cursor: pointer;
+        }
+
+        .LogEDIT {
+        }
+
+        .LogEDIT_P {
+            text-decoration: underline;
+            font-weight: bold;
+            color: #B15BFF; /* 紫色 */
+        }
     </style>
 </head>
 <body>
@@ -377,7 +393,7 @@
             const ROLE_API_URL = `${BASE_URL}/AE_RPT/GetRleNum`;
             const commissionApiUrl = `${BASE_URL}/AE_RPT/GetCommissionRules`;
 
-            // 權限標籤變數宣告
+            // 變數宣告
             let displayAMT = 'Y';
             let isEditOtherFee = false;
 
@@ -434,8 +450,6 @@
 			        } else {
 				        alert(responseData.resultMsg);
 			        }
-                    
-
                 } catch (error) {
                     tbody.innerHTML = `<tr><td colspan="26">資料載入失敗: ${error.message}</td></tr>`;
                     console.error('Fetch error:', error);
@@ -449,7 +463,7 @@
                 tbody.innerHTML = ''; // 清空舊資料
                 tfoot.innerHTML = ''; // 清空總計
 
-                if (data.length === 0) {
+                if (!data || data.length === 0) {
                     tbody.innerHTML = '<tr><td colspan="26">查無資料</td></tr>';
                     return;
                 }
@@ -466,6 +480,7 @@
                     act_service_amt: 0,
                     actCommAmt: 0
                 };
+                const selYearS = document.getElementById('SelYear_S').value; // 獲取當前選擇的年月
 
                 data.forEach((row, index) => {
                     const tr = document.createElement('tr');
@@ -474,9 +489,13 @@
                     if (row.isCancel === 'Y') {
                         tr.classList.add('is-cancel');
                     }
-                    if (row.ismisaligned === 'ThisMon') { // 模擬未齊件邏輯
+                    if (row.misaligned_date != '' && row.Ismisaligned === 'ThisMon') { // 未齊件邏輯
                          tr.classList.add('is-red');
                     }
+
+                    // **呼叫新的輔助函式來產生「作業服務費」欄位**
+                    const serviceFeeCell = generateServiceFeeCell(row, displayAMT, selYearS, index);
+
                     // 使用防呆處理 (|| '') 來避免 null.replace 的錯誤
                     const introducerDisplay = `${row.CS_introducer || ''}<br>${(row.Introducer_PID || '').replace('NA', '')}`;
 
@@ -513,7 +532,7 @@
                             data-is-confirm="${row.IsConfirm}">
                             ${formatNumber(row.Expe_comm_amt)}
                         </td>
-                        <td>${formatNumber(row.act_service_amt)}</td>
+                        ${serviceFeeCell.html}
                         <td>${formatNumber(row.act_comm_amt)}</td>
                         <td>${row.Comparison || ''}</td>
                     `;
@@ -530,7 +549,7 @@
                     totals.getAmountFinal += Number(row.get_amount_final) || 0;
                     totals.subsidizedInterest += Number(row.subsidized_interest) || 0;
                     totals.expe_comm_amt += Number(row.Expe_comm_amt) || 0;
-                    totals.act_service_amt += Number(row.act_service_amt) || 0;
+                    totals.act_service_amt += serviceFeeCell.value || 0;
                     totals.actCommAmt += Number(row.act_comm_amt) || 0;
                 });
 
@@ -787,6 +806,96 @@
                 }
             }
             // ===== END: 佣金彈窗相關函式 =====
+            /**
+             * 產生「作業服務費」儲存格的 HTML 內容與屬性
+             * @param {object} row - 單筆案件資料
+             * @param {string} displayAMT - 'Y' 或 'N'，決定是否顯示金額
+             * @param {string} selYearS - 當前查詢的年月，用於日期比較
+             * @param {number} index - 當前資料的索引
+             * @returns {{html: string}} 一個包含完整 <td> HTML 的物件
+             */
+            function generateServiceFeeCell(row, displayAMT, selYearS, index) {
+                let act_service_amt = 0;
+                let isPlus = "";
+                let isSer = row.isSer;
+                let Expe_comm_amt = 0;
+                let IsmisalignedSUM = (row.misaligned_date !== "" && row.Ismisaligned !== 'ThisMon') ? 'Y' :'N';
+
+                if(displayAMT === 'Y')
+                {
+                    if(row.CaseType === 'sendcase'){
+                        if(row.IsConfirm === 'Y'){
+                            Expe_comm_amt = row.Expe_comm_amt_firm || 0;
+                        }else {
+                            Expe_comm_amt = row.Expe_comm_amt || 0;
+                        }
+                    } 
+                }
+                
+                // 1. 條件計算：只有在 isSer 為 'Y' 且非當月補登案件時才計算
+                //    (row.Ismisaligned === 'ThisMon' 代表是當月補登的案件)
+                if (IsmisalignedSUM ==='N' && isSer === 'Y') {
+                    // ASP 邏輯: act_service_amt = Expe_comm_amt * service_Rate
+                    const calculated_amt = (Number(Expe_comm_amt) || 0) * (Number(row.service_Rate) || 0);
+
+                    // 2. 無條件進位 (等同於 Math.ceil)
+                    act_service_amt = Math.ceil(calculated_amt);
+
+                    // 如果有進行進位，記錄 isPlus 字串用於 title 提示
+                    if (act_service_amt > calculated_amt) {
+                        isPlus = `${calculated_amt.toFixed(4)} --> ${act_service_amt}`;
+                    }
+                } else {
+                    isSer = 'N'; // 不滿足條件的，視為不適用
+                }
+
+                // 3. 狀態覆蓋：如果案件已確認，直接使用資料庫的值
+                if (isSer === 'Y' && row.IsConfirm === 'Y') {
+                    act_service_amt = Number(row.act_service_amt) || 0;
+                    isPlus = ""; // 已確認案件，無需顯示計算過程
+                }
+
+                // 4. 動態屬性：根據條件組合 class 和 title
+                const attributes = {
+                    class: '',
+                    title: '',
+                    'data-logtable': 'House_sendcase',
+                    'data-ubc': row.U_BC,
+                    'data-displayna': '作業服務費',
+                    'data-columna': 'act_service_amt',
+                    'data-rowidx': index,
+                    id: `tdact_service_amt${index}`
+                };
+
+                if (isSer === 'Y') {
+                    if (isPlus !== "" && selYearS >= '2024-10') {
+                        attributes.class = 'LogEDIT_P';
+                        attributes.title = isPlus;
+                    } else {
+                        attributes.class = 'LogEDIT';
+                    }
+                }
+                if (row.IsConfirm === 'N') {
+                    attributes['data-init'] = 'Y';
+                }
+
+                // 將屬性物件轉換為 HTML 字串
+                const attrString = Object.entries(attributes)
+                    .filter(([key, value]) => value) // 過濾掉空值
+                    .map(([key, value]) => `${key}="${value}"`)
+                    .join(' ');
+    
+                // 5. 權限顯示：決定最終顯示的文字
+                let displayText = 'NA';
+                if (displayAMT === 'Y' && isSer === 'Y') {
+                    displayText = formatNumber(act_service_amt);
+                }
+    
+                return {
+                    html: `<td ${attrString}>${displayText}</td>`,
+                    value: act_service_amt // 返回計算值，用於總計
+                };
+            }
 
             // 頁面初始化主流程 (使用 async/await) =====
             async function main() {
