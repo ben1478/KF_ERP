@@ -152,9 +152,9 @@
 
                     row.innerHTML = `
                         <td>${month}月(${item.Leader}+${item.Subord})</td>
-                        <td>${item.total_perf.toLocaleString()}</td>
-                        <td>${item.total_perf_after_discount?.toLocaleString() ?? '-'}</td>
-                        <td>${item.total_target.toLocaleString()}</td>
+                        <td>${item.total_perf.toLocaleString()}萬</td>
+                        <td>${item.total_perf_after_discount?.toLocaleString() ?? '-'}萬</td>
+                        <td>${item.total_target.toLocaleString()}萬</td>
                         <td>${item.achieve_rate || '-'}</td>
                         <td>${item.achieve_rate_after_discount || '-'}</td>
                     `;
