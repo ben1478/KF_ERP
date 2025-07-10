@@ -56,7 +56,11 @@
             color: #c00;
             font-size: 12px;
         }
-
+        .other-fees-link {
+            color: blue;
+            cursor: pointer;
+            text-decoration: underline;
+        }
         /* 1.單一滾動容器 */
         #gridContainer {
             width: 100%;
@@ -91,18 +95,26 @@
             z-index: 10;
         }
 
-        /* 3. 凍結欄 (tbody .frozen-col) 的黏性定位 */
-        tbody .frozen-col {
-            background-color: #f8f9fa; /* 給凍結欄一個淡淡的底色以區別 */
+        /* 3. 【通用規則】設定所有凍結欄儲存格的水平黏性  */
+        th.frozen-col,
+        td.frozen-col {
             position: sticky;
-            z-index: 5;
+            z-index: 5; /* 基本層級 */
+            background-color: #f8f9fa; /* 統一給予一個淡淡的底色 */
         }
 
         /* 4. 左上角凍結表頭 (thead .frozen-col) 的最優先級 */
-        thead .frozen-col {
-            z-index: 20; /* 確保它在滾動時永遠在最上層 */
+        thead th.frozen-col {
+            background-color: #CCCCFF; /* 確保維持表頭的顏色 */
+            z-index: 20; /* 最高的堆疊層級 */
         }
 
+        /* 5. 凍結表尾 (tfoot .frozen-col) 的樣式 */
+        tfoot td.frozen-col {
+            position: sticky; /* 確保 tfoot 的凍結欄也黏住 */
+            z-index: 15; /* 層級高於內容，但低於表頭 */
+            background-color: #e9ecef; /* 給予表尾一個不同的顏色 */
+        }
         /* --- 欄位寬度與凍結位置設定 --- */
         th:nth-child(1), td:nth-child(1) {
             width: 50px;
@@ -258,23 +270,46 @@
                 color: darkred;
             }
 
-        /* BlockUI 彈出視窗內的表格樣式 */
-        #RefInfo {
-            width: 95%;
-            margin: auto;
-            border: 1px solid #666;
+        /* 設定 BlockUI 彈出視窗的標題列樣式 */
+        div.blockMsg {
+            padding: 0 !important;
+            border-radius: 10px; /* 確保整個容器有圓角 */
+            border: 1px solid #999;
         }
-
+        .custom-modal-title {
+            background-color: #e0e0e0; /* 灰色背景 */
+            color: #333;
+            text-align: left;
+            padding: 10px 15px;
+            font-weight: bold;
+            cursor: move; /* 讓滑鼠在標題列上時顯示為移動圖示 */
+            border-bottom: 1px solid #ccc;
+            border-top-left-radius: 10px;
+            border-top-right-radius: 10px;
+        }
+        .custom-modal-content {
+            padding: 15px;
+            overflow-y: auto;
+        }
+        /* 彈出視窗內的表格樣式 */
+        #RefInfo {
+            width: 100%; /* 改為 100% 以適應容器 */
+            margin: 0;
+            border: none; /* 移除外層 border，由內容 td 控制 */
+        }
         #RefInfo th, #RefInfo td {
             padding: 8px;
             text-align: center;
             border: 1px solid #666;
         }
-
         #RefInfo thead th {
             background-color: #CCCCFF;
         }
-
+        /* 設定 BlockUI 彈出視窗的表格中，表尾的樣式 */
+        #RefInfo tfoot tr td {
+            background-color: #CCCCFF; /* 與表頭相同的顏色 */
+            font-weight: bold;
+        }
         #RefInfo tr.Sel td,
         div.blockMsg table#RefInfo tr.Sel td {
             font-weight: bold;
@@ -340,11 +375,11 @@
             <table id="MainTable">
                 <thead>
                     <tr>
-                        <th style="--col-index: 0;">No.</th>
-                        <th style="--col-index: 1;">區</th>
-                        <th style="--col-index: 2;">進件日</th>
-                        <th style="--col-index: 3;">申請人</th>
-                        <th style="--col-index: 4;">介紹人/ID</th>
+                        <th class="frozen-col">No.</th>
+                        <th class="frozen-col">區</th>
+                        <th class="frozen-col">進件日</th>
+                        <th class="frozen-col">申請人</th>
+                        <th class="frozen-col">介紹人/ID</th>
                         <th>銀行名稱</th>
                         <th>銀行帳號</th>
                         <th>業務</th>
@@ -392,7 +427,7 @@
             const API_URL = `${BASE_URL}/AE_RPT/Approval_Loan_Sales_LQuery`;
             const ROLE_API_URL = `${BASE_URL}/AE_RPT/GetRleNum`;
             const commissionApiUrl = `${BASE_URL}/AE_RPT/GetCommissionRules`;
-
+            const OTHER_FEES_DETAILS_API_URL = `${BASE_URL}/AE_RPT/GetOtherFeeDetails`;
             // 變數宣告
             let displayAMT = 'Y';
             let isEditOtherFee = false;
@@ -412,8 +447,11 @@
             form.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const params = buildQueryParams();
-                await fetchDataAndRender(params.toString());
+                await fetchDataAndRender(params);
             });
+            // "其他費用" 文字標籤新增點擊事件
+            otherFeesText.addEventListener('click', openOtherFeesModal);
+
 
             // 匯出 Excel
             exportButton.addEventListener('click', () => {
@@ -425,153 +463,196 @@
 
             // 4. 核心功能：獲取資料並渲染表格
             async function fetchDataAndRender(queryParams) {
+                console.log("1. 進入 fetchDataAndRender 函式。");
                 tbody.innerHTML = '<tr><td colspan="26">讀取中...</td></tr>';
-                let body = JSON.stringify(Object.fromEntries(new URLSearchParams(queryParams)));
+                tfoot.innerHTML = '';
+                // 先顯示計算中的提示
+                const selectedMonth = queryParams.get('SelYear_S');
+                const uBcTitle = queryParams.get('U_bc_title') || '';
+                otherFeesText.textContent = `其他費用(${selectedMonth}): 計算中...`;
 
-                console.log(`body=${body}`);
+                const reportBody = JSON.stringify(Object.fromEntries(queryParams));
+                
 
                 try {
-                    const response = await fetch(API_URL, {
+                    console.log("2. 準備發送並行 API 請求...");
+                    // 1. 建立兩個並行的 API 請求 Promise
+                    const reportPromise = fetch(API_URL, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json'
                         },
-                        body: body
+                        body: reportBody
                     });
+                    const feesDetailsPromise = fetch(`${OTHER_FEES_DETAILS_API_URL}?u_bc_title=${uBcTitle}&selYear_S=${selectedMonth}`);
+                    
+                    // 2. 等待兩個請求都完成
+                    const [reportResponse, feesDetailsResponse] = await Promise.all([reportPromise, feesDetailsPromise]);
+                    
+                    console.log("3. 兩個 API 皆已回傳。主報表狀態:", reportResponse.status, "費用明細狀態:", feesDetailsResponse.status);                    
+                    
+                    // 檢查兩個回應是否都成功
+                    if (!reportResponse.ok) throw new Error(`主報表 API 錯誤! 狀態: ${reportResponse.status}`);
+                    if (!feesDetailsResponse.ok) throw new Error(`其他費用明細 API 錯誤! 狀態: ${feesDetailsResponse.status}`);
 
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
-                    }
-                    const responseData = await response.json();
-                    let data = [];
-                    if (responseData.resultCode == "000") {
-				        data = JSON.parse(responseData.objResult);
+                    console.log("4. 準備解析 JSON...");
+
+                    // 分開解析，以便定位錯誤
+                    const feesDetailsData = await feesDetailsResponse.json();
+                    console.log("5. 費用明細 JSON 解析成功。");
+
+                    const reportResponseData = await reportResponse.json();
+                    console.log("6. 主報表 JSON 解析成功。");
+
+                    // 3. 處理主報表資料
+                    if (reportResponseData.resultCode == "000") {
+
+                        console.log("7. 主報表 resultCode 為 000，準備渲染表格。");
+
+				        const data = JSON.parse(reportResponseData.objResult);
                         renderTable(data);
 			        } else {
-				        alert(responseData.resultMsg);
+				        alert(reportResponseData.resultMsg);
 			        }
+                    // 4. 處理費用明細資料、計算總和並更新 UI
+                    
+                    console.log("8. 準備計算其他費用總和。");
+                    let details = [];
+                    if(feesDetailsData && feesDetailsData.objResult)
+                    {
+                        details = JSON.parse(feesDetailsData.objResult); 
+                    }
+                    
+                    const totalOtherAmount = details.reduce((sum, item) => {
+                        return sum + (Number(item.TotAmt) || 0);
+                    }, 0);
+
+                    otherFeesText.textContent = `其他費用(${selectedMonth}): ${formatNumber(totalOtherAmount)}`;
+                    console.log("9. UI 更新完成。");
                 } catch (error) {
                     tbody.innerHTML = `<tr><td colspan="26">資料載入失敗: ${error.message}</td></tr>`;
-                    console.error('Fetch error:', error);
+                    console.error("fetchDataAndRender 函式捕捉到錯誤:", error); // 在 Console 中顯示詳細錯誤
+                    otherFeesText.textContent = `其他費用(${selectedMonth}): 查詢失敗`;
                 }
             }
 
-            // 5. 渲染表格內容
+            /**
+             * 渲染表格內容，並根據原始命名慣例進行計算與顯示
+             * @param {Array} data - 從 API 獲取的資料陣列
+             */
             function renderTable(data) {
                 const tbody = document.querySelector('#MainTable tbody');
                 const tfoot = document.querySelector('#MainTable tfoot');
-                tbody.innerHTML = ''; // 清空舊資料
-                tfoot.innerHTML = ''; // 清空總計
+                tbody.innerHTML = '';
+                tfoot.innerHTML = '';
 
                 if (!data || data.length === 0) {
                     tbody.innerHTML = '<tr><td colspan="26">查無資料</td></tr>';
                     return;
                 }
 
-                // 初始化總計物件
-                const totals = {
-                    getAmount: 0,
-                    chargeFlow: 0,
-                    chargeAgent: 0,
-                    chargeCheck: 0,
-                    getAmountFinal: 0,
-                    subsidizedInterest: 0,
-                    expe_comm_amt: 0,
-                    act_service_amt: 0,
-                    actCommAmt: 0
-                };
-                const selYearS = document.getElementById('SelYear_S').value; // 獲取當前選擇的年月
+                // 1. 初始化總計物件 (使用與 SQL 別名一致的命名)
+                const totals = { pass_amount: 0, get_amount: 0, charge_flow: 0, charge_agent: 0, charge_check: 0, get_amount_final: 0, subsidized_interest: 0, Expe_comm_amt: 0, act_service_amt: 0, act_comm_amt: 0 };
+                const misalignedTotals = { pass_amount: 0, get_amount: 0, charge_flow: 0, charge_agent: 0, charge_check: 0, get_amount_final: 0, subsidized_interest: 0, Expe_comm_amt: 0, act_service_amt: 0, act_comm_amt: 0 };
+                let misalignedCount = 0;
+    
+                const selYearS = document.getElementById('SelYear_S').value;
 
                 data.forEach((row, index) => {
                     const tr = document.createElement('tr');
+    
+                    // 2. 判斷 IsmisalignedSUM (使用與 SQL 別名一致的命名)
+                    const IsmisalignedSUM = (row.misaligned_date && row.Ismisaligned === 'ThisMon') ? 'Y' : 'N';
+    
+                    if (row.isCancel === 'Y') tr.classList.add('is-cancel');
+                    if (IsmisalignedSUM === 'Y') tr.classList.add('is-red');
 
-                    // 根據資料狀態添加 class
-                    if (row.isCancel === 'Y') {
-                        tr.classList.add('is-cancel');
-                    }
-                    if (row.misaligned_date != '' && row.Ismisaligned === 'ThisMon') { // 未齊件邏輯
-                         tr.classList.add('is-red');
-                    }
-
-                    // **呼叫新的輔助函式來產生「作業服務費」欄位**
                     const serviceFeeCell = generateServiceFeeCell(row, displayAMT, selYearS, index);
-
-                    // 使用防呆處理 (|| '') 來避免 null.replace 的錯誤
                     const introducerDisplay = `${row.CS_introducer || ''}<br>${(row.Introducer_PID || '').replace('NA', '')}`;
-
-                    // 根據 DisplayAMT 決定「退傭備註」的顯示內容
                     const commRemarkDisplay = (displayAMT === 'Y') ? (row.Comm_Remark || '') : 'NA';
 
-                    // 創建凍結列和滾動列
+                    // 3. 渲染 <tr> (使用與 SQL 別名一致的命名)
                     tr.innerHTML = `
                         <td class="frozen-col">${index + 1}</td>
                         <td class="frozen-col">${row.U_BC_name || ''}</td>
                         <td class="frozen-col">${row.Send_amount_date || ''}</td>
                         <td class="frozen-col">${row.CS_name || ''}</td>
                         <td class="frozen-col">${introducerDisplay}</td>
-                        <td>${row.Bank_name || ''}</td>
-                        <td>${row.Bank_account || ''}</td>
-                        <td>${row.plan_name || ''}</td>
-                        <td>${row.Send_result_date || ''}</td>
-                        <td>${formatNumber(row.pass_amount)}</td>
-                        <td>${row.get_amount_date || ''}</td>
-                        <td>${formatNumber(row.get_amount)}</td>
-                        <td>${row.show_fund_company || ''}-${row.show_project_title || ''}</td>
-                        <td>${row.Loan_rate || ''}</td>
-                        <td>${row.interest_rate_original || ''}</td>
-                        <td>${row.interest_rate_pass || ''}</td>
-                        <td>${formatNumber(row.charge_flow)}</td>
-                        <td>${formatNumber(row.charge_agent)}</td>
-                        <td>${formatNumber(row.charge_check)}</td>
-                        <td>${formatNumber(row.get_amount_final)}</td>
-                        <td>${formatNumber(row.subsidized_interest)}</td>
-                        <td>${commRemarkDisplay}</td>
-                        <td class="commission-link" 
-                            data-action="open-commission-rules" 
-                            data-hs-id="${row.HS_id}" 
-                            data-is-confirm="${row.IsConfirm}">
-                            ${formatNumber(row.Expe_comm_amt)}
-                        </td>
+                        <td>${row.Bank_name || ''}</td><td>${row.Bank_account || ''}</td><td>${row.plan_name || ''}</td>
+                        <td>${row.Send_result_date || ''}</td><td>${formatNumber(row.pass_amount)}</td><td>${row.get_amount_date || ''}</td>
+                        <td>${formatNumber(row.get_amount)}</td><td>${row.show_fund_company || ''}-${row.show_project_title || ''}</td>
+                        <td>${row.Loan_rate || ''}</td><td>${row.interest_rate_original || ''}</td><td>${row.interest_rate_pass || ''}</td>
+                        <td>${formatNumber(row.charge_flow)}</td><td>${formatNumber(row.charge_agent)}</td><td>${formatNumber(row.charge_check)}</td>
+                        <td>${formatNumber(row.get_amount_final)}</td><td>${formatNumber(row.subsidized_interest)}</td><td>${commRemarkDisplay}</td>
+                        <td class="commission-link" data-action="open-commission-rules" data-hs-id="${row.HS_id}" data-is-confirm="${row.IsConfirm}">${formatNumber(row.Expe_comm_amt)}</td>
                         ${serviceFeeCell.html}
                         <td>${formatNumber(row.act_comm_amt)}</td>
                         <td>${row.Comparison || ''}</td>
                     `;
                     tbody.appendChild(tr);
 
-                    // 累加總計
-                    // 注意：ASP 中的累加邏輯非常複雜，包含各種條件判斷 (isCancel, isThisMonCancel, IsmisalignedSUM)
-                    // 這裡做一個簡化的累加，真實情況需要將後端計算好的總計傳過來，或在前端完整重現該邏輯。
-                    totals.pass_amount += Number(row.pass_amount) || 0;
-                    totals.getAmount += Number(row.get_amount) || 0;
-                    totals.chargeFlow += Number(row.charge_flow) || 0;
-                    totals.chargeAgent += Number(row.charge_agent) || 0;
-                    totals.chargeCheck += Number(row.charge_check) || 0;
-                    totals.getAmountFinal += Number(row.get_amount_final) || 0;
-                    totals.subsidizedInterest += Number(row.subsidized_interest) || 0;
-                    totals.expe_comm_amt += Number(row.Expe_comm_amt) || 0;
-                    totals.act_service_amt += serviceFeeCell.value || 0;
-                    totals.actCommAmt += Number(row.act_comm_amt) || 0;
+                    // 4. 累加總計 (使用與 SQL 別名一致的命名)
+                    const targetTotals = (IsmisalignedSUM === 'Y') ? misalignedTotals : totals;
+                    if (IsmisalignedSUM === 'Y') misalignedCount++;
+    
+                    if (row.isCancel !== 'Y') {
+                        targetTotals.pass_amount += Number(row.pass_amount) || 0;
+                        targetTotals.get_amount += Number(row.get_amount) || 0;
+                        targetTotals.charge_flow += Number(row.charge_flow) || 0;
+                        targetTotals.charge_agent += Number(row.charge_agent) || 0;
+                        targetTotals.charge_check += Number(row.charge_check) || 0;
+                        targetTotals.get_amount_final += Number(row.get_amount_final) || 0;
+                        targetTotals.subsidized_interest += Number(row.subsidized_interest) || 0;
+                        targetTotals.Expe_comm_amt += Number(row.Expe_comm_amt) || 0;
+                        targetTotals.act_service_amt += serviceFeeCell.value || 0;
+                        targetTotals.act_comm_amt += Number(row.act_comm_amt) || 0;
+                    } else {
+                        if (row.isThisMonCancel === 'Y') {
+                            totals.pass_amount += Number(row.pass_amount) || 0;
+                            totals.get_amount += Number(row.get_amount) || 0;
+                        }
+                    }
                 });
 
-                // 渲染總計列
+                // 5. 渲染表尾 (使用與 SQL 別名一致的命名)
                 const footerRow = document.createElement('tr');
+                footerRow.style.cssText = 'background-color: #CCCCFF; font-weight: bold;';
                 footerRow.innerHTML = `
-                    <td colspan="5">筆數: ${data.length}</td>
-                    <td colspan="6" style="text-align:right;">合計:</td>
-                    <td>${formatNumber(totals.getAmount)}</td>
-                    <td colspan="4"></td>
-                    <td>${formatNumber(totals.chargeFlow)}</td>
-                    <td>${formatNumber(totals.chargeAgent)}</td>
-                    <td>${formatNumber(totals.chargeCheck)}</td>
-                    <td>${formatNumber(totals.getAmountFinal)}</td>
-                    <td>${formatNumber(totals.subsidizedInterest)}</td>
-                    <td></td>
-                    <td>${formatNumber(totals.expe_comm_amt)}</td>
-                    <td>${formatNumber(totals.act_service_amt)}</td>
-                    <td>${formatNumber(totals.actCommAmt)}</td>
-                    <td></td>
+                    <td class="frozen-col"></td>
+                    <td class="frozen-col">總筆數: ${data.length}</td>
+                    <td class="frozen-col"></td>
+                    <td class="frozen-col"></td>
+                    <td class="frozen-col" style="text-align:right;">合計:</td>
+                    <td colspan="4"></td>                    
+                    <td>${formatNumber(totals.pass_amount)}</td><td></td><td>${formatNumber(totals.get_amount)}</td>
+                    <td colspan="4"></td><td>${formatNumber(totals.charge_flow)}</td><td>${formatNumber(totals.charge_agent)}</td>
+                    <td>${formatNumber(totals.charge_check)}</td><td>${formatNumber(totals.get_amount_final)}</td>
+                    <td>${formatNumber(totals.subsidized_interest)}</td><td></td><td>${formatNumber(totals.Expe_comm_amt)}</td>
+                    <td>${formatNumber(totals.act_service_amt)}</td><td>${formatNumber(totals.act_comm_amt)}</td><td></td>
                 `;
                 tfoot.appendChild(footerRow);
+                // 表尾:未齊件筆數
+                if (misalignedCount > 0) {
+                    const misalignedFooterRow = document.createElement('tr');
+                    misalignedFooterRow.style.cssText = 'background-color: #FFD2D2; font-weight: bold;';
+                    misalignedFooterRow.innerHTML = `
+                        <td class="frozen-col">未齊件筆數: ${misalignedCount}</td>
+                        <td class="frozen-col"></td>
+                        <td class="frozen-col"></td>
+                        <td class="frozen-col"></td>
+                        <td class="frozen-col" style="text-align:right;">小計:</td>
+                        <td colspan="4"></td>
+                        <td>${formatNumber(misalignedTotals.pass_amount)}</td><td></td><td>${formatNumber(misalignedTotals.get_amount)}</td>
+                        <td colspan="4"></td><td>${formatNumber(misalignedTotals.charge_flow)}</td><td>${formatNumber(misalignedTotals.charge_agent)}</td>
+                        <td>${formatNumber(misalignedTotals.charge_check)}</td><td>${formatNumber(misalignedTotals.get_amount_final)}</td>
+                        <td>${formatNumber(misalignedTotals.subsidized_interest)}</td><td colspan="5"></td>
+                    `;
+                        //<td>${formatNumber(misalignedTotals.Expe_comm_amt)}</td>
+                        //<td>${formatNumber(misalignedTotals.act_service_amt)}</td>
+                        //<td>${formatNumber(misalignedTotals.act_comm_amt)}</td>
+                        //<td></td>
+                    tfoot.appendChild(misalignedFooterRow);
+                }
             }
 
             function formatNumber(num) {
@@ -628,6 +709,13 @@
                 } else {
                     gridContainer.classList.remove('hide-column-23');
                 }
+
+                const selYearS = document.getElementById('SelYear_S').value;
+                if (isEditOtherFee && selYearS >= '2025-01') {
+                    otherFeesText.classList.add('other-fees-link');
+                } else {
+                    otherFeesText.classList.remove('other-fees-link');
+                }
             }
 
             /**
@@ -666,34 +754,22 @@
             function buildQueryParams() {
                 const formData = new FormData(form);
                 const params = new URLSearchParams(formData);
-                let selectedMonthValue = params.get('SelYear_S');
-
-                if (!selectedMonthValue) {
+                // 處理預設月份
+                if (!params.get('SelYear_S')) {
                     const today = new Date();
                     const dayOfMonth = today.getDate();
-    
-                    // 建立一個新的日期物件來計算目標月份，避免修改到 `today`
                     let targetDate = new Date(); 
-
-                    // 如果今天是 20 號以前（1-19號），將目標月份設為上個月
                     if (dayOfMonth < 20) {
                         targetDate.setMonth(targetDate.getMonth() - 1);
                     }
-    
-                    // 'targetDate' 現在已經是正確的目標月份（本月或上個月）
                     const year = targetDate.getFullYear();
                     const month = (targetDate.getMonth() + 1).toString().padStart(2, '0');
-                    selectedMonthValue = `${year}-${month}`;
-    
-                    // 設定參數並同步更新輸入框的顯示值
-                    params.set('SelYear_S', selectedMonthValue);
-                    monthInput.value = selectedMonthValue;
+                    const defaultValue = `${year}-${month}`;
+        
+                    params.set('SelYear_S', defaultValue);
+                    monthInput.value = defaultValue;
                 }
 
-                if (otherFeesText) {
-                    // 從參數中取得最終的年月值來顯示
-                    otherFeesText.textContent = `其他費用(${selectedMonthValue}): 0`;
-                }
                 const URLParams = getQueryParams();
                 params.set('U_num', URLParams.WebUser);
                 params.set('U_BC', URLParams.WebBC);
@@ -896,6 +972,105 @@
                     value: act_service_amt // 返回計算值，用於總計
                 };
             }
+            /**
+             * ===== START: 新增 - 開啟其他費用明細的彈出視窗 =====
+             */
+            async function openOtherFeesModal() {
+                // 條件檢查：只有在符合條件時才執行
+                const selYearS = document.getElementById('SelYear_S').value;
+                if (!isEditOtherFee || selYearS < '2025-01') {
+                    return; // 不符合條件，不執行任何動作
+                }
+
+                const uBcTitle = document.getElementById('U_bc_title').value;
+
+                try {
+                    const response = await fetch(`${OTHER_FEES_DETAILS_API_URL}?u_bc_title=${uBcTitle}&selYear_S=${selYearS}`);
+                    if (!response.ok) throw new Error(`API 請求失敗: ${response.status}`);
+                    const responseData = await response.json();
+                    if (responseData.resultCode == "000") {
+                        details = JSON.parse(responseData.objResult);
+                        const modalHtml = buildOtherFeesModalHtml(details, selYearS);
+
+                        $.blockUI({
+                            message: modalHtml,
+                            onOverlayClick: $.unblockUI,
+                            css: {
+                                width: '650px', top: '15%', left: '30%', border: 'none',
+                                padding: '0px', 
+                                backgroundColor: '#fff', cursor: 'default',
+                                '-webkit-border-radius': '10px', '-moz-border-radius': '10px',
+                            },
+                            overlayCSS: { backgroundColor: '#000', opacity: 0.6, cursor: 'wait' }
+                        });
+
+                        $('.blockMsg').draggable({
+                            handle: ".custom-modal-title",
+                            cursor: "move"
+                        });
+                    } else {
+                        alert(response.resultMsg);
+                    }
+                } catch (error) {
+                    console.error("開啟其他費用視窗失敗:", error);
+                    alert("無法獲取其他費用明細。");
+                }
+            }
+
+            /**
+             * 根據從 API 獲取的資料，建立其他費用彈出視窗的 HTML 內容
+             */
+            function buildOtherFeesModalHtml(details, selYearS) {
+                let tableHtml = `<table id="RefInfo">
+                    <thead>
+                        <tr><th colspan="6">各區 ${selYearS} 其他費用</th></tr>
+                        <tr><th>區</th><th>清潔費</th><th>匯費</th><th>開工紅包</th><th>補貼代書費</th><th>合計</th></tr>
+                    </thead>
+                    <tbody>`;
+
+                const totals = { CleanAmt: 0, RemitAmt: 0, BonusAmt: 0, SubsidyAmt: 0, TotAmt: 0 };
+
+                details.forEach(row => {
+                    tableHtml += `<tr>
+                                    <td>${row.ItemDName || ''}</td>
+                                    <td>${formatNumber(row.CleanAmt)}</td>
+                                    <td>${formatNumber(row.RemitAmt)}</td>
+                                    <td>${formatNumber(row.BonusAmt)}</td>
+                                    <td>${formatNumber(row.SubsidyAmt)}</td>
+                                    <td>${formatNumber(row.TotAmt)}</td>
+                                  </tr>`;
+                    // 累加總計
+                    totals.CleanAmt += Number(row.CleanAmt) || 0;
+                    totals.RemitAmt += Number(row.RemitAmt) || 0;
+                    totals.BonusAmt += Number(row.BonusAmt) || 0;
+                    totals.SubsidyAmt += Number(row.SubsidyAmt) || 0;
+                    totals.TotAmt += Number(row.TotAmt) || 0;
+                });
+
+                tableHtml += `</tbody>
+                    <tfoot>
+                        <tr>
+                            <td>合計：</td>
+                            <td>${formatNumber(totals.CleanAmt)}</td>
+                            <td>${formatNumber(totals.RemitAmt)}</td>
+                            <td>${formatNumber(totals.BonusAmt)}</td>
+                            <td>${formatNumber(totals.SubsidyAmt)}</td>
+                            <td>${formatNumber(totals.TotAmt)}</td>
+                        </tr>
+                    </tfoot>
+                </table>`;
+                // 將表格包在我們自訂的標題和內容容器中
+                const finalHtml = `
+                <div class="custom-modal-wrapper">
+                    <div class="custom-modal-title">其他費用 (${selYearS})</div>
+                    <div class="custom-modal-content">
+                        ${tableHtml}
+                    </div>
+                </div>
+    `;
+                return finalHtml;
+            }
+            // ===== END: 新增函式 =====
 
             // 頁面初始化主流程 (使用 async/await) =====
             async function main() {
