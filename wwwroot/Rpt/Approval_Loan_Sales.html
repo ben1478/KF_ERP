@@ -623,13 +623,10 @@
                 const footerRow = document.createElement('tr');
                 footerRow.style.cssText = 'background-color: #CCCCFF; font-weight: bold;';
                 footerRow.innerHTML = `
-                    <td class="frozen-col"></td>
-                    <td class="frozen-col">總筆數: ${data.length}</td>
-                    <td class="frozen-col"></td>
-                    <td class="frozen-col"></td>
-                    <td class="frozen-col" style="text-align:right;">合計:</td>
-                    <td colspan="4"></td>                    
-                    <td>${formatNumber(totals.pass_amount)}</td><td></td><td>${formatNumber(totals.get_amount)}</td>
+                    <td class="frozen-col" colspan="5">總筆數: ${data.length}</td>
+                    <td colspan="5"></td>
+                    <td style="text-align:right;">合計:</td>
+                    <td>${formatNumber(totals.get_amount)}</td>
                     <td colspan="4"></td><td>${formatNumber(totals.charge_flow)}</td><td>${formatNumber(totals.charge_agent)}</td>
                     <td>${formatNumber(totals.charge_check)}</td><td>${formatNumber(totals.get_amount_final)}</td>
                     <td>${formatNumber(totals.subsidized_interest)}</td><td></td><td>${formatNumber(totals.Expe_comm_amt)}</td>
@@ -641,13 +638,10 @@
                     const misalignedFooterRow = document.createElement('tr');
                     misalignedFooterRow.style.cssText = 'background-color: #FFD2D2; font-weight: bold;';
                     misalignedFooterRow.innerHTML = `
-                        <td class="frozen-col">未齊件筆數: ${misalignedCount}</td>
-                        <td class="frozen-col"></td>
-                        <td class="frozen-col"></td>
-                        <td class="frozen-col"></td>
-                        <td class="frozen-col" style="text-align:right;">小計:</td>
-                        <td colspan="4"></td>
-                        <td>${formatNumber(misalignedTotals.pass_amount)}</td><td></td><td>${formatNumber(misalignedTotals.get_amount)}</td>
+                        <td class="frozen-col"  colspan="5">未齊件筆數: ${misalignedCount}</td>
+                        <td colspan="5"></td>
+                        <td style="text-align:right;">未齊件合計:</td>
+                        <td>${formatNumber(misalignedTotals.get_amount)}萬</td>
                         <td colspan="4"></td><td>${formatNumber(misalignedTotals.charge_flow)}</td><td>${formatNumber(misalignedTotals.charge_agent)}</td>
                         <td>${formatNumber(misalignedTotals.charge_check)}</td><td>${formatNumber(misalignedTotals.get_amount_final)}</td>
                         <td>${formatNumber(misalignedTotals.subsidized_interest)}</td><td colspan="5"></td>
