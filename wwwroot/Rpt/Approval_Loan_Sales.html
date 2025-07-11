@@ -257,6 +257,12 @@
             background-color: #FFD2D2 !important;
         }
 
+        .log-table-container {
+            max-height: 250px; /* 設定歷程區塊的最大高度，您可以依需求調整 */
+            overflow-y: auto; /* 當內容超出最大高度時，顯示垂直捲動軸 */
+            border: 1px solid #ccc;
+            margin-top: 10px;
+        }
         /* ... 其他 CSS ... */
 
         /* 「預估退佣金」的超連結樣式 */
@@ -466,9 +472,9 @@
                 XLSX.writeFile(wb, "核准放款表_佣金表.xlsx");
             });
 
-            // 4. 核心功能：獲取資料並渲染表格
+            // 獲取資料並渲染表格
             async function fetchDataAndRender(queryParams) {
-                console.log("1. 進入 fetchDataAndRender 函式。");
+                //console.log("1. 進入 fetchDataAndRender 函式。");
                 tbody.innerHTML = '<tr><td colspan="26">讀取中...</td></tr>';
                 tfoot.innerHTML = '';
                 // 先顯示計算中的提示
@@ -480,7 +486,7 @@
                 
 
                 try {
-                    console.log("2. 準備發送並行 API 請求...");
+                    //console.log("2. 準備發送並行 API 請求...");
                     // 1. 建立兩個並行的 API 請求 Promise
                     const reportPromise = fetch(API_URL, {
                         method: 'POST',
@@ -494,34 +500,32 @@
                     // 2. 等待兩個請求都完成
                     const [reportResponse, feesDetailsResponse] = await Promise.all([reportPromise, feesDetailsPromise]);
                     
-                    console.log("3. 兩個 API 皆已回傳。主報表狀態:", reportResponse.status, "費用明細狀態:", feesDetailsResponse.status);                    
+                    //console.log("3. 兩個 API 皆已回傳。主報表狀態:", reportResponse.status, "費用明細狀態:", feesDetailsResponse.status);                    
                     
                     // 檢查兩個回應是否都成功
                     if (!reportResponse.ok) throw new Error(`主報表 API 錯誤! 狀態: ${reportResponse.status}`);
                     if (!feesDetailsResponse.ok) throw new Error(`其他費用明細 API 錯誤! 狀態: ${feesDetailsResponse.status}`);
 
-                    console.log("4. 準備解析 JSON...");
+                    //console.log("4. 準備解析 JSON...");
 
                     // 分開解析，以便定位錯誤
                     const feesDetailsData = await feesDetailsResponse.json();
-                    console.log("5. 費用明細 JSON 解析成功。");
+                    //console.log("5. 費用明細 JSON 解析成功。");
 
                     const reportResponseData = await reportResponse.json();
-                    console.log("6. 主報表 JSON 解析成功。");
+                    //console.log("6. 主報表 JSON 解析成功。");
 
                     // 3. 處理主報表資料
+                    let mainData = [];
                     if (reportResponseData.resultCode == "000") {
-
-                        console.log("7. 主報表 resultCode 為 000，準備渲染表格。");
-
-				        const data = JSON.parse(reportResponseData.objResult);
-                        renderTable(data);
+                        //console.log("7. 主報表 resultCode 為 000，準備渲染表格。");
+				        mainData = JSON.parse(reportResponseData.objResult);
 			        } else {
 				        alert(reportResponseData.resultMsg);
 			        }
                     // 4. 處理費用明細資料、計算總和並更新 UI
                     
-                    console.log("8. 準備計算其他費用總和。");
+                    //console.log("8. 準備計算其他費用總和。");
                     let details = [];
                     if(feesDetailsData && feesDetailsData.objResult)
                     {
@@ -531,9 +535,9 @@
                     const totalOtherAmount = details.reduce((sum, item) => {
                         return sum + (Number(item.TotAmt) || 0);
                     }, 0);
-
+                    renderTable(mainData, totalOtherAmount);
                     otherFeesText.textContent = `其他費用(${selectedMonth}): ${formatNumber(totalOtherAmount)}`;
-                    console.log("9. UI 更新完成。");
+                    //console.log("9. UI 更新完成。");
                 } catch (error) {
                     tbody.innerHTML = `<tr><td colspan="26">資料載入失敗: ${error.message}</td></tr>`;
                     console.error("fetchDataAndRender 函式捕捉到錯誤:", error); // 在 Console 中顯示詳細錯誤
@@ -545,7 +549,7 @@
              * 渲染表格內容，並根據原始命名慣例進行計算與顯示
              * @param {Array} data - 從 API 獲取的資料陣列
              */
-            function renderTable(data) {
+            function renderTable(data, totalOtherAmount) {
                 const tbody = document.querySelector('#MainTable tbody');
                 const tfoot = document.querySelector('#MainTable tfoot');
                 tbody.innerHTML = '';
@@ -618,6 +622,25 @@
                         }
                     }
                 });
+
+                // 如果其他費用>0，先插入「其他費用」摘要列
+                if (totalOtherAmount > 0) {
+                    const otherFeesRow = document.createElement('tr');
+                    // 白色底色
+                    otherFeesRow.style.backgroundColor = '#fff'; 
+        
+                    // 找到「對保費」(第19欄) 和「結餘」(第20欄) 的位置
+                    otherFeesRow.innerHTML = `
+                        <td colspan="18"></td>
+                        <td style="text-align:right; font-weight:bold;">其他費用:</td>
+                        <td style="color:red; font-weight:bold;">-${formatNumber(totalOtherAmount)}</td>
+                        <td colspan="6"></td>
+                    `;
+                    tfoot.appendChild(otherFeesRow);
+                }
+
+                // 從總計的「結餘」中減去其他費用
+                totals.get_amount_final -= totalOtherAmount;
 
                 // 5. 渲染表尾 (使用與 SQL 別名一致的命名)
                 const footerRow = document.createElement('tr');
@@ -800,7 +823,7 @@
                     uBcTitleSelect.appendChild(fragment);
 
                     // 根據傳入的 userBC 設定預設選中項
-                    if (defaultBranchCode) {
+                    if (defaultBranchCode && uBcTitleSelect.querySelector(`option[value="${defaultBranchCode}"]`)) {
                         uBcTitleSelect.value = defaultBranchCode;
                     }
 
@@ -1070,12 +1093,12 @@
             function buildOtherFeesModalHtml(details, selYearS) {
                 let tableHtml = `<table id="RefInfo">
                     <thead>
-                        <tr><th colspan="6">各區 ${selYearS} 其他費用</th></tr>
-                        <tr><th>區</th><th>清潔費</th><th>匯費</th><th>開工紅包</th><th>補貼代書費</th><th>合計</th></tr>
+                        <tr><th colspan="7">各區 ${selYearS} 其他費用</th></tr>
+                        <tr><th>區</th><th>清潔費</th><th>匯費</th><th>開工紅包</th><th>補貼代書費</th><th>補貼過車費</th><th>合計</th></tr>
                     </thead>
                     <tbody>`;
 
-                const totals = { CleanAmt: 0, RemitAmt: 0, BonusAmt: 0, SubsidyAmt: 0, TotAmt: 0 };
+                const totals = { CleanAmt: 0, RemitAmt: 0, BonusAmt: 0, SubsidyAmt: 0, FaresAmt: 0, TotAmt: 0 };
 
                 details.forEach(row => {
                     tableHtml += `<tr>
@@ -1084,6 +1107,7 @@
                                     <td>${formatNumber(row.RemitAmt)}</td>
                                     <td>${formatNumber(row.BonusAmt)}</td>
                                     <td>${formatNumber(row.SubsidyAmt)}</td>
+                                    <td>${formatNumber(row.FaresAmt)}</td>
                                     <td>${formatNumber(row.TotAmt)}</td>
                                   </tr>`;
                     // 累加總計
@@ -1091,6 +1115,7 @@
                     totals.RemitAmt += Number(row.RemitAmt) || 0;
                     totals.BonusAmt += Number(row.BonusAmt) || 0;
                     totals.SubsidyAmt += Number(row.SubsidyAmt) || 0;
+                    totals.FaresAmt += Number(row.FaresAmt) || 0;
                     totals.TotAmt += Number(row.TotAmt) || 0;
                 });
 
@@ -1102,6 +1127,7 @@
                             <td>${formatNumber(totals.RemitAmt)}</td>
                             <td>${formatNumber(totals.BonusAmt)}</td>
                             <td>${formatNumber(totals.SubsidyAmt)}</td>
+                            <td>${formatNumber(totals.FaresAmt)}</td>
                             <td>${formatNumber(totals.TotAmt)}</td>
                         </tr>
                     </tfoot>
@@ -1158,11 +1184,11 @@
                         throw new Error(logsData.ResultMsg);
                     }
 
-                    const currentValues = (details && details.length > 0) ? details[0] : {};
+                    const currentValues = (details.length > 0) ? details[0] : {};
 
                     // Build the modal HTML with both the form and the log table
-                    const modalHtml = buildEditableFeeFormHtml(currentValues, logs, uBcTitleText, selYearS, feeDescriptions);
-
+                    const modalHtml = buildEditableFeeFormHtml(currentValues, keyVal, logs, uBcTitleText, selYearS, feeDescriptions);
+                    console.log(`modalHtml=${modalHtml}`);
                     $.blockUI({
                         message: modalHtml,
                         onOverlayClick: $.unblockUI,
@@ -1181,6 +1207,11 @@
                         handle: ".custom-modal-title",
                         cursor: "move"
                     });
+                    // 讓彈出視窗可以被使用者調整大小
+                    $('.blockMsg').resizable({
+                        // 's' 代表 south (南方，即底部)，只允許垂直向下拉伸
+                        handles: 's' 
+                    });
                     // Bind the save event to the button
                     $('#btnSaveOtherFees').on('click', saveOtherFees);
 
@@ -1193,26 +1224,31 @@
             /**
              * 建立可編輯表單的 HTML
              */
-            function buildEditableFeeFormHtml(values, logs, titleText, selYearS, feeDescriptions) {
-                const keyVal = (values.itemDCode || '') + selYearS;
+            function buildEditableFeeFormHtml(values, keyVal, logs, titleText, selYearS, feeDescriptions) {
                 const logTableHtml = buildFeeLogTableHtml(logs, "其他費用", false, feeDescriptions); // Generate the log table
-
+                console.log(`values.CleanAmt=${values.CleanAmt}`);
+                console.log(`values.RemitAmt=${values.RemitAmt}`);
+                console.log(`values.BonusAmt=${values.BonusAmt}`);
+                console.log(`values.SubsidyAmt=${values.SubsidyAmt}`);
+                console.log(`values.FaresAmt=${values.FaresAmt}`);
                 return `
                     <div class="custom-modal-wrapper">
                         <div class="custom-modal-title">${titleText} ${selYearS} - 其他費用</div>
                         <div class="custom-modal-content" style="text-align: left; line-height: 2.5;">
                             <input type="hidden" id="feeKeyVal" value="${keyVal}">
-                            清潔費: <input type="text" size="8" id="txtCleanAmt" value="${values.cleanAmt || 0}" /><br>
-                            匯費: <input type="text" size="8" id="txtRemitAmt" value="${values.remitAmt || 0}" /><br>
-                            開工紅包: <input type="text" size="8" id="txtBonusAmt" value="${values.bonusAmt || 0}" /><br>
-                            補貼代書費: <input type="text" size="8" id="txtSubsidyAmt" value="${values.subsidyAmt || 0}" /><br>
-                            補貼過車費: <input type="text" size="8" id="txtFaresAmt" value="${values.faresAmt || 0}" />
+                            清潔費: <input type="text" size="8" id="txtCleanAmt" value="${values.CleanAmt || 0}" /><br>
+                            匯費: <input type="text" size="8" id="txtRemitAmt" value="${values.RemitAmt || 0}" /><br>
+                            開工紅包: <input type="text" size="8" id="txtBonusAmt" value="${values.BonusAmt || 0}" /><br>
+                            補貼代書費: <input type="text" size="8" id="txtSubsidyAmt" value="${values.SubsidyAmt || 0}" /><br>
+                            補貼過車費: <input type="text" size="8" id="txtFaresAmt" value="${values.FaresAmt || 0}" />
                             <hr>
                             <div style="text-align:center;">
                                 <input type="button" value="確定" id="btnSaveOtherFees">
                             </div>
                             <hr>
-                            ${logTableHtml}
+                            <div class="log-table-container">
+                                ${logTableHtml}
+                            </div>
                         </div>
                     </div>
                 `;
@@ -1297,7 +1333,7 @@
                 }));
 
                 try {
-                    const response = await fetch(saveApiUrl, {
+                    const response = await fetch(`${SAVE_FEES_API_URL}?check=Y`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(logEntries)
