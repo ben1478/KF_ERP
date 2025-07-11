@@ -337,6 +337,29 @@
             font-weight: bold;
             color: #B15BFF; /* 紫色 */
         }
+        /* ===== START: 其他費用編輯表單的表格樣式 ===== */
+
+        /* 讓表單表格寬度自適應，不再強制100% */
+        .fee-form-table {
+            border-collapse: collapse;
+            width: auto;
+        }
+
+            .fee-form-table td {
+                border: none;
+                padding: 6px;
+                vertical-align: middle;
+            }
+
+                /* 設定標籤欄位的樣式 */
+                .fee-form-table td.label-cell {
+                    width: 80px; /* 仍然保持固定寬度，以對齊冒號 */
+                    text-align: left; 
+                    font-weight: bold;
+                    padding-right: 10px;
+                }
+
+        /* ===== END: 其他費用編輯表單的表格樣式 ===== */
     </style>
 </head>
 <body>
@@ -442,6 +465,7 @@
             // 變數宣告
             let displayAMT = 'Y';
             let isEditOtherFee = false;
+            let currentTotalOtherAmount = 0; // 用於儲存當前查詢的其他費用總額，供彈出視窗使用
 
             // 事件委派監聽
             tbody.addEventListener('click', (e) => {
@@ -531,12 +555,17 @@
                     {
                         details = JSON.parse(feesDetailsData.objResult); 
                     }
-                    
+                    // 計算"其他費用"總額
                     const totalOtherAmount = details.reduce((sum, item) => {
                         return sum + (Number(item.TotAmt) || 0);
                     }, 0);
-                    renderTable(mainData, totalOtherAmount);
-                    otherFeesText.textContent = `其他費用(${selectedMonth}): ${formatNumber(totalOtherAmount)}`;
+                    // 將"其他費用"總額存到的狀態變數中
+                    currentTotalOtherAmount = totalOtherAmount;
+                    // 更新"其他費用" UI 文字
+                    otherFeesText.textContent = `其他費用(${selectedMonth}): ${formatNumber(currentTotalOtherAmount)}`;
+                    // 將"其他費用"總額傳遞給 renderTable 以更新表尾
+                    renderTable(mainData, currentTotalOtherAmount);
+                    
                     //console.log("9. UI 更新完成。");
                 } catch (error) {
                     tbody.innerHTML = `<tr><td colspan="26">資料載入失敗: ${error.message}</td></tr>`;
@@ -575,8 +604,11 @@
     
                     if (row.isCancel === 'Y') tr.classList.add('is-cancel');
                     if (IsmisalignedSUM === 'Y') tr.classList.add('is-red');
-
+                    // **步驟 1**: 先計算作業服務費，因為實際退佣金會用到它
                     const serviceFeeCell = generateServiceFeeCell(row, displayAMT, selYearS, index);
+                    // **步驟 2**: 呼叫新的輔助函式計算實際退佣金
+                    const actualCommCell = generateActualCommissionCell(row, displayAMT, IsmisalignedSUM, serviceFeeCell.value);
+
                     const introducerDisplay = `${row.CS_introducer || ''}<br>${(row.Introducer_PID || '').replace('NA', '')}`;
                     const commRemarkDisplay = (displayAMT === 'Y') ? (row.Comm_Remark || '') : 'NA';
 
@@ -595,7 +627,7 @@
                         <td>${formatNumber(row.get_amount_final)}</td><td>${formatNumber(row.subsidized_interest)}</td><td>${commRemarkDisplay}</td>
                         <td class="commission-link" data-action="open-commission-rules" data-hs-id="${row.HS_id}" data-is-confirm="${row.IsConfirm}">${formatNumber(row.Expe_comm_amt)}</td>
                         ${serviceFeeCell.html}
-                        <td>${formatNumber(row.act_comm_amt)}</td>
+                        ${actualCommCell.html}
                         <td>${row.Comparison || ''}</td>
                     `;
                     tbody.appendChild(tr);
@@ -614,7 +646,7 @@
                         targetTotals.subsidized_interest += Number(row.subsidized_interest) || 0;
                         targetTotals.Expe_comm_amt += Number(row.Expe_comm_amt) || 0;
                         targetTotals.act_service_amt += serviceFeeCell.value || 0;
-                        targetTotals.act_comm_amt += Number(row.act_comm_amt) || 0;
+                        targetTotals.act_comm_amt += actualCommCell.numericValue || 0;
                     } else {
                         if (row.isThisMonCancel === 'Y') {
                             totals.pass_amount += Number(row.pass_amount) || 0;
@@ -1148,8 +1180,9 @@
              * 開啟「可編輯」的其他費用表單
              */
             async function openEditableFeesForm(uBcTitle, uBcTitleText, selYearS) {
-                const keyVal = uBcTitle + selYearS;
-                const feeTypes = 'RemitAmt,CleanAmt,BonusAmt,SubsidyAmt,FaresAmt';
+                // **步驟 2: 如果總額 > 0，則執行編輯模式，呼叫 API 獲取資料**
+                
+                
 
                 // **新增**: 建立一個物件，用來將欄位英文名對應到中文名稱
                 const feeDescriptions = {
@@ -1160,6 +1193,18 @@
                     FaresAmt: "補貼過車費"
                 };
 
+                // **步驟 1: 檢查當前費用總額**
+                // 如果總額為 0，直接顯示空白表單，不呼叫 API
+                if (currentTotalOtherAmount === 0) {
+                    const modalHtml = buildEditableFeeFormHtml({}, keyVal, [], uBcTitleText, selYearS, feeDescriptions);
+                    displayEditableForm(modalHtml); // 使用一個新的輔助函式來顯示 UI
+                    return; // 結束函式
+                }
+
+                const keyVal = uBcTitle + selYearS;
+                const feeTypes = Object.keys(feeDescriptions).join(','); // 從物件動態產生查詢字串
+
+                // 如果總額 > 0，則呼叫 API 獲取資料
                 try {
                     // Use Promise.all to fetch current values and history logs concurrently
                     const valuesPromise = fetch(`${OTHER_FEES_DETAILS_API_URL}?u_bc_title=${uBcTitle}&selYear_S=${selYearS}`);
@@ -1220,38 +1265,69 @@
                     alert(error.message);
                 }
             }
+            function displayEditableForm(modalHtml) {
+                $.blockUI({
+                    message: modalHtml,
+                    onOverlayClick: $.unblockUI,
+                    css: { width: '550px', top: '10%', left: '30%', /* ... */ }
+                });
 
+                $('.blockMsg').draggable({
+                    handle: ".custom-modal-title",
+                    cursor: "move"
+                });
+
+                $('#btnSaveOtherFees').on('click', saveOtherFees);
+            }
             /**
              * 建立可編輯表單的 HTML
              */
             function buildEditableFeeFormHtml(values, keyVal, logs, titleText, selYearS, feeDescriptions) {
-                const logTableHtml = buildFeeLogTableHtml(logs, "其他費用", false, feeDescriptions); // Generate the log table
-                console.log(`values.CleanAmt=${values.CleanAmt}`);
-                console.log(`values.RemitAmt=${values.RemitAmt}`);
-                console.log(`values.BonusAmt=${values.BonusAmt}`);
-                console.log(`values.SubsidyAmt=${values.SubsidyAmt}`);
-                console.log(`values.FaresAmt=${values.FaresAmt}`);
+                
+                // 如果有 log 才建立日誌表格，否則顯示空字串
+                const logTableHtml = (logs && logs.length > 0) 
+                    ? buildFeeLogTableHtml(logs, "其他費用", false, feeDescriptions) 
+                    : '';
+
                 return `
                     <div class="custom-modal-wrapper">
                         <div class="custom-modal-title">${titleText} ${selYearS} - 其他費用</div>
-                        <div class="custom-modal-content" style="text-align: left; line-height: 2.5;">
+                        <div class="custom-modal-content">
                             <input type="hidden" id="feeKeyVal" value="${keyVal}">
-                            清潔費: <input type="text" size="8" id="txtCleanAmt" value="${values.CleanAmt || 0}" /><br>
-                            匯費: <input type="text" size="8" id="txtRemitAmt" value="${values.RemitAmt || 0}" /><br>
-                            開工紅包: <input type="text" size="8" id="txtBonusAmt" value="${values.BonusAmt || 0}" /><br>
-                            補貼代書費: <input type="text" size="8" id="txtSubsidyAmt" value="${values.SubsidyAmt || 0}" /><br>
-                            補貼過車費: <input type="text" size="8" id="txtFaresAmt" value="${values.FaresAmt || 0}" />
+                            <table class="fee-form-table">
+                                <tbody>
+                                    <tr>
+                                        <td class="label-cell">清潔費:</td>
+                                        <td><input type="number" size="10" id="txtCleanAmt" value="${values.CleanAmt || 0}" /></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="label-cell">匯費:</td>
+                                        <td><input type="number" size="10" id="txtRemitAmt" value="${values.RemitAmt || 0}" /></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="label-cell">開工紅包:</td>
+                                        <td><input type="number" size="10" id="txtBonusAmt" value="${values.BonusAmt || 0}" /></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="label-cell">補貼代書費:</td>
+                                        <td><input type="number" size="10" id="txtSubsidyAmt" value="${values.SubsidyAmt || 0}" /></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="label-cell">補貼過車費:</td>
+                                        <td><input type="number" size="10" id="txtFaresAmt" value="${values.FaresAmt || 0}" /></td>
+                                    </tr>
+                                </tbody>
+                            </table>
                             <hr>
                             <div style="text-align:center;">
                                 <input type="button" value="確定" id="btnSaveOtherFees">
                             </div>
-                            <hr>
                             <div class="log-table-container">
-                                ${logTableHtml}
+                                ${logTableHtml ? '<hr>' + logTableHtml : ''}
                             </div>
                         </div>
                     </div>
-                `;
+                `;                
             }            
             /**
              * ===== START: 修正後的 buildFeeLogTableHtml 函式 =====
@@ -1352,6 +1428,71 @@
                     console.error("儲存其他費用失敗:", error);
                     alert("儲存失敗，請檢查網路連線或聯繫管理員。");
                 }
+            }
+            /**
+             * 產生「實際退佣金」儲存格的 HTML 內容與屬性
+             * @param {object} row - 單筆案件資料
+             * @param {string} displayAMT - 'Y' 或 'N'，決定是否顯示金額
+             * @param {string} IsmisalignedSUM - 'Y' 或 'N'，判斷是否為當月補登
+             * @param {number} act_service_amt - 已計算出的作業服務費
+             * @returns {{html: string, numericValue: number}}
+             */
+            function generateActualCommissionCell(row, displayAMT, IsmisalignedSUM, act_service_amt) {
+                let act_comm_amt = 0;
+                let displayText = 'NA';
+                let numericValueForTotal = 0;
+
+                // 1. 權限檢查
+                if (displayAMT === 'Y' && row.CaseType === 'sendcase') {
+                    const isShinHsinProject = row.fund_company === 'FDCOM001' || row.project_title === 'PJ00099';
+
+                    // 2. 根據專案類型區分邏輯
+                    if (isShinHsinProject) {
+                        // 新鑫專案邏輯
+                        let base_comm_amt = (row.isCancel === 'N')
+                            ? (Number(row.act_comm_amt) || 0)
+                            : (Number(row.act_comm_amt_Cancel) || 0);
+
+                        // 未確認的案件，要用預估佣金去減掉作業服務費
+                        if (row.IsConfirm !== 'Y') {
+                            act_comm_amt = (Number(row.Expe_comm_amt) || 0) - (act_service_amt || 0);
+                        } else {
+                            act_comm_amt = base_comm_amt;
+                        }
+
+                        console.log(`[新鑫專案邏輯] act_comm_amt=${act_comm_amt}`);
+
+                        // 當月補登的案件不顯示金額，只顯示 NA
+                        if (IsmisalignedSUM === 'Y') {
+                            displayText = 'NA';
+                        } else {
+                            displayText = formatNumber(act_comm_amt);
+                        }
+                    } else {
+                        // 其他專案（如國興）的邏輯
+                        act_comm_amt = (row.IsConfirm === 'Y')
+                            ? (Number(row.act_comm_amt) || 0)
+                            : (Number(row.Expe_comm_amt) || 0);
+    
+                        displayText = formatNumber(act_comm_amt);
+
+                        console.log(`[其他專案（如國興）的邏輯] act_comm_amt=${act_comm_amt}`);
+                    }
+    
+                    // **決定用於加總的數值**: 只有非當月補登的案件才計入總和
+                    if (IsmisalignedSUM !== 'Y') {
+                        numericValueForTotal = act_comm_amt;
+                    }
+
+                }
+
+                // 產生 <td> 的屬性
+                const attributes = `class="LogEDIT" data-logtable="House_sendcase" data-ubc="${row.U_BC}" data-displayna="實際退傭金" data-columna="act_comm_amt"`;
+                console.log(`<td ${attributes}>${displayText}</td>`);
+                return {
+                    html: `<td ${attributes}>${displayText}</td>`,
+                    numericValue: numericValueForTotal
+                };
             }
 
             // 頁面初始化主流程 (使用 async/await) =====
