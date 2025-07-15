@@ -1818,7 +1818,11 @@
                     misalignedRow[0] = `未齊件筆數: ${reportCache.misalignedCount}`;
                     misalignedRow[10] = '未齊件合計:';
                     misalignedRow[11] = reportCache.misalignedTotals.get_amount;
-                    // ... 根據需要加入其他 misalignedTotals 的值
+                    misalignedRow[16] = reportCache.misalignedTotals.charge_flow;
+                    misalignedRow[17] = reportCache.misalignedTotals.charge_agent;
+                    misalignedRow[18] = reportCache.misalignedTotals.charge_check;
+                    misalignedRow[19] = reportCache.misalignedTotals.get_amount_final;
+                    misalignedRow[20] = reportCache.misalignedTotals.subsidized_interest;
                     footerRows.push(misalignedRow);
                 }
 
@@ -1903,11 +1907,20 @@
                 // 將定義好的合併規則賦予 worksheet
                 ws['!merges'] = merges;
                 // ===== END:  定義要合併的儲存格範圍 =====
+                // 1. 獲取當前日期
+                const today = new Date();
+                const year = today.getFullYear();
+                // getMonth() 回傳的是 0-11，所以要加 1。padStart(2, '0') 用於補零 (例如 7 -> 07)
+                const month = String(today.getMonth() + 1).padStart(2, '0'); 
+                const day = String(today.getDate()).padStart(2, '0');
 
+                // 2. 組合檔名
+                const formattedDate = `${year}${month}${day}`;
+                const filename = `核准放款表_佣金表-${formattedDate}.xlsx`;
                 // 6. 建立工作簿 (Workbook) 並下載
                 const wb = XLSX.utils.book_new();
                 XLSX.utils.book_append_sheet(wb, ws, '核准放款表');
-                XLSX.writeFile(wb, '核准放款表_佣金表.xlsx');
+                XLSX.writeFile(wb, filename);
             }
             /**
              * 計算儲存格視覺寬度的輔助函式 =====
