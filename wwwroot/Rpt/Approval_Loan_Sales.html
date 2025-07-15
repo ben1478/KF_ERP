@@ -441,7 +441,7 @@
             <input type="text" id="CS_introducer" name="CS_introducer">
 
             <label for="SelYear_S">撥款年月：</label>
-            <input type="month" id="SelYear_S" name="SelYear_S">
+            <select id="SelYear_S" name="SelYear_S"></select>
 
             <label for="OrderBy">排序：</label>
             <select name="OrderBy" id="OrderBy">
@@ -507,7 +507,8 @@
             const tfoot = document.querySelector('#MainTable tfoot');
             const gridContainer = document.getElementById('gridContainer');
             const exportButton = document.getElementById('btnExport');
-            const monthInput = document.getElementById('SelYear_S');
+            //const monthInput = document.getElementById('SelYear_S');
+            const monthSelect = document.getElementById('SelYear_S'); // 變更名稱以符合 select
             const otherFeesText = document.getElementById('otherFeesText');
             const uBcTitleSelect = document.getElementById('U_bc_title');
             const btnSelectUser = document.getElementById('btnSelectUser');
@@ -521,6 +522,7 @@
             const FEE_LOGS_API_URL = `${BASE_URL}/AE_RPT/GetFeeLogs`;
             const SAVE_FEES_API_URL = `${BASE_URL}/AE_RPT/SaveOtherFees`;
             const BRANCHES_API_URL = `${BASE_URL}/AE_RPT/GetBranches`;
+            const MONTHS_API_URL = `${BASE_URL}/AE_RPT/GetDisbursementMonths`;
 
             // 變數宣告
             let displayAMT = 'Y';
@@ -904,29 +906,13 @@
             function buildQueryParams() {
                 const formData = new FormData(form);
                 const params = new URLSearchParams(formData);
-                // 處理預設月份
-                if (!params.get('SelYear_S')) {
-                    const today = new Date();
-                    const dayOfMonth = today.getDate();
-                    let targetDate = new Date(); 
-                    if (dayOfMonth < 20) {
-                        targetDate.setMonth(targetDate.getMonth() - 1);
-                    }
-                    const year = targetDate.getFullYear();
-                    const month = (targetDate.getMonth() + 1).toString().padStart(2, '0');
-                    const defaultValue = `${year}-${month}`;
-        
-                    params.set('SelYear_S', defaultValue);
-                    monthInput.value = defaultValue;
-                }
-
                 const URLParams = getQueryParams();
                 params.set('U_num', URLParams.WebUser);
                 params.set('U_BC', URLParams.WebBC);
 
                 return params;
             }
-            // 新增函式 - 獲取並填充分公司下拉選單 =====
+            // 獲取並填充分公司下拉選單 =====
             async function populateBranchDropdown(defaultBranchCode) {
                 try {
                     const response = await fetch(BRANCHES_API_URL);
@@ -958,6 +944,50 @@
                 } catch (error) {
                     console.error("載入分公司下拉選單失敗:", error);
                     // 可以在此處顯示一個對使用者更友好的錯誤提示
+                }
+            }
+            /**
+             * 獲取並填充分公司下拉選單 =====
+             */
+            async function populateMonthDropdown() {
+                try {
+                    const response = await fetch(MONTHS_API_URL);
+                    if (!response.ok) throw new Error('無法載入撥款年月列表');
+                    const responseData = await response.json();
+                    if (responseData.resultCode=="400" || !responseData.objResult) {
+                            throw new Error("查無資料");
+                    }
+                    const months = await JSON.parse(responseData.objResult);
+            
+                    const fragment = document.createDocumentFragment();
+                    months.forEach(month => {
+                        const option = document.createElement('option');
+                        option.value = month.Yyyymm; // 值為 "2025-07"
+                        option.textContent = month.YyyMM; // 顯示文字為 "114-07"
+                        fragment.appendChild(option);
+                    });
+                    monthSelect.appendChild(fragment);
+                } catch (error) {
+                    console.error("載入撥款年月選單失敗:", error);
+                }
+            }
+            /**
+             * 根據日期規則，設定撥款年月的預設值
+             */
+            function setDefaultMonth() {
+                const today = new Date();
+                const dayOfMonth = today.getDate();
+                let targetDate = new Date();
+                if (dayOfMonth < 20) {
+                    targetDate.setMonth(targetDate.getMonth() - 1);
+                }
+                const year = targetDate.getFullYear();
+                const month = (targetDate.getMonth() + 1).toString().padStart(2, '0');
+                const defaultValue = `${year}-${month}`;
+        
+                // 設定 <select> 的預設值
+                if (monthSelect) {
+                    monthSelect.value = defaultValue;
                 }
             }
             // ===== START: 佣金彈窗相關函式 =====
@@ -1718,7 +1748,7 @@
                 alert(`此功能尚未開放：開啟國興佣金參考 (hsId: ${hsId})`);
                 console.log("Called openKF_CommRate with:", { hsId, isConfirm });
             }
-            // ===== END: 新增函式 =====
+
             // 頁面初始化主流程 (使用 async/await) =====
             async function main() {
                 try {
@@ -1728,11 +1758,12 @@
                     const userBC = URLParams.WebBC; // 獲取分公司代碼
 
                     // 使用 Promise.all 並行處理非同步任務，提升載入速度
-                    const [currentUserRoleNum, _] = await Promise.all([
-                        fetchRoleNum(userNum),
-                        populateBranchDropdown(userBC) // 將 userBC 傳入以設定預設值
+                    const [currentUserRoleNum] = await Promise.all([
+                        fetchRoleNum(userNum),           // 任務1: 獲取角色 (會回傳角色代碼)
+                        populateBranchDropdown(userBC),  // 任務2: 填充分公司選單 (不需回傳值)
+                        populateMonthDropdown()          // 任務3: 填充撥款年月選單 (不需回傳值)
                     ]);
-
+                    setDefaultMonth(); // 在所有下拉選單都填充完畢後，才設定預設值
                     // 步驟 2: 根據角色和其他權限，設定 UI
                     const currentUserAuth = getAuth(currentUserRoleNum);
 
