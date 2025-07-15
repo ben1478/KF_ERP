@@ -433,7 +433,9 @@
             </span>
             <span id="filter-wrapper-plan">
                 <label for="plan_num">業務：</label>
-                <input type="text" id="plan_num" name="plan_num">
+                <input type="hidden" name="plan_num" id="U_num" value="">
+                <input type="text" name="plan_name" id="U_name" size="10" maxlength="10" class="box" value="" readonly="" style="background-color: #f0f0f0;">
+                <input type="button" id="btnSelectUser" value="...">
             </span>
             <label for="CS_introducer">介紹人：</label>
             <input type="text" id="CS_introducer" name="CS_introducer">
@@ -508,6 +510,7 @@
             const monthInput = document.getElementById('SelYear_S');
             const otherFeesText = document.getElementById('otherFeesText');
             const uBcTitleSelect = document.getElementById('U_bc_title');
+            const btnSelectUser = document.getElementById('btnSelectUser');
             // const orderByInput = document.getElementById('OrderBy');
             
             // API 端點
@@ -524,6 +527,11 @@
             let isEditOtherFee = false;
             let currentTotalOtherAmount = 0; // 用於儲存當前查詢的其他費用總額，供彈出視窗使用
 
+            // 業務-選擇按鈕綁定點擊事件
+            btnSelectUser.addEventListener('click', () => {
+                openUserOne('appUser'); // 'appUser' 這個參數會被傳到彈出視窗，以觸發正確的 switch case
+            });
+
             // 事件委派監聽
             tbody.addEventListener('click', (e) => {
                 // 尋找被點擊元素或其父層中，最近的帶有 data-action 的元素
@@ -535,7 +543,7 @@
                     openCommissionRulesModal(hsId, isConfirm);
                     return; // 處理完畢，結束
                 }
-                // **新增**: 檢查是否點擊了「國興佣金參考」連結
+                // 檢查是否點擊了「國興佣金參考」連結
                 target = e.target.closest('[data-action="open-kf-comm-rate"]');
                 if (target) {
                     const hsId = target.dataset.hsId;
@@ -846,11 +854,11 @@
                 }
 
                 // 根據 DisplayAMT 標籤控制「預估退佣金」欄位的顯示
-                if (displayAMT === 'N') {
-                    gridContainer.classList.add('hide-column-23');
-                } else {
-                    gridContainer.classList.remove('hide-column-23');
-                }
+                // if (displayAMT === 'N') {
+                //     gridContainer.classList.add('hide-column-23');
+                // } else {
+                //     gridContainer.classList.remove('hide-column-23');
+                // }
 
                 const selYearS = document.getElementById('SelYear_S').value;
                 if (isEditOtherFee && selYearS >= '2025-01') {
@@ -1729,7 +1737,7 @@
                     const currentUserAuth = getAuth(currentUserRoleNum);
 
                     // 計算權限標籤
-                    if (currentUserAuth === 'Asi' && !['BC0400', 'BC0500', 'BC0200'].includes(userBC)) {
+                    if (currentUserAuth === 'Asi' && !['BC0100', 'BC0200', 'BC0400', 'BC0500'].includes(userBC)) {
                         displayAMT = 'N';
                     }
                     // 計算 isEditOtherFee
