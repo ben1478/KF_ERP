@@ -245,6 +245,13 @@
             width: 100px;
         }
 
+        th:nth-child(27), td:nth-child(25) {
+            width: 110px;
+        }
+
+        th:nth-child(28), td:nth-child(26) {
+            width: 100px;
+        }
         /* 權限控制：隱藏欄位的 CSS */
         .hide-column-23 th:nth-child(23),
         .hide-column-23 td:nth-child(23) {
@@ -482,6 +489,8 @@
                         <th>收費</th>
                         <th>代書費用</th>
                         <th>對保費</th>
+                        <th>代書費</th>
+                        <th>過車費</th>
                         <th>結餘</th>
                         <th>補貼息</th>
                         <th>退傭備註</th>
@@ -577,7 +586,7 @@
             // 獲取資料並渲染表格
             async function fetchDataAndRender(queryParams) {
                 //console.log("1. 進入 fetchDataAndRender 函式。");
-                tbody.innerHTML = '<tr><td colspan="26">讀取中...</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="28">讀取中...</td></tr>';
                 tfoot.innerHTML = '';
                 // 先顯示計算中的提示
                 const selectedMonth = queryParams.get('SelYear_S');
@@ -643,7 +652,7 @@
                     
                     //console.log("9. UI 更新完成。");
                 } catch (error) {
-                    tbody.innerHTML = `<tr><td colspan="26">資料載入失敗: ${error.message}</td></tr>`;
+                    tbody.innerHTML = `<tr><td colspan="28">資料載入失敗: ${error.message}</td></tr>`;
                     console.error("fetchDataAndRender 函式捕捉到錯誤:", error); // 在 Console 中顯示詳細錯誤
                     otherFeesText.textContent = `其他費用(${selectedMonth}): 查詢失敗`;
                 }
@@ -660,13 +669,13 @@
                 tfoot.innerHTML = '';
 
                 if (!data || data.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="26">查無資料</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="28">查無資料</td></tr>';
                     return;
                 }
 
                 // 1. 初始化總計物件 (使用與 SQL 別名一致的命名)
-                const totals = { pass_amount: 0, get_amount: 0, charge_flow: 0, charge_agent: 0, charge_check: 0, get_amount_final: 0, subsidized_interest: 0, Expe_comm_amt: 0, act_service_amt: 0, act_comm_amt: 0 };
-                const misalignedTotals = { pass_amount: 0, get_amount: 0, charge_flow: 0, charge_agent: 0, charge_check: 0, get_amount_final: 0, subsidized_interest: 0, Expe_comm_amt: 0, act_service_amt: 0, act_comm_amt: 0 };
+                const totals = { pass_amount: 0, get_amount: 0, charge_flow: 0, charge_agent: 0, charge_check: 0, Subsidy_agent: 0, Subsidy_amt: 0, get_amount_final: 0, subsidized_interest: 0, Expe_comm_amt: 0, act_service_amt: 0, act_comm_amt: 0 };
+                const misalignedTotals = { pass_amount: 0, get_amount: 0, charge_flow: 0, charge_agent: 0, charge_check: 0, Subsidy_agent: 0, Subsidy_amt: 0, get_amount_final: 0, subsidized_interest: 0, Expe_comm_amt: 0, act_service_amt: 0, act_comm_amt: 0 };
                 let misalignedCount = 0;
     
                 const selYearS = document.getElementById('SelYear_S').value;
@@ -699,7 +708,10 @@
                         <td>${row.Send_result_date || ''}</td><td>${formatNumber(row.pass_amount)}</td><td>${row.get_amount_date || ''}</td>
                         <td>${formatNumber(row.get_amount)}</td><td>${row.show_fund_company || ''}-${row.show_project_title || ''}</td>
                         <td>${row.Loan_rate || ''}</td><td>${row.interest_rate_original || ''}</td><td>${row.interest_rate_pass || ''}</td>
-                        <td>${formatNumber(row.charge_flow)}</td><td>${formatNumber(row.charge_agent)}</td><td>${formatNumber(row.charge_check)}</td>
+                        <td>${formatNumber(row.charge_flow)}</td><td>${formatNumber(row.charge_agent)}</td>
+                        <td>${formatNumber(row.charge_check)}</td>
+                        <td>${formatNumber(row.Subsidy_agent)}</td>
+                        <td>${formatNumber(row.Subsidy_amt)}</td>
                         <td>${formatNumber(row.get_amount_final)}</td>
                         <td>${formatNumber(row.subsidized_interest)}</td>
                         <td>${commRemarkDisplay}</td>
@@ -726,6 +738,8 @@
                             targetTotals.charge_flow += Number(row.charge_flow) || 0;
                             targetTotals.charge_agent += Number(row.charge_agent) || 0;
                             targetTotals.charge_check += Number(row.charge_check) || 0;
+                            targetTotals.Subsidy_agent += Number(row.Subsidy_agent) || 0;
+                            targetTotals.Subsidy_amt += Number(row.Subsidy_amt) || 0;
                             targetTotals.get_amount_final += Number(row.get_amount_final) || 0;
                             targetTotals.subsidized_interest += Number(row.subsidized_interest) || 0;
                         }
@@ -738,6 +752,8 @@
                                 totals.charge_flow += Number(row.charge_flow) || 0; // 
                                 totals.charge_agent += Number(row.charge_agent) || 0; // 
                                 totals.charge_check += Number(row.charge_check) || 0; // 對保費
+                                totals.Subsidy_agent += Number(row.Subsidy_agent) || 0;
+                                totals.Subsidy_amt += Number(row.Subsidy_amt) || 0;
                                 totals.get_amount_final += Number(row.get_amount_final) || 0; // 對保費
                                 totals.subsidized_interest += Number(row.subsidized_interest) || 0; // 對保費                                
                             }
@@ -753,7 +769,7 @@
         
                     // 找到「對保費」(第19欄) 和「結餘」(第20欄) 的位置
                     otherFeesRow.innerHTML = `
-                        <td colspan="18"></td>
+                        <td colspan="20"></td>
                         <td style="text-align:right; font-weight:bold;">其他費用:</td>
                         <td style="color:red; font-weight:bold;">-${formatNumber(totalOtherAmount)}</td>
                         <td colspan="6"></td>
@@ -773,7 +789,10 @@
                     <td style="text-align:right;">合計:</td>
                     <td>${formatNumber(totals.get_amount)}</td>
                     <td colspan="4"></td><td>${formatNumber(totals.charge_flow)}</td><td>${formatNumber(totals.charge_agent)}</td>
-                    <td>${formatNumber(totals.charge_check)}</td><td>${formatNumber(totals.get_amount_final)}</td>
+                    <td>${formatNumber(totals.charge_check)}</td>
+                    <td>${formatNumber(totals.Subsidy_agent)}</td>
+                    <td>${formatNumber(totals.Subsidy_amt)}</td>
+                    <td>${formatNumber(totals.get_amount_final)}</td>
                     <td>${formatNumber(totals.subsidized_interest)}</td><td></td><td>${formatNumber(totals.Expe_comm_amt)}</td>
                     <td>${formatNumber(totals.act_service_amt)}</td><td>${formatNumber(totals.act_comm_amt)}</td><td></td>
                 `;
@@ -788,7 +807,10 @@
                         <td style="text-align:right;">未齊件合計:</td>
                         <td>${formatNumber(misalignedTotals.get_amount)}萬</td>
                         <td colspan="4"></td><td>${formatNumber(misalignedTotals.charge_flow)}</td><td>${formatNumber(misalignedTotals.charge_agent)}</td>
-                        <td>${formatNumber(misalignedTotals.charge_check)}</td><td>${formatNumber(misalignedTotals.get_amount_final)}</td>
+                        <td>${formatNumber(misalignedTotals.charge_check)}</td>
+                        <td>${formatNumber(misalignedTotals.Subsidy_agent)}</td>
+                        <td>${formatNumber(misalignedTotals.Subsidy_amt)}</td>
+                        <td>${formatNumber(misalignedTotals.get_amount_final)}</td>
                         <td>${formatNumber(misalignedTotals.subsidized_interest)}</td><td colspan="5"></td>
                     `;
 
@@ -802,7 +824,6 @@
                         totalOtherAmount: totalOtherAmount
                     };
                 }
-                
             }
 
             function formatNumber(num) {
@@ -1259,11 +1280,11 @@
                 let tableHtml = `<table id="RefInfo">
                     <thead>
                         <tr><th colspan="7">各區 ${selYearS} 其他費用</th></tr>
-                        <tr><th>區</th><th>清潔費</th><th>匯費</th><th>開工紅包</th><th>補貼代書費</th><th>補貼過車費</th><th>合計</th></tr>
+                        <tr><th>區</th><th>清潔費</th><th>匯費</th><th>開工紅包</th><th>合計</th></tr>
                     </thead>
                     <tbody>`;
 
-                const totals = { CleanAmt: 0, RemitAmt: 0, BonusAmt: 0, SubsidyAmt: 0, FaresAmt: 0, TotAmt: 0 };
+                const totals = { CleanAmt: 0, RemitAmt: 0, BonusAmt: 0, TotAmt: 0 };
 
                 details.forEach(row => {
                     tableHtml += `<tr>
@@ -1271,16 +1292,12 @@
                                     <td>${formatNumber(row.CleanAmt)}</td>
                                     <td>${formatNumber(row.RemitAmt)}</td>
                                     <td>${formatNumber(row.BonusAmt)}</td>
-                                    <td>${formatNumber(row.SubsidyAmt)}</td>
-                                    <td>${formatNumber(row.FaresAmt)}</td>
                                     <td>${formatNumber(row.TotAmt)}</td>
                                   </tr>`;
                     // 累加總計
                     totals.CleanAmt += Number(row.CleanAmt) || 0;
                     totals.RemitAmt += Number(row.RemitAmt) || 0;
                     totals.BonusAmt += Number(row.BonusAmt) || 0;
-                    totals.SubsidyAmt += Number(row.SubsidyAmt) || 0;
-                    totals.FaresAmt += Number(row.FaresAmt) || 0;
                     totals.TotAmt += Number(row.TotAmt) || 0;
                 });
 
@@ -1291,8 +1308,6 @@
                             <td>${formatNumber(totals.CleanAmt)}</td>
                             <td>${formatNumber(totals.RemitAmt)}</td>
                             <td>${formatNumber(totals.BonusAmt)}</td>
-                            <td>${formatNumber(totals.SubsidyAmt)}</td>
-                            <td>${formatNumber(totals.FaresAmt)}</td>
                             <td>${formatNumber(totals.TotAmt)}</td>
                         </tr>
                     </tfoot>
@@ -1321,9 +1336,7 @@
                 const feeDescriptions = {
                     RemitAmt: "匯費",
                     CleanAmt: "清潔費",
-                    BonusAmt: "開工紅包",
-                    SubsidyAmt: "補貼代書費",
-                    FaresAmt: "補貼過車費"
+                    BonusAmt: "開工紅包"
                 };
 
                 // **步驟 1: 檢查當前費用總額**
@@ -1441,14 +1454,6 @@
                                         <td class="label-cell">開工紅包:</td>
                                         <td><input type="number" size="10" id="txtBonusAmt" value="${values.BonusAmt || 0}" /></td>
                                     </tr>
-                                    <tr>
-                                        <td class="label-cell">補貼代書費:</td>
-                                        <td><input type="number" size="10" id="txtSubsidyAmt" value="${values.SubsidyAmt || 0}" /></td>
-                                    </tr>
-                                    <tr>
-                                        <td class="label-cell">補貼過車費:</td>
-                                        <td><input type="number" size="10" id="txtFaresAmt" value="${values.FaresAmt || 0}" /></td>
-                                    </tr>
                                 </tbody>
                             </table>
                             <hr>
@@ -1532,7 +1537,7 @@
                 const keyVal = $('#feeKeyVal').val();
                 const userNum = getQueryParams().WebUser; // 從 Base.js 獲取
 
-                const feeTypes = ['CleanAmt', 'RemitAmt', 'BonusAmt', 'SubsidyAmt', 'FaresAmt'];
+                const feeTypes = ['CleanAmt', 'RemitAmt', 'BonusAmt'];
                 const logEntries = feeTypes.map(fee => ({
                     TableNA: "OtherAmt",
                     KeyVal: keyVal,
@@ -1761,7 +1766,7 @@
                     "No.", "區", "進件日", "申請人", "介紹人/ID", "銀行名稱", "銀行帳號",
                     "業務", "核准日", "核准金額(萬)", "撥款日", "撥款金額(萬)", "專案",
                     "貸款成數(%)", "原始利率(%)", "承作利率(%)", "收費", "代書費用",
-                    "對保費", "結餘", "補貼息", "退傭備註", "預估退佣金",
+                    "對保費", "代書費", "過車費", "結餘", "補貼息", "退傭備註", "預估退佣金",
                     "作業服務費", "實際退佣金", "委對/外對"
                 ];
 
@@ -1791,6 +1796,8 @@
                         Math.round(Number(row.charge_flow) || 0),
                         Math.round(Number(row.charge_agent) || 0),
                         Math.round(Number(row.charge_check) || 0),
+                        Math.round(Number(row.Subsidy_agent) || 0),
+                        Math.round(Number(row.Subsidy_amt) || 0),
                         Math.round(Number(row.get_amount_final) || 0),
                         Math.round(Number(row.subsidized_interest) || 0),
                         row.Comm_Remark,
@@ -1821,8 +1828,10 @@
                     misalignedRow[16] = reportCache.misalignedTotals.charge_flow;
                     misalignedRow[17] = reportCache.misalignedTotals.charge_agent;
                     misalignedRow[18] = reportCache.misalignedTotals.charge_check;
-                    misalignedRow[19] = reportCache.misalignedTotals.get_amount_final;
-                    misalignedRow[20] = reportCache.misalignedTotals.subsidized_interest;
+                    misalignedRow[19] = reportCache.misalignedTotals.Subsidy_agent;
+                    misalignedRow[20] = reportCache.misalignedTotals.Subsidy_amt;
+                    misalignedRow[21] = reportCache.misalignedTotals.get_amount_final;
+                    misalignedRow[22] = reportCache.misalignedTotals.subsidized_interest;
                     footerRows.push(misalignedRow);
                 }
 
@@ -1834,11 +1843,13 @@
                 totalRow[16] = reportCache.totals.charge_flow;
                 totalRow[17] = reportCache.totals.charge_agent;
                 totalRow[18] = reportCache.totals.charge_check;
-                totalRow[19] = reportCache.totals.get_amount_final;
-                totalRow[20] = reportCache.totals.subsidized_interest;
-                totalRow[22] = reportCache.totals.Expe_comm_amt;
-                totalRow[23] = reportCache.totals.act_service_amt;
-                totalRow[24] = reportCache.totals.act_comm_amt;
+                totalRow[19] = reportCache.totals.Subsidy_agent;
+                totalRow[20] = reportCache.totals.Subsidy_amt;
+                totalRow[21] = reportCache.totals.get_amount_final;
+                totalRow[22] = reportCache.totals.subsidized_interest;
+                totalRow[23] = reportCache.totals.Expe_comm_amt;
+                totalRow[24] = reportCache.totals.act_service_amt;
+                totalRow[25] = reportCache.totals.act_comm_amt;
                 footerRows.push(totalRow);
 
                 // 3. 建立工作表 (Worksheet)
