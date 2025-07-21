@@ -636,16 +636,19 @@
                     const totalOtherAmount = details.reduce((sum, item) => {
                         return sum + (Number(item.TotAmt) || 0);
                     }, 0);
+
+                    console.log(`totalOtherAmount=${totalOtherAmount}`)
+
                     // 將"其他費用"總額存到的狀態變數中
                     currentTotalOtherAmount = totalOtherAmount;
-
                     // 將"其他費用"總額傳遞給 renderTable 以更新表尾
-                    
+                    // 更新"其他費用" UI 文字
+                    otherFeesText.textContent = `其他費用(${selectedMonth}): ${formatNumber(currentTotalOtherAmount)}`;
+
                     console.log("5. 準備呼叫 renderTable 來更新畫面與快取...");
                     
                     renderTable(mainData, currentTotalOtherAmount);
-                    // 更新"其他費用" UI 文字
-                    otherFeesText.textContent = `其他費用(${selectedMonth}): ${formatNumber(currentTotalOtherAmount)}`;
+                    
                     
                     //console.log("9. UI 更新完成。");
                 } catch (error) {
