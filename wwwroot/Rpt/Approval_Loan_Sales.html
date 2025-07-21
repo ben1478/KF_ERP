@@ -586,8 +586,8 @@
             // 獲取資料並渲染表格
             async function fetchDataAndRender(queryParams) {
                 
-                console.log("%c================ 新查詢開始 ================", "color: green; font-size: 16px;");
-                console.log("1. 進入 fetchDataAndRender，查詢參數:", queryParams.toString());
+                //console.log("%c================ 新查詢開始 ================", "color: green; font-size: 16px;");
+                //console.log("1. 進入 fetchDataAndRender，查詢參數:", queryParams.toString());
                 
                 tbody.innerHTML = '<tr><td colspan="28">讀取中...</td></tr>';
                 tfoot.innerHTML = '';
@@ -599,7 +599,7 @@
 
                 try {
 
-                    console.log("2. 準備發送並行 API 請求...");
+                    //console.log("2. 準備發送並行 API 請求...");
 
                     // 1. 建立兩個並行的 API 請求 Promise
                     const reportPromise = fetch(API_URL, {
@@ -613,7 +613,7 @@
                     // 2. 等待兩個請求都完成
                     const [reportResponse, feesDetailsResponse] = await Promise.all([reportPromise, feesDetailsPromise]);
                     
-                    console.log("3. 兩個 API 皆已回傳。主報表狀態:", reportResponse.status, "費用明細狀態:", feesDetailsResponse.status);                    
+                    //console.log("3. 兩個 API 皆已回傳。主報表狀態:", reportResponse.status, "費用明細狀態:", feesDetailsResponse.status);                    
                     
                     // 檢查兩個回應是否都成功
                     if (!reportResponse.ok) throw new Error(`主報表 API 錯誤! 狀態: ${reportResponse.status}`);
@@ -622,8 +622,7 @@
                       // 3. 處理主報表資料
                     const mainData = await reportResponse.json();
                     const details = await feesDetailsResponse.json();
-                    //const reportResponseData = await logAndParseResponse(reportResponse, "主報表");
-                    //const feesDetailsData = await logAndParseResponse(feesDetailsResponse, "其他費用明細");
+                    
                     //console.log("4. 兩個 API 的 JSON 都已解析完畢。");
                     //console.log("[偵錯] 主報表解析後的物件:", reportResponseData);
                     //console.log("[偵錯] 費用明細解析後的物件:", feesDetailsData);
@@ -637,7 +636,7 @@
                         return sum + (Number(item.TotAmt) || 0);
                     }, 0);
 
-                    console.log(`totalOtherAmount=${totalOtherAmount}`)
+                    //console.log(`totalOtherAmount=${totalOtherAmount}`)
 
                     // 將"其他費用"總額存到的狀態變數中
                     currentTotalOtherAmount = totalOtherAmount;
@@ -645,7 +644,7 @@
                     // 更新"其他費用" UI 文字
                     otherFeesText.textContent = `其他費用(${selectedMonth}): ${formatNumber(currentTotalOtherAmount)}`;
 
-                    console.log("5. 準備呼叫 renderTable 來更新畫面與快取...");
+                    //console.log("5. 準備呼叫 renderTable 來更新畫面與快取...");
                     
                     renderTable(mainData, currentTotalOtherAmount);
                     
@@ -703,19 +702,27 @@
     
                 const selYearS = document.getElementById('SelYear_S').value;
 
+                //let temp_commissionData = 0;
+                //let temp_actualCommCell = 0;
+
                 data.forEach((row, index) => {
                     const tr = document.createElement('tr');
-    
-                    // 2. 判斷 IsmisalignedSUM (使用與 SQL 別名一致的命名)
                     const IsmisalignedSUM = (row.misaligned_date && row.Ismisaligned === 'ThisMon') ? 'Y' : 'N';
     
                     if (row.isCancel === 'Y') tr.classList.add('is-cancel');
                     if (IsmisalignedSUM === 'Y') tr.classList.add('is-red');
-                    // **步驟 1**: 先計算作業服務費，因為實際退佣金會用到它
-                    // const serviceFeeCell = generateServiceFeeCell(row, displayAMT, selYearS, index);
+
+                    // 先計算作業服務費，因為實際退佣金會用到它
                     const commissionData = generateCommissionCells(row, displayAMT, IsmisalignedSUM, selYearS, index);
-                    // **步驟 2**: 呼叫新的輔助函式計算實際退佣金
+                    
+                    //temp_commissionData = temp_commissionData + commissionData.estimatedCommission.numericValue;
+                    //console.log(`commissionData=${commissionData.estimatedCommission.numericValue} total=${temp_commissionData}`);
+
+                    // 呼叫新的輔助函式計算實際退佣金
                     const actualCommCell = generateActualCommissionCell(row, displayAMT, IsmisalignedSUM, commissionData.serviceFee.numericValue);
+
+                    //temp_actualCommCell = temp_actualCommCell + actualCommCell.numericValue;
+                    //console.log(`actualCommCell=${actualCommCell.numericValue} total=${temp_actualCommCell}`);
 
                     const introducerDisplay = `${row.CS_introducer || ''}<br>${(row.Introducer_PID || '').replace('NA', '')}`;
                     const commRemarkDisplay = (displayAMT === 'Y') ? (row.Comm_Remark || '') : 'NA';
@@ -745,32 +752,25 @@
 
                     // 5. 處理未取消的案件
                     if (row.isCancel !== 'Y') {
-                        const targetTotals = (IsmisalignedSUM === 'Y') ? misalignedTotals : totals;
-                        if (IsmisalignedSUM === 'Y') misalignedCount++;
-                        
-                        // 累加所有費用與佣金相關欄位
-                        totals.Expe_comm_amt += commissionData.estimatedCommission.numericValue || 0;
-                        totals.act_service_amt += commissionData.serviceFee.numericValue || 0;
-                        totals.act_comm_amt += actualCommCell.numericValue || 0;
-
                         // 4. 如果是「當月未齊件」，則計入 misalignedTotals
-                        if (IsmisalignedSUM  === 'Y' || !row.misaligned_date) {
-                            
+                        if (IsmisalignedSUM  === 'Y'){
+                            misalignedCount++;
                             // 其他欄位的未齊件合計也可以在此加入
-                            targetTotals.pass_amount += Number(row.pass_amount) || 0;
-                            targetTotals.get_amount  += Number(row.get_amount ) || 0;
-                            targetTotals.charge_flow += Number(row.charge_flow) || 0;
-                            targetTotals.charge_agent += Number(row.charge_agent) || 0;
-                            targetTotals.charge_check += Number(row.charge_check) || 0;
-                            targetTotals.Subsidy_agent += Number(row.Subsidy_agent) || 0;
-                            targetTotals.Subsidy_amt += Number(row.Subsidy_amt) || 0;
-                            targetTotals.get_amount_final += Number(row.get_amount_final) || 0;
-                            targetTotals.subsidized_interest += Number(row.subsidized_interest) || 0;
+                            misalignedTotals.pass_amount += Number(row.pass_amount) || 0;
+                            misalignedTotals.get_amount  += Number(row.get_amount ) || 0;
+                            misalignedTotals.charge_flow += Number(row.charge_flow) || 0;
+                            misalignedTotals.charge_agent += Number(row.charge_agent) || 0;
+                            misalignedTotals.charge_check += Number(row.charge_check) || 0;
+                            misalignedTotals.Subsidy_agent += Number(row.Subsidy_agent) || 0;
+                            misalignedTotals.Subsidy_amt += Number(row.Subsidy_amt) || 0;
+                            misalignedTotals.get_amount_final += Number(row.get_amount_final) || 0;
+                            misalignedTotals.subsidized_interest += Number(row.subsidized_interest) || 0;
+                            misalignedTotals.Expe_comm_amt += commissionData.estimatedCommission.numericValue || 0;
+                            misalignedTotals.act_service_amt += commissionData.serviceFee.numericValue || 0;
+                            misalignedTotals.act_comm_amt += actualCommCell.numericValue || 0;
                         }
-                        // 處理已取消的案件
-                        else {
-                            // 5.2 正常案件 -> 只有當它不是從過去補登的案件時，才計入正常合計
-                            if(!row.misaligned_date) {
+                        // 1.2 如果是「正常案件」(無補登日期)，則所有金額計入 totals
+                        else if(!row.misaligned_date) {
                                 totals.pass_amount += Number(row.pass_amount) || 0;
                                 totals.get_amount += Number(row.get_amount) || 0;
                                 totals.charge_flow += Number(row.charge_flow) || 0; // 
@@ -780,8 +780,29 @@
                                 totals.Subsidy_amt += Number(row.Subsidy_amt) || 0;
                                 totals.get_amount_final += Number(row.get_amount_final) || 0; // 對保費
                                 totals.subsidized_interest += Number(row.subsidized_interest) || 0; // 對保費                                
-                            }
+                                totals.Expe_comm_amt += commissionData.estimatedCommission.numericValue || 0;
+                                totals.act_service_amt += commissionData.serviceFee.numericValue || 0;
+                                totals.act_comm_amt += actualCommCell.numericValue || 0;
+                       }
+                    }
+                    // 2. 處理已取消的案件
+                    else {
+                        // 2.1 如果是「當月取消」，則所有金額都計入 totals 以進行沖銷
+                        if (row.isThisMonCancel === 'Y') {
+                            totals.pass_amount += Number(row.pass_amount) || 0;
+                            totals.get_amount += Number(row.get_amount) || 0;
+                            totals.charge_flow += Number(row.charge_flow) || 0;
+                            totals.charge_agent += Number(row.charge_agent) || 0;
+                            totals.charge_check += Number(row.charge_check) || 0;
+                            totals.Subsidy_agent += Number(row.Subsidy_agent) || 0;
+                            totals.Subsidy_amt += Number(row.Subsidy_amt) || 0;
+                            totals.get_amount_final += Number(row.get_amount_final) || 0;
+                            totals.subsidized_interest += Number(row.subsidized_interest) || 0;
+                            
                         }
+                        totals.Expe_comm_amt += commissionData.estimatedCommission.numericValue || 0;
+                        totals.act_service_amt += commissionData.serviceFee.numericValue || 0;
+                        totals.act_comm_amt += actualCommCell.numericValue || 0;
                     }
                 });
 
@@ -1266,32 +1287,25 @@
                 try {
                     const response = await fetch(`${OTHER_FEES_DETAILS_API_URL}?u_bc_title=${uBcTitle}&selYear_S=${selYearS}`);
                     if (!response.ok) throw new Error(`API 請求失敗: ${response.status}`);
-                    const responseData = await response.json();
-                    if (responseData.resultCode == "000") {
-                        const details = JSON.parse(responseData.objResult);
-                        const modalHtml = buildOtherFeesModalHtml(details, selYearS);
+                    const details = await response.json();
+                    const modalHtml = buildOtherFeesModalHtml(details, selYearS);
 
-                        $.blockUI({
-                            message: modalHtml,
-                            onOverlayClick: $.unblockUI,
-                            css: {
-                                width: '650px', top: '15%', left: '30%', border: 'none',
-                                padding: '0px', 
-                                backgroundColor: '#fff', cursor: 'default',
-                                '-webkit-border-radius': '10px', '-moz-border-radius': '10px',
-                            },
-                            overlayCSS: { backgroundColor: '#000', opacity: 0.6, cursor: 'wait' }
-                        });
+                    $.blockUI({
+                        message: modalHtml,
+                        onOverlayClick: $.unblockUI,
+                        css: {
+                            width: '650px', top: '15%', left: '30%', border: 'none',
+                            padding: '0px', 
+                            backgroundColor: '#fff', cursor: 'default',
+                            '-webkit-border-radius': '10px', '-moz-border-radius': '10px',
+                        },
+                        overlayCSS: { backgroundColor: '#000', opacity: 0.6, cursor: 'wait' }
+                    });
 
-                        $('.blockMsg').draggable({
-                            handle: ".custom-modal-title",
-                            cursor: "move"
-                        });
-
-                    } else {
-                        alert(response.resultMsg);
-                    }
-
+                    $('.blockMsg').draggable({
+                        handle: ".custom-modal-title",
+                        cursor: "move"
+                    });
                 } catch (error) {
                     console.error("開啟唯讀費用視窗失敗:", error);
                     alert("無法獲取其他費用明細。");
@@ -1352,16 +1366,14 @@
              * 開啟「可編輯」的其他費用表單
              */
             async function openEditableFeesForm(uBcTitle, uBcTitleText, selYearS) {
-                // **步驟 2: 如果總額 > 0，則執行編輯模式，呼叫 API 獲取資料**
-                
-                
-
+                const keyVal = uBcTitle + selYearS;
                 // **新增**: 建立一個物件，用來將欄位英文名對應到中文名稱
                 const feeDescriptions = {
                     RemitAmt: "匯費",
                     CleanAmt: "清潔費",
                     BonusAmt: "開工紅包"
                 };
+                const feeTypes = Object.keys(feeDescriptions).join(','); // 從物件動態產生查詢字串
 
                 // **步驟 1: 檢查當前費用總額**
                 // 如果總額為 0，直接顯示空白表單，不呼叫 API
@@ -1370,9 +1382,6 @@
                     displayEditableForm(modalHtml); // 使用一個新的輔助函式來顯示 UI
                     return; // 結束函式
                 }
-
-                const keyVal = uBcTitle + selYearS;
-                const feeTypes = Object.keys(feeDescriptions).join(','); // 從物件動態產生查詢字串
 
                 // 如果總額 > 0，則呼叫 API 獲取資料
                 try {
@@ -1403,7 +1412,7 @@
 
                     // Build the modal HTML with both the form and the log table
                     const modalHtml = buildEditableFeeFormHtml(currentValues, keyVal, logs, uBcTitleText, selYearS, feeDescriptions);
-                    console.log(`modalHtml=${modalHtml}`);
+                    //console.log(`modalHtml=${modalHtml}`);
                     $.blockUI({
                         message: modalHtml,
                         onOverlayClick: $.unblockUI,
@@ -1640,21 +1649,14 @@
 
                         // console.log(`[其他專案（如國興）的邏輯] act_comm_amt=${act_comm_amt}`);
                     }
-    
-                    // **決定用於加總的數值**: 只有非當月補登的案件才計入總和
-                    if (IsmisalignedSUM !== 'Y') {
-                        numericValueForTotal = act_comm_amt;
-                    }
-
+   
                 }
 
-                // 如果案件已取消，或是在當月顯示的未齊件，則用於合計的數值為 0
-                if (row.isCancel === 'Y' || IsmisalignedSUM === 'Y') {
-                    numericValueForTotal = 0;
-                } else {
+                // 只有「當月未齊件」的合計值為 0
+                // 其他所有情況，包括「已取消」的案件，都使用上面計算出的 act_comm_amt (其本身已是正確的正值或負值)
+                if (IsmisalignedSUM !== 'Y') {
                     numericValueForTotal = act_comm_amt;
                 }
-
                 // 產生 <td> 的屬性
                 const attributes = `class="LogEDIT" data-logtable="House_sendcase" data-ubc="${row.U_BC}" data-displayna="實際退傭金" data-columna="act_comm_amt"`;
                 //console.log(`<td ${attributes}>${displayText}</td>`);
@@ -1697,8 +1699,15 @@
                         : (Number(row.Expe_comm_amt) || 0);
                 }
     
-                // 只有非當月補登案件才計入總和
-                if (IsmisalignedSUM !== 'Y') {
+                // 如果案件是已取消狀態，則將其值轉為正數
+                if (row.isCancel === 'Y') {
+                    expe_comm_amt = Math.abs(expe_comm_amt);
+                }
+
+                // 只在「當月未齊件」時將合計值設為 0
+                if (IsmisalignedSUM === 'Y') {
+                    result.estimatedCommission.numericValue = 0;
+                } else {
                     result.estimatedCommission.numericValue = expe_comm_amt;
                 }
     
@@ -1707,11 +1716,11 @@
                 if (row.CaseType !== 'sendcase') result.estimatedCommission.displayText = '0';
 
                 // 如果案件已取消，或是在當月顯示的未齊件，則用於合計的數值為 0
-                if (row.isCancel === 'Y' || IsmisalignedSUM === 'Y') {
-                    result.estimatedCommission.numericValue = 0;
-                } else {
-                    result.estimatedCommission.numericValue = expe_comm_amt;
-                }
+                // if (row.isCancel === 'Y' || IsmisalignedSUM === 'Y') {
+                //     result.estimatedCommission.numericValue = 0;
+                // } else {
+                //     result.estimatedCommission.numericValue = expe_comm_amt;
+                // }
                 // --- 2. 設定「預估退佣金」的點擊互動屬性 ---
                 const estCommAttributes  = {};
                 const isClickable = (row.U_BC !== "BC0900") && 
@@ -1752,12 +1761,8 @@
                 }
     
                 // 在函式內部決定用於合計的數值
-                if (row.isCancel === 'Y') {
-                    result.serviceFee.numericValue = 0;
-                } else {
-                    // 根據舊 ASP 邏輯，作業服務費無論是否為未齊件，都會計入合計
-                    result.serviceFee.numericValue = act_service_amt;
-                }
+                // 根據舊 ASP 邏輯，作業服務費無論是否為未齊件，都會計入合計
+                result.serviceFee.numericValue = act_service_amt;
 
                 // --- 4. 設定「作業服務費」的顯示屬性與文字 ---
                 const feeAttributes = {
