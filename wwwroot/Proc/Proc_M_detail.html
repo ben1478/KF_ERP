@@ -103,10 +103,10 @@
     loadBCName();
     dateTW();
     fetchData();
-    getBackReason(PM_ID)
+    getBackReason(PM_ID);
 
     function loadBCName() {
-        const url = `${BASE_URL}/AE/GetBCList`;
+        const url = `${BASE_URL}/AE/GetItemList?item_M_code=branch_company`;
         fetch(url)
             .then(response => response.json())
             .then(data => {
