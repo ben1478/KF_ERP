@@ -860,15 +860,15 @@
                     `;
 
                     tfoot.appendChild(misalignedFooterRow);
-                    // 快取都會被最新的計算結果覆蓋
-                    reportCache = {
-                        data: data,
-                        totals: totals,
-                        misalignedTotals: misalignedTotals,
-                        misalignedCount: misalignedCount,
-                        totalOtherAmount: totalOtherAmount
-                    };
                 }
+                // 快取都會被最新的計算結果覆蓋
+                reportCache = {
+                    data: data,
+                    totals: totals,
+                    misalignedTotals: misalignedTotals,
+                    misalignedCount: misalignedCount,
+                    totalOtherAmount: totalOtherAmount
+                };
             }
 
             function formatNumber(num) {
@@ -1812,7 +1812,7 @@
                     "No.", "區", "進件日", "申請人", "介紹人/ID", "銀行名稱", "銀行帳號",
                     "業務", "核准日", "核准金額(萬)", "撥款日", "撥款金額(萬)", "專案",
                     "貸款成數(%)", "原始利率(%)", "承作利率(%)", "收費", "代書費用",
-                    "對保費", "代書費", "過車費", "結餘", "補貼息", "退傭備註", "預估退佣金",
+                    "對保費", "補貼代書費", "補貼過車費", "結餘", "補貼息", "退傭備註", "預估退佣金",
                     "作業服務費", "實際退佣金", "委對/外對"
                 ];
 
@@ -1860,8 +1860,8 @@
                 // 1. 加入「其他費用」列 (如果有)
                 if (reportCache.totalOtherAmount > 0) {
                     const otherFeesRow = Array(headers.length).fill(''); // 建立一個空白陣列
-                    otherFeesRow[18] = '其他費用:';
-                    otherFeesRow[19] = `-${reportCache.totalOtherAmount}`;
+                    otherFeesRow[20] = '其他費用:';
+                    otherFeesRow[21] = -reportCache.totalOtherAmount;
                     footerRows.push(otherFeesRow);
                 }
 
@@ -1878,6 +1878,9 @@
                     misalignedRow[20] = reportCache.misalignedTotals.Subsidy_amt;
                     misalignedRow[21] = reportCache.misalignedTotals.get_amount_final;
                     misalignedRow[22] = reportCache.misalignedTotals.subsidized_interest;
+                    //misalignedRow[24] = reportCache.misalignedTotals.Expe_comm_amt;
+                    //misalignedRow[25] = reportCache.misalignedTotals.act_service_amt;
+                    //misalignedRow[26] = reportCache.misalignedTotals.act_comm_amt;
                     footerRows.push(misalignedRow);
                 }
 
@@ -1893,9 +1896,9 @@
                 totalRow[20] = reportCache.totals.Subsidy_amt;
                 totalRow[21] = reportCache.totals.get_amount_final;
                 totalRow[22] = reportCache.totals.subsidized_interest;
-                totalRow[23] = reportCache.totals.Expe_comm_amt;
-                totalRow[24] = reportCache.totals.act_service_amt;
-                totalRow[25] = reportCache.totals.act_comm_amt;
+                totalRow[24] = reportCache.totals.Expe_comm_amt;
+                totalRow[25] = reportCache.totals.act_service_amt;
+                totalRow[26] = reportCache.totals.act_comm_amt;
                 footerRows.push(totalRow);
 
                 // 3. 建立工作表 (Worksheet)
@@ -1929,7 +1932,7 @@
                 const range = XLSX.utils.decode_range(ws['!ref']);
                 for (let R = range.s.r + 1; R <= range.e.r; ++R) { // 從第二行 (資料列) 開始
                     // 根據欄位索引設定格式 (0-based index)
-                    const colsToFormat = [9, 11, 16, 17, 18, 19, 20, 22, 23, 24]; 
+                    const colsToFormat = [9, 11, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26]; 
                     colsToFormat.forEach(C => {
                         const cell_address = { c: C, r: R };
                         const cell_ref = XLSX.utils.encode_cell(cell_address);
@@ -1950,6 +1953,22 @@
 
                 if (reportCache.totalOtherAmount > 0) {
                     footerRowIndex++; // 如果有其他費用列，起始索引要 +1
+                    // 1. 計算該儲存格的位置 (row 是 0-based index)
+                    const otherFeesCellRef = XLSX.utils.encode_cell({ r: footerRowIndex, c: 20 }); // 第 21 欄，索引為 20
+
+                    // 2. 確保該儲存格存在
+                    if (ws[otherFeesCellRef]) {
+                        // 3. 為其加上樣式物件 (s-property)
+                        ws[otherFeesCellRef].s = {
+                            font: {
+                                color: { rgb: "FF0000FF" } // ARGB 格式的藍色 (Alpha, Red, Green, Blue)
+                            },
+                            alignment: {
+                                horizontal: "right" // 水平靠右
+                            },
+                            numFmt: "#,##0" // 千分位整數格式
+                        };
+                    }
                 }
     
                 if (reportCache.misalignedCount > 0) {
@@ -1964,20 +1983,20 @@
                 // 將定義好的合併規則賦予 worksheet
                 ws['!merges'] = merges;
                 // ===== END:  定義要合併的儲存格範圍 =====
-                // 1. 獲取當前日期
-                const today = new Date();
-                const year = today.getFullYear();
-                // getMonth() 回傳的是 0-11，所以要加 1。padStart(2, '0') 用於補零 (例如 7 -> 07)
-                const month = String(today.getMonth() + 1).padStart(2, '0'); 
-                const day = String(today.getDate()).padStart(2, '0');
 
                 // 2. 組合檔名
-                const formattedDate = `${year}${month}${day}`;
-                const filename = `核准放款表_佣金表-${formattedDate}.xlsx`;
+                const filename = `核准放款表_佣金表-${getFormattedDate()}.xlsx`;
                 // 6. 建立工作簿 (Workbook) 並下載
                 const wb = XLSX.utils.book_new();
                 XLSX.utils.book_append_sheet(wb, ws, '核准放款表');
                 XLSX.writeFile(wb, filename);
+            }
+            function getFormattedDate() {
+                const today = new Date();
+                const year = today.getFullYear();
+                const month = String(today.getMonth() + 1).padStart(2, '0');
+                const day = String(today.getDate()).padStart(2, '0');
+                return `${year}${month}${day}`;
             }
             /**
              * 計算儲存格視覺寬度的輔助函式 =====
