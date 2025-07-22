@@ -49,7 +49,10 @@
     let currentPage = 1;
     let data = [];
 
-    loadBCDropdown();
+    loadItemDropdown({
+        selectId: "U_BC",
+        itemCode: "branch_company"
+    });
     fetchData();
 
     function getQueryParam(param) {

@@ -238,11 +238,21 @@
 </body>
 </html>
 <script>
-    loadBCDropdown();
     loadRolmDropdown();
-    loadSchoolDropdown();
-    loadPtfDropdown();
+    loadItemDropdown({
+        selectId: "U_BC",
+        itemCode: "branch_company"
+    });
+    loadItemDropdown({
+        selectId: "School_Level",
+        itemCode: "School_Level"
+    });
+    loadItemDropdown({
+        selectId: "U_PFT",
+        itemCode: "professional_title"
+    });
     dateTW();
+
     function SaveUser() {
         const U_num = document.querySelector('input[name="U_num"]').value;
         const U_name = document.querySelector('input[name="U_name"]').value;

@@ -149,7 +149,10 @@
     fetchWebUser(WebUser);
     fetchWebFun(WebUser);
 
-    loadBCDropdown();
+    loadItemDropdown({
+        selectId: "U_BC",
+        itemCode: "branch_company"
+    });
     loadRolmDropdown();
     fetchData();
 

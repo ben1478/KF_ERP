@@ -254,12 +254,23 @@
     const params = new URLSearchParams(window.location.search);
     const U_num = params.get('U_num');
     let data = [];
-    loadBCDropdown();
+
     loadRolmDropdown();
-    loadSchoolDropdown();
-    loadPtfDropdown();
+    loadItemDropdown({
+        selectId: "U_BC",
+        itemCode: "branch_company"
+    });
+    loadItemDropdown({
+        selectId: "School_Level",
+        itemCode: "School_Level"
+    });
+    loadItemDropdown({
+        selectId: "U_PFT",
+        itemCode: "professional_title"
+    });
     dateTW();
     fetchData();
+
     function fetchData() {
         const url = `${BASE_URL}/AE_HR/User_M_SQuery?U_num=${encodeURIComponent(U_num)}`;
 

@@ -111,10 +111,12 @@
     let currentPage = 1;
     let data = []; 
 
-        dateTW();
-        loadBCDropdown();
-        loadYearDown();
-        //console.log(`[window.onload] selYear_S = ${document.getElementById('selYear_S').value}`);
+    dateTW();
+    loadItemDropdown({
+        selectId: "U_BC",
+        itemCode: "branch_company"
+    });
+    loadYearDown();
 
 
     function loadYearDown() {

@@ -82,7 +82,10 @@
 
     window.onload = function () {
         dateTW();
-        loadBCDropdown();
+        loadItemDropdown({
+            selectId: "U_BC",
+            itemCode: "branch_company"
+        });
         const currentDate = new Date();
 
         const dateStart = new Date(currentDate);

@@ -100,39 +100,16 @@
     let PM_ID = decryptParameter(Params.get('PM_ID'));
     let Read = decryptParameter(Params.get('Read'));
 
-    loadBCName();
+   /* loadBCName();*/
     dateTW();
     fetchData();
     getBackReason(PM_ID);
 
-    function loadBCName() {
-        const url = `${BASE_URL}/AE/GetItemList?item_M_code=branch_company`;
-        fetch(url)
-            .then(response => response.json())
-            .then(data => {
-                if (data.resultCode === "000") {
-                    const selectElement = document.getElementById('PM_BC');
-                    const options = JSON.parse(data.objResult);
-                    selectElement.innerHTML = '<option value="" selected>不限</option>';
-
-                    options.forEach(option => {
-                        const optionElement = document.createElement('option');
-                        optionElement.value = option.item_D_code;
-                        optionElement.textContent = option.item_D_name;
-                        selectElement.appendChild(optionElement);
-                    });
-
-                    selectElement.value = WebBC;
-                    selectElement.setAttribute('readonly', true);
-                    selectElement.style.pointerEvents = 'none';
-                } else {
-                    console.log('錯誤: ' + (data.resultMsg || '未知錯誤'));
-                }
-            })
-            .catch(error => {
-                console.error('載入選項時出錯:', error);
-            });
-    }
+    loadItemDropdown({
+        selectId: "PM_BC",
+        itemCode: "branch_company",
+        onlock:WebBC
+    });
 
     function OpenNew() {
         const tbody = document.querySelector('#detailsList tbody');

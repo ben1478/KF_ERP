@@ -36,35 +36,6 @@ function getQueryParams() {
 
     return { WebUser, WebBC };
 }
-
-function loadBCDropdown() {
-    const url = `${BASE_URL}/AE/GetBCList`;
-    fetch(url)
-        .then(response => response.json())
-        .then(data => {
-            if (data.resultCode === "000") {
-                const selectElement = document.getElementById('U_BC');
-
-                const options = JSON.parse(data.objResult);
-
-                selectElement.innerHTML = '<option value="" selected>不限</option>';
-
-                options.forEach(option => {
-                    const optionElement = document.createElement('option');
-                    optionElement.value = option.item_D_code; 
-                    optionElement.textContent = option.item_D_name; 
-                    selectElement.appendChild(optionElement);
-                });
-            } else {
-                alert('錯誤: ' + (data.resultMsg || '未知錯誤'));
-            }
-        })
-        .catch(error => {
-            console.error('載入選項時出錯:', error);
-            alert('無法載入資料，請稍後再試。');
-        });
-}
-
 function loadRolmDropdown() {
     const url = `${BASE_URL}/AE/GetRoleProfessionalList`;
     fetch(url)
@@ -96,64 +67,38 @@ function loadRolmDropdown() {
         });
 }
 
-function loadSchoolDropdown() {
-    const url = `${BASE_URL}/AE/GetSchoolLevelList`;
+function loadItemDropdown({ selectId, itemCode, defaultOptionText = "請選擇", onlock = null}) {
+    const url = `${BASE_URL}/AE/GetItemList?item_M_code=${itemCode}`;
+
     fetch(url)
         .then(response => response.json())
         .then(data => {
             if (data.resultCode === "000") {
-                const selectElement = document.getElementById('School_Level');
-
-                // 解析 objResult 字串為 JSON
+                const selectElement = document.getElementById(selectId);
                 const options = JSON.parse(data.objResult);
 
-                // 清空原有選項，避免重複加載
-                selectElement.innerHTML = '<option value="" selected>請選擇</option>';
+                // 設置預設選項
+                selectElement.innerHTML = `<option value="" selected>${defaultOptionText}</option>`;
 
-                // 動態填充選項
                 options.forEach(option => {
                     const optionElement = document.createElement('option');
-                    optionElement.value = option.item_D_code; // 設置 value 為 item_D_code
-                    optionElement.textContent = option.item_D_name; // 設置顯示文字為 item_D_name
+                    optionElement.value = option.item_D_code;
+                    optionElement.textContent = option.item_D_name;
                     selectElement.appendChild(optionElement);
                 });
+
+                if (onlock !== null) {
+                    selectElement.value = onlock;
+                    selectElement.setAttribute('readonly', true);
+                    selectElement.style.pointerEvents = 'none';
+                };
+
             } else {
                 alert('錯誤: ' + (data.resultMsg || '未知錯誤'));
             }
         })
         .catch(error => {
-            console.error('載入選項時出錯:', error);
-            alert('無法載入資料，請稍後再試。');
-        });
-}
-
-function loadPtfDropdown() {
-    const url = `${BASE_URL}/AE/GetTitleList`;
-    fetch(url)
-        .then(response => response.json())
-        .then(data => {
-            if (data.resultCode === "000") {
-                const selectElement = document.getElementById('U_PFT');
-
-                // 解析 objResult 字串為 JSON
-                const options = JSON.parse(data.objResult);
-
-                // 清空原有選項，避免重複加載
-                selectElement.innerHTML = '<option value="" selected>請選擇</option>';
-
-                // 動態填充選項
-                options.forEach(option => {
-                    const optionElement = document.createElement('option');
-                    optionElement.value = option.item_D_code; // 設置 value 為 item_D_code
-                    optionElement.textContent = option.item_D_name; // 設置顯示文字為 item_D_name
-                    selectElement.appendChild(optionElement);
-                });
-            } else {
-                alert('錯誤: ' + (data.resultMsg || '未知錯誤'));
-            }
-        })
-        .catch(error => {
-            console.error('載入選項時出錯:', error);
+            console.error(`載入選項 (${itemCode}) 出錯:`, error);
             alert('無法載入資料，請稍後再試。');
         });
 }
