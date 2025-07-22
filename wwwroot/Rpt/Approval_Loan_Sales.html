@@ -702,8 +702,8 @@
     
                 const selYearS = document.getElementById('SelYear_S').value;
 
-                //let temp_commissionData = 0;
-                //let temp_actualCommCell = 0;
+                let temp_commissionData = 0;
+                let temp_actualCommCell = 0;
 
                 data.forEach((row, index) => {
                     const tr = document.createElement('tr');
@@ -715,8 +715,8 @@
                     // 先計算作業服務費，因為實際退佣金會用到它
                     const commissionData = generateCommissionCells(row, displayAMT, IsmisalignedSUM, selYearS, index);
                     
-                    //temp_commissionData = temp_commissionData + commissionData.estimatedCommission.numericValue;
-                    //console.log(`commissionData=${commissionData.estimatedCommission.numericValue} total=${temp_commissionData}`);
+                    temp_commissionData = temp_commissionData + commissionData.estimatedCommission.numericValue;
+                    //console.log(`${row.CS_name} commissionData=${commissionData.estimatedCommission.numericValue} total=${temp_commissionData}`);
 
                     // 呼叫新的輔助函式計算實際退佣金
                     const actualCommCell = generateActualCommissionCell(row, displayAMT, IsmisalignedSUM, commissionData.serviceFee.numericValue);
@@ -765,9 +765,9 @@
                             misalignedTotals.Subsidy_amt += Number(row.Subsidy_amt) || 0;
                             misalignedTotals.get_amount_final += Number(row.get_amount_final) || 0;
                             misalignedTotals.subsidized_interest += Number(row.subsidized_interest) || 0;
-                            misalignedTotals.Expe_comm_amt += commissionData.estimatedCommission.numericValue || 0;
-                            misalignedTotals.act_service_amt += commissionData.serviceFee.numericValue || 0;
-                            misalignedTotals.act_comm_amt += actualCommCell.numericValue || 0;
+                            //misalignedTotals.Expe_comm_amt += commissionData.estimatedCommission.numericValue || 0;
+                            //misalignedTotals.act_service_amt += commissionData.serviceFee.numericValue || 0;
+                            //misalignedTotals.act_comm_amt += actualCommCell.numericValue || 0;
                         }
                         // 1.2 如果是「正常案件」(無補登日期)，則所有金額計入 totals
                         else if(!row.misaligned_date) {
@@ -783,6 +783,18 @@
                                 totals.Expe_comm_amt += commissionData.estimatedCommission.numericValue || 0;
                                 totals.act_service_amt += commissionData.serviceFee.numericValue || 0;
                                 totals.act_comm_amt += actualCommCell.numericValue || 0;
+
+                                console.log(`正常案件 ${row.CS_name} ${commissionData.estimatedCommission.numericValue} ${totals.Expe_comm_amt} ${temp_commissionData}`);
+
+                       } 
+                       // 1.3 處理「從過去補登的案件」(misaligned_date 有值，但 IsmisalignedSUM 為 'N')
+                       else {
+                           totals.Expe_comm_amt += commissionData.estimatedCommission.numericValue || 0;
+                           totals.act_service_amt += commissionData.serviceFee.numericValue || 0;
+                           totals.act_comm_amt += actualCommCell.numericValue || 0;
+
+                           console.log(`過去補登的案件 ${row.CS_name} ${commissionData.estimatedCommission.numericValue} ${totals.Expe_comm_amt} ${temp_commissionData}`);
+
                        }
                     }
                     // 2. 處理已取消的案件
@@ -798,11 +810,12 @@
                             totals.Subsidy_amt += Number(row.Subsidy_amt) || 0;
                             totals.get_amount_final += Number(row.get_amount_final) || 0;
                             totals.subsidized_interest += Number(row.subsidized_interest) || 0;
-                            
                         }
                         totals.Expe_comm_amt += commissionData.estimatedCommission.numericValue || 0;
                         totals.act_service_amt += commissionData.serviceFee.numericValue || 0;
                         totals.act_comm_amt += actualCommCell.numericValue || 0;
+
+                        console.log(`當月取消  ${row.CS_name} ${commissionData.estimatedCommission.numericValue} ${totals.Expe_comm_amt} ${temp_commissionData}`);
                     }
                 });
 
@@ -1694,9 +1707,7 @@
                 // --- 1. 計算「預估退佣金」(Expe_comm_amt) ---
                 let expe_comm_amt = 0;
                 if (row.CaseType === 'sendcase') {
-                    expe_comm_amt = (row.IsConfirm === 'Y')
-                        ? (Number(row.Expe_comm_amt_firm) || 0)
-                        : (Number(row.Expe_comm_amt) || 0);
+                    expe_comm_amt = (Number(row.Expe_comm_amt) || 0);
                 }
     
                 // 如果案件是已取消狀態，則將其值轉為正數
