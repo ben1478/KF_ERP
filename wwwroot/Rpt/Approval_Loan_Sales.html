@@ -490,8 +490,8 @@
                         <th>收費</th>
                         <th>代書費用</th>
                         <th>對保費</th>
-                        <th>代書費</th>
-                        <th>過車費</th>
+                        <th>補貼代書費</th>
+                        <th>補貼過車費</th>
                         <th>結餘</th>
                         <th>補貼息</th>
                         <th>退傭備註</th>
@@ -724,6 +724,8 @@
 
                     //temp_actualCommCell = temp_actualCommCell + actualCommCell.numericValue;
                     //console.log(`actualCommCell=${actualCommCell.numericValue} total=${temp_actualCommCell}`);
+
+                    console.log(`${row.show_fund_company} - ${row.show_project_title}`);
 
                     const introducerDisplay = `${row.CS_introducer || ''}<br>${(row.Introducer_PID || '').replace('NA', '')}`;
                     const commRemarkDisplay = (displayAMT === 'Y') ? (row.Comm_Remark || '') : 'NA';
