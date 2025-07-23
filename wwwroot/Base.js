@@ -178,11 +178,31 @@ function createButtonCell(imgSrc, imgAlt, onClickAction) {
     cell.appendChild(img);
     return cell;
 }
+/**
+ * 開啟使用者選擇的彈出視窗 (已更新，支援鎖定分公司)
+ * @param {string} type - 選擇器類型 (e.g., 'appUser')
+ * @param {string} [u_bc=''] - (可選) 預設鎖定的分公司代碼
+ * @param {string} [lock_bc='N'] - (可選) 是否鎖定分公司 ('Y' or 'N')
+ */
+function openUserOne(type, u_bc = '', lock_bc = 'N') {
+    // 1. 建立基礎 URL
+    let url = `${BASE_WEB}/HR/User_one.html?type=${type}`;
 
-function openUserOne(type) {
-    var url = `${BASE_WEB}/HR/User_one.html?type=` + type;
-    window.open(url,'User_one','scrollbars=yes,resizable=yes,width=700,height=500,left=250,top=100');
+    // 2. 如果有傳入分公司代碼，將其加入 URL
+    if (u_bc) {
+        url += `&U_BC=${encodeURIComponent(u_bc)}`;
+    }
+
+    // 3. 如果需要鎖定，將鎖定旗標加入 URL
+    if (lock_bc === 'Y') {
+        url += `&lock_bc=Y`;
+    }
+
+    // 4. 開啟視窗
+    window.open(url, 'User_one', 'scrollbars=yes,resizable=yes,width=700,height=500,left=250,top=100');
 }
+
+
 function openFile(cknum, WebUser) {
     var url = 'FileList.html?cknum=' + cknum + '&WebUser=' + WebUser;
     window.open(url,'FileList','scrollbars=yes,resizable=yes,width=800,height=500,left=500,top=100');

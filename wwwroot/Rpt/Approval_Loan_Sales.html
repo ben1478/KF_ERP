@@ -546,11 +546,20 @@
                 misalignedCount: 0,
                 totalOtherAmount: 0
             };
-
+            let currentUserAuth = '';
+            let userBC = '';
             // 事件委派監聽
             // 業務-選擇按鈕綁定點擊事件
             btnSelectUser.addEventListener('click', () => {
-                openUserOne('appUser'); // 'appUser' 這個參數會被傳到彈出視窗，以觸發正確的 switch case
+                // 判斷當前使用者是否為主管
+                if (currentUserAuth === 'Man') {
+                    // 如果是主管，呼叫 openUserOne，傳入他自己的分公司代碼並要求鎖定
+                    console.log(`主管模式：鎖定分公司為 ${userBC}`);
+                    openUserOne('appUser', userBC, 'Y');
+                } else {
+                    // 如果是其他角色 (如 Adm)，則使用舊的呼叫方式，不鎖定分公司
+                    openUserOne('appUser');
+                }
             });
             tbody.addEventListener('click', (e) => {
                 // 尋找被點擊元素或其父層中，最近的帶有 data-action 的元素
@@ -2010,7 +2019,7 @@
                     // 步驟 1: 從 Base.js 獲取使用者基本資訊
                     const URLParams = getQueryParams();
                     const userNum = URLParams.WebUser;
-                    const userBC = URLParams.WebBC; // 獲取分公司代碼
+                    userBC = URLParams.WebBC; // 獲取分公司代碼
 
                     // 使用 Promise.all 並行處理非同步任務，提升載入速度
                     const [currentUserRoleNum] = await Promise.all([
@@ -2020,7 +2029,7 @@
                     ]);
                     setDefaultMonth(); // 在所有下拉選單都填充完畢後，才設定預設值
                     // 步驟 2: 根據角色和其他權限，設定 UI
-                    const currentUserAuth = getAuth(currentUserRoleNum);
+                    currentUserAuth = getAuth(currentUserRoleNum);
 
                     // 計算權限標籤
                     if (currentUserAuth === 'Asi' && !['BC0100', 'BC0200', 'BC0400', 'BC0500'].includes(userBC)) {

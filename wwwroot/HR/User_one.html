@@ -38,26 +38,84 @@
 </body>
 </html>
 <script>
-    const itemsPerPage = 500;  
-    let currentPage = 1;  
-    let data = [];  
-    var type = getQueryParam('type');
+    // DOM 元素獲取
+    const uBcDropdown = document.getElementById('U_BC');
+    const queryButton = document.querySelector('input[name="query"]');
+
+  
+    // 從 URL 獲取所有參數
+    const type = getQueryParam('type');
+    const u_bc_param = getQueryParam('U_BC');
+    const lock_bc_param = getQueryParam('lock_bc');
+
+    // 頁面初始化主函式
+    function initialize() {
+        // **步驟 1**: 無論是哪個角色，都先呼叫正確的函式來載入下拉選單
+        loadItemDropdown({
+            selectId: "U_BC",
+            itemCode: "branch_company",
+            add_all: true // 假設需要一個「全部」的選項
+        });
+
+        // **步驟 2**: 執行後續操作
+        executeAfterDropdownLoad();
+    }
+    
+    // **步驟 3**: 處理後續操作的函式
+    function executeAfterDropdownLoad() {
+        // 如果是主管模式，則使用輪詢檢查來鎖定選單
+        if (lock_bc_param === 'Y' && u_bc_param) {
+            const maxRetries = 20; // 最多等 2 秒
+            let attempt = 0;
+
+            function tryLockDropdown() {
+                const option = uBcDropdown.querySelector(`option[value="${u_bc_param}"]`);
+                if (option) {
+                    console.log("選項已找到，執行鎖定。");
+                    uBcDropdown.value = u_bc_param;
+                    uBcDropdown.disabled = true;
+                    queryButton.disabled = true;
+                    fetchData(u_bc_param); // 直接用鎖定的分公司代碼獲取資料
+                } else if (attempt < maxRetries) {
+                    attempt++;
+                    setTimeout(tryLockDropdown, 100); // 100毫秒後重試
+                } else {
+                    console.error("等待逾時：找不到要鎖定的分公司選項。");
+                    fetchData(); // 超時後載入預設資料
+                }
+            }
+            tryLockDropdown();
+        } 
+        // 如果是管理者模式，則直接載入預設資料
+        else {
+            fetchData();
+        }
+    }
+
+    // 執行初始化
+    initialize();
+
+    // 先呼叫 loadItemDropdown，然後立即開始檢查
     loadItemDropdown({
         selectId: "U_BC",
-        itemCode: "branch_company"
+        itemCode: "branch_company",
+        add_all: true
     });
-    fetchData();
-   
+    executeAfterDropdownLoad();
+
+    // 為查詢按鈕加上事件監聽
+    queryButton.addEventListener('click', function () {
+        fetchData(uBcDropdown.value);
+    });
+
+    // 資料處理與頁面渲染的函式
+    const itemsPerPage = 500;  
+    let currentPage = 1;  
+    let data = [];
     function getQueryParam(param) {
         var urlParams = new URLSearchParams(window.location.search);
         return urlParams.get(param);
     }
-
-    document.querySelector('input[name="query"]').addEventListener('click', function () {
-        const U_BC = document.querySelector('#U_BC').value;
-        fetchData(U_BC);
-    });
-
     function fetchData(U_BC = '') {
         const url = `${BASE_URL}/AE_HR/GetUserMenuList?U_BC=${encodeURIComponent(U_BC)}`;
         fetch(url)
