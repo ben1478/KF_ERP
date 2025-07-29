@@ -106,203 +106,222 @@
 <script>
     const Params = getQueryParams();
     let WebUser = Params.WebUser;
+    let UserProfile = {};
 
     const itemsPerPage = 20;  
     let currentPage = 1;
     let data = []; 
 
-    dateTW();
-    loadItemDropdown({
-        selectId: "U_BC",
-        itemCode: "branch_company"
+    $(document).ready(function() {
+        console.log("Document ready. Starting initial load...");
+        loadItemDropdown({ selectId: "U_BC", itemCode: "branch_company" });
+        loadYearDown();
     });
-    loadYearDown();
-
 
     function loadYearDown() {
+        console.log("Step 1: Starting loadYearDown...");
         const url = `${BASE_URL}/AE_SAL/House_othercase_GYMQuery`;
-
         fetch(url)
-        .then(response => response.json())
-        .then(data => {
-            if (data.resultCode === "000") {
-                const selectElement = document.getElementById('selYear_S');
-
-                const options = JSON.parse(data.objResult);
-
-                let isFirstOption = true;
-                options.forEach(option => {
-                    if(isFirstOption)
-                    {
-                        selectElement.innerHTML = `<option value=${option.v} selected>${option.t}</option>`;
-                        //optionElement.selected = isFirstOption;
-                    }else{
+            .then(response => response.json())
+            .then(data => {
+                if (data.resultCode === "000") {
+                    console.log("Step 1: Successfully loaded year/month dropdown.");
+                    const selectElement = document.getElementById('selYear_S');
+                    const options = JSON.parse(data.objResult);
+                    options.forEach((option, index) => {
                         const optionElement = document.createElement('option');
                         optionElement.value = option.v; 
                         optionElement.textContent = option.t;
+                        if (index === 0) {
+                            optionElement.selected = true;
+                        }
                         selectElement.appendChild(optionElement);
-                    }
-                    
-                    isFirstOption = false;
-                });
-
-                fetchData();
-            } else {
-                alert('錯誤: ' + (data.resultMsg || '未知錯誤'));
-            }
-
-            //console.log(`[loadYearDown] selYear_S = ${document.getElementById('selYear_S').value}`);
-        })
-        .catch(error => {
-            console.error('載入選項時出錯:', error);
-            alert('無法載入資料，請稍後再試。');
-        });
-
-    }
-
-    function fetchData() {
-
-        //console.log(`[fetchData] selYear_S = ${document.getElementById('selYear_S').value}`);
-        const Req = {
-            BC_code:document.querySelector('#U_BC').value,
-            selYear_S: document.getElementById('selYear_S').value
-        };
-
-        const url = `${BASE_URL}/AE_SAL/House_othercase_LQuery`;
-
-        fetch(url, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            credentials: 'include',
-            body: JSON.stringify(Req)
-        })
-            .then(response => response.json())
-            .then(responseData => {
-                if (responseData.resultCode == "000") {
-                    data = JSON.parse(responseData.objResult);
-                    showPage(currentPage);
-                    createPagination();
+                    });
+                    // After setting up years, get user profile.
+                    fetchUserProfile();
                 } else {
-                    alert(response.resultMsg);
+                    console.error("Step 1 Failed: Could not load year/month data.", data.resultMsg);
+                    alert('無法載入撥款年月資料: ' + data.resultMsg);
                 }
             })
             .catch(error => {
-                alert('API 請求失敗:', error);
+                console.error("Step 1 Failed: API request for year/month failed.", error);
+                alert('無法載入撥款年月資料，請稍後再試。');
             });
     }
 
-    function showPage(page) {
-        document.getElementById('CountRows').innerHTML = `筆數:${data.length}`;
+    function fetchUserProfile() {
+        console.log("Step 2: Starting fetchUserProfile...");
+        if (!WebUser) {
+            console.error("Step 2 Failed: WebUser is not defined.");
+            alert('無法識別使用者');
+            return;
+        }
+        const url = `${BASE_URL}/AE_SAL/GetUserProfile?userNum=${WebUser}`;
+        fetch(url)
+            .then(response => response.json())
+            .then(response => {
+                if (response.resultCode === '000') {
+                    console.log("Step 2: Successfully fetched user profile.");
+                    const profileData = JSON.parse(response.objResult)[0];
+                    UserProfile = {
+                        num: profileData.U_num,
+                        role: profileData.Role_num,
+                        bc: profileData.U_BC
+                    };
+                    configureUIForRole();
+                    fetchData(); // Initial data fetch after getting profile and setting UI.
+                } else {
+                    console.error("Step 2 Failed: Could not fetch user profile.", response.resultMsg);
+                    alert('無法獲取使用者資訊: ' + response.resultMsg);
+                }
+            })
+            .catch(error => {
+                console.error("Step 2 Failed: API request for user profile failed.", error);
+                alert('獲取使用者資訊失敗，請稍後再試。');
+            });
+    }
+    
+    function configureUIForRole() {
+        console.log("Configuring UI for role:", UserProfile.role);
+        const adminRoles = ["1001", "1004", "1006", "1007"];
+        const bcDropdown = document.getElementById('U_BC');
+        const bcLabel = document.getElementById('U_BC_Label');
 
+        if (adminRoles.includes(UserProfile.role)) {
+            bcDropdown.disabled = false;
+        } else if (UserProfile.role === "1008" || UserProfile.role === "1010") {
+            bcDropdown.value = UserProfile.bc;
+            bcDropdown.disabled = true;
+        } else {
+            bcDropdown.style.display = 'none';
+            bcLabel.style.display = 'none';
+        }
+    }
+
+    function fetchData() {
+        console.log("Step 3: Starting fetchData...");
+        if (!UserProfile.num) {
+            console.warn("Step 3 Aborted: User profile not loaded yet.");
+            return;
+        }
+
+        const Req = {
+            BC_code: document.querySelector('#U_BC').value,
+            selYear_S: document.getElementById('selYear_S').value,
+            UserNum: UserProfile.num,
+            UserRole: UserProfile.role,
+            UserBC: UserProfile.bc
+        };
+        
+        console.log("Step 3: Sending request to House_othercase_LQuery with payload:", Req);
+        const url = `${BASE_URL}/AE_SAL/House_othercase_LQuery`;
+        fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify(Req)
+        })
+        .then(response => response.json())
+        .then(responseData => {
+            if (responseData.resultCode == "000") {
+                console.log("Step 3: Successfully received data from House_othercase_LQuery.");
+                const response = JSON.parse(responseData.objResult);
+                data = response.Data;
+                const isPeriodClosed = response.IsPeriodClosed;
+                showPage(currentPage, isPeriodClosed);
+                createPagination();
+            } else {
+                console.error("Step 3 Failed: API returned an error.", responseData.resultMsg);
+                alert(responseData.resultMsg);
+                document.querySelector('#MainTable tbody').innerHTML = '';
+                document.getElementById('CountRows').innerHTML = `筆數: 0`;
+            }
+        })
+        .catch(error => {
+            console.error("Step 3 Failed: API request to House_othercase_LQuery failed.", error);
+            alert('API 請求失敗:', error);
+        });
+    }
+
+    function showPage(page, isPeriodClosed) {
+        // This function remains the same as the previous version
+        document.getElementById('CountRows').innerHTML = `筆數:${data.length}`;
         const tbody = document.querySelector('#MainTable tbody');
         tbody.innerHTML = '';
 
         const startIndex = (page - 1) * itemsPerPage;
-        const endIndex = Math.min(startIndex + itemsPerPage, data.length);
-        const pageData = data.slice(startIndex, endIndex);
+        const pageData = data.slice(startIndex, startIndex + itemsPerPage);
 
-        for (let item of pageData) {
+        for (let i = 0; i < pageData.length; i++) {
+            const item = pageData[i];
             const row = document.createElement('tr');
-            row.setAttribute('align', 'center');
-            row.setAttribute('class', 'c12-k');
-            row.setAttribute('bgcolor', '#FFFFFF');
-            row.setAttribute('onmouseover', "this.style.background='#FCFCC0';");
-            row.setAttribute('onmouseout', "this.style.background='#FFFFFF';");
+            row.align = 'center';
+            row.className = 'c12-k';
+            row.style.backgroundColor = '#FFFFFF';
+            row.onmouseover = function() { this.style.backgroundColor = '#FCFCC0'; };
+            row.onmouseout = function() { this.style.backgroundColor = '#FFFFFF'; };
 
-            const columnOrder = ['case_id','show_fund_company', 'show_project_title', 'cs_name', 'cs_id', 'get_amount', 'period', 'interest_rate_pass', 'get_amount_date', 'comm_amt', 'plan_name', 'case_remark','case_id_count'];
+            // 將從 API 取得的西元日期轉換為國曆日期 
+            const rocDate = item.get_amount_date ? convertToROCDate(item.get_amount_date) : '';
 
-            const serialCell = document.createElement('td');
-            serialCell.textContent = startIndex + pageData.indexOf(item) + 1;
-            row.appendChild(serialCell);
-            
-            let Id;
-            for (let key of columnOrder) {
-                const cell = document.createElement('td');
-                switch (key) {
-                    case 'case_id':
-                        Id = item[key];
-                        break
-                    case 'case_id_count':
-                        let case_id_count = item[key];
-                        const button = document.createElement('input');
-                        button.type = 'button';
-                        button.value = '附加檔案(' + case_id_count + ')';
-                        button.onclick = function () {
-                            window.open(`../File/File_UpLoad_List.html?cknum=${Id}&user=${encryptedWebUser}`, '_blank', 'scrollbars=yes,resizable=yes,top=100,width=800,height=500');
-                        };
-                        cell.style.textAlign = 'center';
-                        cell.style.verticalAlign = 'middle';
-                        cell.appendChild(button);
-                        row.appendChild(cell);
-                        break;
-                    case 'interest_rate_pass':
-                        cell.textContent = `${item[key]}%` ;
-                        row.appendChild(cell);
-                        break;
-                    case 'comm_amt':
-                        cell.textContent = item[key] || 0;
-                        row.appendChild(cell);
-                        break;
-                    default:
-                        cell.textContent = item[key] || '';
-                        row.appendChild(cell);
-                }
-            }
-         
-            let encryptedId = encryptParameter(Id);
+            row.innerHTML = `
+                <td>${startIndex + i + 1}</td>
+                <td>${item.show_fund_company || ''}</td>
+                <td>${item.show_project_title || ''}</td>
+                <td>${item.cs_name || ''}</td>
+                <td>${item.cs_id || ''}</td>
+                <td>${item.get_amount || ''}</td>
+                <td>${item.period || ''}</td>
+                <td>${item.interest_rate_pass ? item.interest_rate_pass + '%' : ''}</td>
+                <td>${rocDate || ''}</td>
+                <td>${item.comm_amt || 0}</td>
+                <td>${item.plan_name || ''}</td>
+                <td>${item.case_remark || ''}</td>
+            `;
+
+            const attachmentCell = document.createElement('td');
+            const button = document.createElement('input');
+            button.type = 'button';
+            button.value = `附加檔案(${item.case_id_count || 0})`;
+            button.onclick = () => window.open(`../File/File_UpLoad_List.html?cknum=${item.case_id}&user=${encryptParameter(WebUser)}`, '_blank', 'scrollbars=yes,resizable=yes,top=100,width=800,height=500');
+            attachmentCell.appendChild(button);
+            row.appendChild(attachmentCell);
+
+            let encryptedId = encryptParameter(item.case_id);
             let encryptedWebUser = encryptParameter(WebUser);
-               
-            row.appendChild(createButtonCell(
-                "../images/edit.png",
-                "修改",
-                function () {
-                    window.open(`House_othercase_Detail.html?Id=${encryptedId}&User=${encryptedWebUser}`, '_blank', 'scrollbars=yes,resizable=yes,top=100,width=800,height=500');
-                }
-            ));
-            console.log(`item['confirm_num']=${item['confirm_num']}`);
-            if(item['confirm_num'])
-            {
-                const cell = document.createElement('td');
-                cell.textContent = '';
-                row.appendChild(cell);
-            }
-            else
-            {
-                
-                row.appendChild(createButtonCell(
-                    "../images/delete.png",
-                    "刪除",
-                    function () {
-                        if (Id !== '') {
-                            const url = `${BASE_URL}/AE_SAL/House_othercase_Del?Id=${Id}`;
-                            fetch(url, {
-                                method: 'DELETE',
-                                headers: {
-                                    'Content-Type': 'application/json'
-                                }
-                            })
-                                .then(response => response.json())
-                                .then(responseData => {
-                                    console.log(responseData.resultCode);
-                                    if (responseData.resultCode === '000') {
-                                        alert('已刪除');
-                                        location.reload();
-                                    } else {
-                                        alert('刪除失敗，請洽資訊人員。');
-                                    }
-                                })
-                                .catch(error => {
-                                    alert('刪除失敗，請洽資訊人員。');
-                                })
-                        }
-                    }
-                ));
-            }
+            row.appendChild(createButtonCell("../images/edit.png", "修改", () => window.open(`House_othercase_Detail.html?Id=${encryptedId}&User=${encryptedWebUser}`, '_blank', 'scrollbars=yes,resizable=yes,top=100,width=800,height=500')));
             
+            const canDelete = !isPeriodClosed && !item.confirm_num;
+            if (canDelete) {
+                row.appendChild(createButtonCell("../images/delete.png", "刪除", () => {
+                    if (confirm('確定要刪除此筆資料嗎?')) {
+                        deleteCase(item.case_id);
+                    }
+                }));
+            } else {
+                row.insertCell(-1);
+            }
             tbody.appendChild(row);
         }
+    }
+
+    function deleteCase(caseId) {
+        const url = `${BASE_URL}/AE_SAL/House_othercase_Del?Id=${caseId}`;
+        fetch(url, {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' }
+        })
+        .then(response => response.json())
+        .then(responseData => {
+            if (responseData.resultCode === '000') {
+                alert('已刪除');
+                fetchData();
+            } else {
+                alert('刪除失敗: ' + responseData.resultMsg);
+            }
+        })
+        .catch(error => alert('刪除請求失敗，請洽資訊人員。'));
     }
 
     function addHouse_othercase() {
@@ -310,59 +329,62 @@
         let encryptedWebUser = encryptParameter(WebUser);
         window.open(`House_othercase_Detail.html?Id=${encryptedId}&User=${encryptedWebUser}`, '_blank', 'scrollbars=yes,resizable=yes,top=100,width=800,height=500');
     }
-
     function exportToExcel() {
-	    var table = document.getElementById('MainTable');
+        // 1. 獲取原始表格
+        var table = document.getElementById('MainTable');
+        if (!table) {
+            alert('錯誤：找不到識別碼為 MainTable 的表格。');
+            return;
+        }
 
-	    // 複製表格，並移除後面兩行
-	    var clonedTable = table.cloneNode(true);
-	    var rowCount = clonedTable.rows.length;
-  
-	    for (var i = rowCount - 1; i >= rowCount - 1; i--) {
-		    clonedTable.deleteRow(i);
-	    }
-	    for (var i = 0; i < clonedTable.rows.length; i++) {
-		    //alert(clonedTable.rows[i].cells[8].textContent)
-		    var row = clonedTable.rows[i];
-		    row.deleteCell(9);
-		    row.deleteCell(9);
-	    }
-	
-	    $('#MainTable').after(clonedTable);
+        // 2. 深度複製一份表格以進行操作
+        var clonedTable = table.cloneNode(true);
 
-	    // 將複製的表格的 ID 設為 'tbExcel'
-	    $(clonedTable).attr('id', 'tbExcel');
+        // 3. 移除複製後表格的最後一行 (此為顯示筆數的頁尾)
+        if (clonedTable.rows.length > 0) {
+            clonedTable.deleteRow(clonedTable.rows.length - 1);
+        }
 
-	    // 隱藏新增的表格
-	    $(clonedTable).hide();
-	    var fileNa=getCurrentDateTime();
-		    $("#tbExcel").table2excel({
-		    // exclude CSS class
-		    exclude: ".ExHead ",
-		    name: "Worksheet Name",
-		    filename: "車貸建檔-"+fileNa, //do not include extension
-		    fileext: ".xls", // file extension
-		    TextIdx: [4,5,6]
-	    }); 
+        // 4. 遍歷所有剩下的資料行 (包含標題列)，並移除最後兩個欄位
+        for (var i = 0; i < clonedTable.rows.length; i++) {
+            var row = clonedTable.rows[i];
+            // 進行安全檢查，確保該行有足夠的儲存格
+            if (row.cells.length >= 15) {
+                // 從後面開始刪除，避免索引錯亂
+                // 刪除 "刪除" 欄位 (原索引 14)
+                row.deleteCell(14);
+                // 刪除 "修改" 欄位 (原索引 13)
+                row.deleteCell(13);
+            }
+        }
 
-	    // 刪除並移除新增的表格
-	    $("#tbExcel").remove();
+        // 5. 將整理好的表格暫時附加到頁面並隱藏，以供套件讀取
+        $(clonedTable).attr('id', 'tbExcelForExport'); // 使用唯一的ID避免衝突
+        $('body').append(clonedTable);
+        $(clonedTable).hide();
+
+        // 6. 使用 table2excel 套件產生並下載 Excel 檔案
+        var fileNa = getCurrentDateTime();
+        $("#tbExcelForExport").table2excel({
+            exclude: ".noExl",
+            name: "Worksheet",
+            filename: "車貸建檔-" + fileNa,
+            fileext: ".xls"
+        });
+
+        // 7. 從頁面中移除暫時的表格
+        $("#tbExcelForExport").remove();
     }
-
     function getCurrentDateTime() {
       var currentDate = new Date();
-
       var year = currentDate.getFullYear();
       var month = ('0' + (currentDate.getMonth() + 1)).slice(-2);
       var day = ('0' + currentDate.getDate()).slice(-2);
       var hours = ('0' + currentDate.getHours()).slice(-2);
       var minutes = ('0' + currentDate.getMinutes()).slice(-2);
-
       var formattedDateTime = year + month + day + hours + minutes;
       return formattedDateTime;
     }
-
-
     function createCountRows()
     {
         const tbody = document.querySelector('#MainTable tbody');
@@ -378,4 +400,5 @@
             serialCell.textContent = '筆數: 0';
             row.appendChild(serialCell);
     }
+
 </script>

@@ -124,7 +124,17 @@
                         $("input[name='get_amount']").val(data.get_amount);
                         $("input[name='period']").val(data.period);
                         $("input[name='interest_rate_pass']").val(data.interest_rate_pass);
-                        $("input[name='get_amount_date']").val(data.get_amount_date);
+                        // 將從 API 取得的西元日期 (e.g., "2025/07/29") 轉換為國曆格式
+                        if (data.get_amount_date) {
+                            // 使用 base.js 中的函數轉換為國曆字串 (e.g., "114-7-29")
+                            const rocDate = convertToROCDate(data.get_amount_date);
+    
+                            // 為符合 datepickerTW 的 'yy-mm-dd' 格式，補上月份和日期的前置零
+                            const dateParts = rocDate.split('-');
+                            const formattedRocDate = `${dateParts[0]}-${String(dateParts[1]).padStart(2, '0')}-${String(dateParts[2]).padStart(2, '0')}`;
+
+                            $("input[name='get_amount_date']").val(formattedRocDate);
+                        }
                         $("input[name='comm_amt']").val(data.comm_amt);
                         $("input[name='act_perf_amt']").val(data.act_perf_amt);
                         $("input[name='plan_num']").val(data.plan_num);
