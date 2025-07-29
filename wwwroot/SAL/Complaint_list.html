@@ -16,7 +16,7 @@
         <tbody>
             <tr>
                 <td width="20">　</td>
-                <td width="230" height="24" background="../../image/title-bk.gif">
+                <td width="230" height="24">
                     <span class="c14k"><strong>客訴資料</strong></span>
                 </td>
                 <td width="770"></td>
@@ -97,231 +97,335 @@
 </body>
 </html>
 <script>
+    // 1. 全域變數定義
     const Params = getQueryParams();
-    let WebUser = Params.WebUser;
-    let WebBC = Params.WebBC;
+    const currentUserNum = Params.WebUser;
 
-    const itemsPerPage = 20;  
+    let UserProfile = {};
+    const itemsPerPage = 20;
     let currentPage = 1;
-    let data = []; 
+    let data = [];
 
-    window.onload = function () {
-        dateTW();
-        loadItemDropdown({
-            selectId: "U_BC",
-            itemCode: "branch_company"
-        });
-        loadYearDown();
-    }
+    // 2. 頁面載入主流程
+    window.onload = async function () {
+        const queryButton = document.querySelector('input[value="查詢"]');
+        
+        if (!currentUserNum) {
+            alert('錯誤：URL 中缺少使用者資訊 (User 參數)，無法載入頁面。');
+            return;
+        }
 
+        try {
+            if (queryButton) queryButton.disabled = true;
 
-    function fetchData() {
-        let Req = {
-            BC_code:document.querySelector('#U_BC').value,
-            selYear_S: document.getElementById('selYear_S').value
-        };
+            await fetchUserProfile(currentUserNum);
+            
+            await Promise.all([
+                fetchAndPopulateDropdown("U_BC", "branch_company"),
+                fetchAndPopulateDropdown("selYear_S", "Complaint_GYMQuery")
+            ]);
 
-        const url = `${BASE_URL}/AE_SAL/Complaint_LQuery`;
+            setupUIByPermission();
+            fetchData();
 
-        fetch(url, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            credentials: 'include',
-            body: JSON.stringify(Req)
-        })
-            .then(response => response.json())
-            .then(responseData => {
-                if (responseData.resultCode == "000") {
-                    data = JSON.parse(responseData.objResult);
-                    showPage(currentPage);
-                    createPagination();
-                } else {
-                    alert(response.resultMsg);
-                }
+        } catch (error) {
+            alert('頁面初始化失敗：' + error.message);
+            console.error(error);
+        } finally {
+            if (queryButton) queryButton.disabled = false;
+        }
+    };
+
+    // 3. 核心功能函數
+    function convertRocYearMonthToAd(rocYearMonth) {
+        if (!rocYearMonth || typeof rocYearMonth !== 'string' || !rocYearMonth.includes('-')) {
+            return rocYearMonth; // 若格式不符或為空，直接返回原值
+        }
+        
+        const parts = rocYearMonth.split('-');
+        if (parts.length !== 2) {
+            return rocYearMonth; // 只處理年-月格式
+        }
+
+        const rocYear = parseInt(parts[0], 10);
+        const month = parts[1];
+
+        if (isNaN(rocYear)) {
+            return rocYearMonth; // 若年份不是數字，返回原值
+        }
+
+        const adYear = rocYear + 1911;
+        const paddedMonth = month.padStart(2, '0'); // 將月份補零，例如 5 -> 05
+
+        return `${adYear}-${paddedMonth}`;
+    }    
+    /**
+     * 透過 API 獲取使用者完整資訊 (角色、部門)
+     */
+    function fetchUserProfile(userNum) {
+        const url = `${BASE_URL}/AE_SAL/GetUserProfile?userNum=${userNum}`;
+        return fetch(url)
+            .then(response => {
+                if (!response.ok) throw new Error('獲取使用者資訊API失敗');
+                return response.json();
             })
-            .catch(error => {
-                alert('API 請求失敗:', error);
+            .then(responseData => {
+                if (responseData.resultCode === "000") {
+                    UserProfile = JSON.parse(responseData.objResult)[0];
+                } else {
+                    throw new Error(responseData.resultMsg || '使用者資訊回傳錯誤');
+                }
             });
     }
 
-    function showPage(page) {
-        document.getElementById('CountRows').innerHTML = `筆數:${data.length}`;
-        const tbody = document.querySelector('#MainTable tbody');
-        tbody.innerHTML = '';
+    /**
+     * 獨立、可靠地載入下拉選單的函數
+     */
+    function fetchAndPopulateDropdown(selectId, source) {
+        return new Promise((resolve, reject) => {
+            const selectElement = document.getElementById(selectId);
+            if (!selectElement) return reject(new Error(`找不到 ID 為 ${selectId} 的元素`));
 
-        const startIndex = (page - 1) * itemsPerPage;
-        const endIndex = Math.min(startIndex + itemsPerPage, data.length);
-        const pageData = data.slice(startIndex, endIndex);
-
-        for (let item of pageData) {
-            const row = document.createElement('tr');
-            row.setAttribute('align', 'center');
-            row.setAttribute('class', 'c12-k');
-            row.setAttribute('bgcolor', '#FFFFFF');
-            row.setAttribute('onmouseover', "this.style.background='#FCFCC0';");
-            row.setAttribute('onmouseout', "this.style.background='#FFFFFF';");
-
-            const columnOrder = ['Comp_Id', 'CS_name', 'Sales_name', 'BC_name', 'Complaint', 'CompDate', 'Remark', 'add_name', 'Upd'];
-
-            const serialCell = document.createElement('td');
-            serialCell.textContent = startIndex + pageData.indexOf(item) + 1;
-            row.appendChild(serialCell);
-
-            let Id;
-            let encryptedWebUser = encryptParameter(WebUser);
-            let encryptedId = '';
-            for (let key of columnOrder) {
-                const cell = document.createElement('td');
-                switch (key) {
-                    case 'Comp_Id':
-                        Id = item[key];
-                        encryptedId = encryptParameter(Id);
-                        break;
-                    case 'CS_name':
-                            cell.innerHTML = item[key] || "";
-                            row.appendChild(cell);
-                            break;                    
-                    case 'Upd':
-                        let encryptedOpt_Upd = encryptParameter('Upd');
-                        row.appendChild(createButtonCell(
-                            "../images/edit.png",
-                            "修改",
-                            function () {
-                                window.open(`Complaint_Detail.html?Id=${encryptedId}&User=${encryptedWebUser}&Opt=${encryptedOpt_Upd}`, '_blank', 'scrollbars=yes,resizable=yes,top=100,width=800,height=500');
-                            }
-                        ));
-                        break;
-                    default:
-                        cell.textContent = item[key] || '';
-                        row.appendChild(cell);
-                }
+            let url = '';
+            if (source === 'Complaint_GYMQuery') {
+                url = `${BASE_URL}/AE_SAL/Complaint_GYMQuery`;
+            } else {
+                url = `${BASE_URL}/AE/GetItemList?item_M_code=${source}`; 
             }
-            row.appendChild(createButtonCell(
-                "../images/delete.png",
-                "刪除",
-                function () {
-                    if (Id !== '') {
-                        const url = `${BASE_URL}/AE_SAL/Complaint_Del?Id=${Id}`;
-                        fetch(url, {
-                            method: 'DELETE',
-                            headers: {
-                                'Content-Type': 'application/json'
-                            }
-                        })
-                            .then(response => response.json())
-                            .then(responseData => {
-                                console.log(responseData.resultCode);
-                                if (responseData.resultCode === '000') {
-                                    alert('已刪除');
-                                    location.reload();
-                                } else {
-                                    alert('刪除失敗，請洽資訊人員。');
-                                }
-                            })
-                            .catch(error => {
-                                alert('刪除失敗，請洽資訊人員。');
-                            })
+
+            fetch(url)
+                .then(response => {
+                    if (!response.ok) throw new Error(`API請求失敗 (${response.status}): ${url}`);
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.resultCode !== "000") {
+                        console.warn(`從 API [${source}] 獲取資料失敗: ${data.resultMsg}`);
+                        return resolve(); 
                     }
-                }
-            ));
-            
-            tbody.appendChild(row);
+
+                    const options = JSON.parse(data.objResult);
+                    if (source === 'Complaint_GYMQuery') {
+                        selectElement.innerHTML = '<option value="">ALL</option>';
+                        options.forEach(option => {
+                            const opt = document.createElement('option');
+                            opt.value = option.v.replace('-','/');
+                            opt.textContent = option.t || option.v;
+                            selectElement.appendChild(opt);
+                        });
+                        const today = new Date();
+                        const targetDate = new Date(today.getFullYear(), today.getMonth(), today.getDate() < 10 ? 0 : 1);
+                        const defaultValue = `${targetDate.getFullYear()}-${String(targetDate.getMonth() + 1).padStart(2, '0')}`;
+                        if (selectElement.querySelector(`option[value="${defaultValue}"]`)) {
+                           selectElement.value = defaultValue;
+                        }
+                    } else { 
+                        selectElement.innerHTML = '<option value="">全部</option>';
+                        options.forEach(option => {
+                            const opt = document.createElement('option');
+                            opt.value = option.item_D_code; 
+                            opt.textContent = option.item_D_name;
+                            selectElement.appendChild(opt);
+                        });
+                    }
+                    resolve();
+                })
+                .catch(reject);
+        });
+    }
+
+    /**
+     * 根據權限角色，設定UI元件狀態
+     */
+    function setupUIByPermission() {
+        const role = UserProfile.Role_num;
+        const bcDropdown = document.getElementById('U_BC');
+        const bcLabel = bcDropdown.closest('td').childNodes[0];
+        
+        switch (role) {
+            case '1008': case '1010':
+                bcDropdown.value = UserProfile.U_BC;
+                bcDropdown.disabled = true;
+                break;
+            case '1009':
+                if (bcLabel) bcLabel.textContent = ''; 
+                bcDropdown.style.display = 'none';
+                break;
+            default:
+                bcDropdown.disabled = false;
+                break;
         }
     }
 
+    /**
+     * 發送請求以獲取客訴列表資料
+     */
+    function fetchData() {
+        if (!UserProfile || !UserProfile.U_num) {
+            alert("使用者資訊尚未載入，無法查詢。");
+            return;
+        }
+        // 從下拉選單獲取民國年格式的值
+        const rocValue = document.getElementById('selYear_S').value;
+        // 將其轉換為西元年格式再發送到後端
+        //const adValue = convertRocYearMonthToAd(rocValue);
+
+        let Req = {
+            BC_code: document.getElementById('U_BC').value,
+            selYear_S: rocValue, 
+            UserNum: UserProfile.U_num,
+            UserRole: UserProfile.Role_num,
+            UserBC: UserProfile.U_BC
+        };
+        
+        const url = `${BASE_URL}/AE_SAL/Complaint_LQuery`;
+        fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify(Req)
+        })
+        .then(response => response.json())
+        .then(responseData => {
+            data = (responseData.resultCode == "000" && responseData.objResult) ? JSON.parse(responseData.objResult) : [];
+            currentPage = 1;
+            showPage(currentPage);
+            createPagination();
+        })
+        .catch(error => {
+            alert('資料查詢 API 請求失敗:', error);
+            data = [];
+            showPage(1);
+        });
+    }
+
+    // 4. UI 渲染與操作函數
+
+    /**
+     * 將資料渲染到表格中
+     */
+    function showPage(page) {
+        const countLabel = document.getElementById('CountRows');
+        if(countLabel) countLabel.innerHTML = `筆數:${data.length}`;
+        
+        const tbody = document.querySelector('#MainTable tbody');
+        tbody.innerHTML = '';
+        
+        const startIndex = (page - 1) * itemsPerPage;
+        const pageData = data.slice(startIndex, startIndex + itemsPerPage);
+
+        if (pageData.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="10" align="center" style="padding: 20px;">查無資料</td></tr>`;
+            return;
+        }
+
+        pageData.forEach((item, index) => {
+            const row = tbody.insertRow();
+            row.align = 'center';
+            row.className = 'c12-k';
+            row.style.backgroundColor = '#FFFFFF';
+            row.onmouseover = function() { this.style.backgroundColor='#FCFCC0'; };
+            row.onmouseout = function() { this.style.backgroundColor='#FFFFFF'; };
+            
+            const Id = item.Comp_Id;
+            const encryptedId = (typeof encryptParameter === 'function') ? encryptParameter(Id.toString()) : Id;
+            const encryptedWebUser = (typeof encryptParameter === 'function') ? encryptParameter(currentUserNum) : currentUserNum; 
+
+            row.innerHTML = `
+                <td>${startIndex + index + 1}</td>
+                <td>${item.CS_name || ""}</td>
+                <td>${item.Sales_name || ""}</td>
+                <td>${item.BC_name || ""}</td>
+                <td style="text-align: left;">${item.Complaint || ""}</td>
+                <td>${item.CompDate || ""}</td>
+                <td style="text-align: left;">${item.Remark || ""}</td>
+                <td>${item.add_name || ""}</td>
+                <td><img src="../images/edit.png" width="16" height="18" alt="修改" style="cursor: pointer;" onclick="editItem('${encryptedId}', '${encryptedWebUser}')"></td>
+                <td><img src="../images/delete.png" width="16" height="18" alt="刪除" style="cursor: pointer;" onclick="deleteItem('${Id}')"></td>
+            `;
+        });
+    }
+
+    /**
+     * 處理分頁邏輯
+     */
+    function createPagination() {
+        const paginationContainer = document.getElementById('pagination');
+        if (!paginationContainer) return;
+        
+        paginationContainer.innerHTML = '';
+        const totalPages = Math.ceil(data.length / itemsPerPage);
+
+        if (totalPages <= 1) return;
+
+        for (let i = 1; i <= totalPages; i++) {
+            const pageButton = document.createElement('button');
+            pageButton.textContent = i;
+            pageButton.onclick = () => {
+                currentPage = i;
+                showPage(currentPage);
+                // 更新按鈕狀態
+                Array.from(paginationContainer.children).forEach((btn, index) => {
+                    btn.disabled = (index + 1 === currentPage);
+                });
+            };
+            if (i === currentPage) {
+                pageButton.disabled = true;
+            }
+            paginationContainer.appendChild(pageButton);
+        }
+    }
+
+    // 5. 按鈕觸發的輔助函數
     function add() {
-        const id = 'add';
-        let encryptedID = encryptParameter(id);
-        let encryptedWebUser = encryptParameter(WebUser);
-        let encryptedOpt_add = encryptParameter('add');
+        const encryptedWebUser = (typeof encryptParameter === 'function') ? encryptParameter(currentUserNum) : currentUserNum;
+        const encryptedID = (typeof encryptParameter === 'function') ? encryptParameter('add') : 'add';
+        const encryptedOpt_add = (typeof encryptParameter === 'function') ? encryptParameter('add') : 'add';
         window.open(`Complaint_Detail.html?Id=${encryptedID}&User=${encryptedWebUser}&Opt=${encryptedOpt_add}`, '_blank', 'scrollbars=yes,resizable=yes,top=100,width=800,height=500');
     }
 
-    function loadYearDown() {
-        const url = `${BASE_URL}/AE_SAL/Complaint_GYMQuery`;
+    function editItem(encryptedId, encryptedUser) {
+        const encryptedOpt_Upd = (typeof encryptParameter === 'function') ? encryptParameter('Upd') : 'Upd';
+        window.open(`Complaint_Detail.html?Id=${encryptedId}&User=${encryptedUser}&Opt=${encryptedOpt_Upd}`, '_blank', 'scrollbars=yes,resizable=yes,top=100,width=800,height=500');
+    }
 
-        fetch(url)
-        .then(response => response.json())
-        .then(data => {
-            if (data.resultCode === "000") {
-                const options = JSON.parse(data.objResult);
-                const selectElement = document.getElementById('selYear_S');
-                selectElement.innerHTML = '<option value="" selected>ALL</option>';
-                options.forEach(option => {
-                    
-                        const optionElement = document.createElement('option');
-                        optionElement.value = option.v.replace('-','/'); 
-                        optionElement.textContent = option.v;
-                        selectElement.appendChild(optionElement);
-                   
-                    isFirstOption = false;
-                });
+    function deleteItem(itemId) {
+        if (!itemId || !confirm('您確定要刪除此筆資料嗎？')) return;
 
+        const url = `${BASE_URL}/AE_SAL/Complaint_Del?Id=${itemId}&UserNum=${UserProfile.U_num}&UserRole=${UserProfile.Role_num}`;
+        fetch(url, { method: 'DELETE' })
+            .then(response => response.json().then(resData => ({ ok: response.ok, data: resData })))
+            .then(({ ok, data: resData }) => {
+                if (!ok) throw resData;
+                alert(resData.resultMsg || '已刪除');
                 fetchData();
-            } else {
-                alert('錯誤: ' + (data.resultMsg || '未知錯誤'));
-            }
-
-            //console.log(`[loadYearDown] selYear_S = ${document.getElementById('selYear_S').value}`);
-        })
-        .catch(error => {
-            console.error('載入選項時出錯:', error);
-            alert('無法載入資料，請稍後再試。');
-        });
-
+            })
+            .catch(error => {
+                alert(error.resultMsg || '刪除失敗，請洽資訊人員。');
+                console.error('刪除失敗:', error);
+            });
     }
 
     function exportToExcel() {
-	var table = document.getElementById('MainTable');
-
-	// 複製表格，並移除後面兩行
-	var clonedTable = table.cloneNode(true);
-	var rowCount = clonedTable.rows.length;
-  
-	for (var i = rowCount - 1; i >= rowCount - 1; i--) {
-		clonedTable.deleteRow(i);
-	}
-	for (var i = 0; i < clonedTable.rows.length; i++) {
-		//alert(clonedTable.rows[i].cells[8].textContent)
-		var row = clonedTable.rows[i];
-		row.deleteCell(7);
-		row.deleteCell(7);
-		row.deleteCell(7);
-	}
-	
-	$('#MainTable').after(clonedTable);
-
-	// 將複製的表格的 ID 設為 'tbExcel'
-	$(clonedTable).attr('id', 'tbExcel');
-
-	// 隱藏新增的表格
-	$(clonedTable).hide();
-	var fileNa=getCurrentDateTime();
-		$("#tbExcel").table2excel({
-		// exclude CSS class
-		exclude: ".ExHead ",
-		name: "Worksheet Name",
-		filename: "客訴資料-"+fileNa, //do not include extension
-		fileext: ".xls", // file extension
-		TextIdx: [4,5,6]
-	}); 
-
-	// 刪除並移除新增的表格
-	$("#tbExcel").remove();
-}
+        if (!data || data.length === 0) {
+            alert("目前沒有資料可匯出。");
+            return;
+        }
+        $("#MainTable").table2excel({
+		    exclude: ".noExl",
+		    name: "Worksheet Name",
+		    filename: "客訴資料-" + getCurrentDateTime(),
+		    fileext: ".xls"
+	    }); 
+    }
 
     function getCurrentDateTime() {
-          var currentDate = new Date();
-
-          var year = currentDate.getFullYear();
-          var month = ('0' + (currentDate.getMonth() + 1)).slice(-2);
-          var day = ('0' + currentDate.getDate()).slice(-2);
-          var hours = ('0' + currentDate.getHours()).slice(-2);
-          var minutes = ('0' + currentDate.getMinutes()).slice(-2);
-
-          var formattedDateTime = year + month + day + hours + minutes;
-          return formattedDateTime;
-        }
+        const d = new Date();
+        const year = d.getFullYear();
+        const month = ('0' + (d.getMonth() + 1)).slice(-2);
+        const day = ('0' + d.getDate()).slice(-2);
+        const hours = ('0' + d.getHours()).slice(-2);
+        const minutes = ('0' + d.getMinutes()).slice(-2);
+        return `${year}${month}${day}${hours}${minutes}`;
+    }
 </script>
