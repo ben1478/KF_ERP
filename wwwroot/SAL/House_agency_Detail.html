@@ -8,14 +8,14 @@
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
     <link href="../_include/main.css" rel="stylesheet" type="text/css">
     <script src="../Base.js"></script>
-    <title>作業平台</title>
+    <title>作業平台 - 委對單明細</title>
 </head>
 <body>
-    
+
     <table width="720" border="1" cellspacing="0" cellpadding="3" bgcolor="#6666FF">
         <tbody>
             <tr class="14-k" bgcolor="#FFFFFF" height="35" align="center">
-                <td colspan="2"><label id="lb_fun"></label> </td>
+                <td colspan="2"><label id="lb_fun">委對單</label> </td>
             </tr>
             <tr class="12-k" bgcolor="#FFFFFF" height="25" align="center">
                 <td width="120">案件單位</td>
@@ -25,12 +25,10 @@
                 <td>對保單位</td>
                 <td align="left"><input type="text" class="text_box_1" name="agency_com" size="10" style="width:120px;" maxlength="30" value=""></td>
             </tr>
-
             <tr class="12-k" bgcolor="#FFFFFF" height="25" align="center">
                 <td>案件AO / 電話</td>
                 <td align="left"><input type="text" class="text_box_1" name="case_text" size="10" style="width:580px;" maxlength="100" value=""></td>
             </tr>
-
             <tr class="12-k" bgcolor="#FFFFFF" height="25" align="center">
                 <td>客戶姓名 / 電話</td>
                 <td align="left"><input type="text" class="text_box_1" name="CS_text" size="10" style="width:580px;" maxlength="100" value=""></td>
@@ -63,8 +61,6 @@
                 <td>車馬費</td>
                 <td align="left"><input type="text" class="text_box_1" name="process_charge" size="10" style="width:200px;" maxlength="50" value=""></td>
             </tr>
-
-
             <tr class="14-k" bgcolor="#FFFFFF" height="25" align="center">
                 <td>備註</td>
                 <td align="left" colspan="1">
@@ -76,7 +72,7 @@
                 <td align="left">
                     <input type="hidden" name="check_leader_num" id="U_leader_1_num" value="">
                     <input type="text" name="check_leader_name" id="U_leader_1_name" size="10" maxlength="10" class="box" value="" readonly="">
-                    <input type="button" value="..." name="_select_user_one" onclick="openUserOne('leader1')">
+                    <input type="button" value="..." id="btCheck_leader_num" name="_select_user_one_leader" onclick="openUserOne('leader1')">
                 </td>
             </tr>
             <tr id="tr_check_process_num" class="12-k" bgcolor="#FFFFFF" height="25" align="center">
@@ -84,7 +80,7 @@
                 <td align="left">
                     <input type="hidden" name="check_process_num" id="U_num" value="">
                     <input type="text" name="check_process_name" id="U_name" size="10" maxlength="10" class="box" value="" readonly="">
-                    <input type="button" value="..." id="btCheck_process_num" name="_select_user_one" onclick="openUserOne('appUser')">
+                    <input type="button" value="..." id="btCheck_process_num" name="_select_user_one_process" onclick="openUserOne('appUser')">
                     <label id="set_process_date"></label>
                 </td>
             </tr>
@@ -92,13 +88,12 @@
                 <td>對保處理進度</td>
                 <td align="left">
                     <div id="divCheck_process_type">
-                        <input type="radio" id="check_process_type" name="check_process_type" value="N" />尚未對保
-                        <input type="radio" id="check_process_type" name="check_process_type" value="Y" />對保完成
+                        <input type="radio" id="check_process_type_N" name="check_process_type" value="N" /> <label for="check_process_type_N">尚未對保</label>
+                        <input type="radio" id="check_process_type_Y" name="check_process_type" value="Y" /> <label for="check_process_type_Y">對保完成</label>
                     </div>
                     <label id="check_process_date"></label>
                 </td>
             </tr>
-
             <tr id="tr_check_process_note" class="12-k" bgcolor="#FFFFFF" height="25" align="center">
                 <td>對保備註</td>
                 <td align="left">
@@ -109,14 +104,14 @@
             <tr class="c12-k" bgcolor="#FFFFFF" id="tr_close_type" height="25" align="center">
                 <td>是否結案</td>
                 <td align="left">
-                    <input type="radio" name="close_type" value="N" />未結案
-                    <input type="radio" name="close_type" value="Y" />已結案 ／ 日期：
+                    <input type="radio" id="close_type_N" name="close_type" value="N" /> <label for="close_type_N">未結案</label>
+                    <input type="radio" id="close_type_Y" name="close_type" value="Y" /> <label for="close_type_Y">已結案</label>
+                    <label id="close_type_date_label"></label>
                 </td>
             </tr>
-
             <tr class="14-k" bgcolor="#FFFFFF" height="35" align="center">
                 <td align="center" colspan="2">
-                    <input type="button" id="btnSave" name="btnSave" value="確定修改" onclick="saveData();" />
+                    <input type="button" id="btnSave" name="btnSave" value="確定" onclick="saveData();" />
                 </td>
             </tr>
         </tbody>
@@ -129,29 +124,49 @@
     let WebUser = decryptParameter(Params.get('User'));
     let Opt = decryptParameter(Params.get('Opt'));
 
-    let ChkRole;
-    dateTW();
-    fetchData();
-    ShowMode();
+    let Before_check_process_type = '';
+    let Before_check_process_num = '';
+    let Before_close_type = '';
 
-    // 判斷是否有變更值
-    let Before_check_process_type=''; // 對保
-    let Before_check_process_num='';   //對保人員
+    window.onload = function() {
+        dateTW();
+        fetchData();
+        ShowMode();
+    };
+
+    // 將 ISO 日期字串轉換為本地化格式 YYYY/M/D 上午/下午 HH:MM:SS
+    function formatCustomDateTime(isoString) {
+        if (!isoString) return '';
+        const date = new Date(isoString);
+        if (isNaN(date)) return '';
+
+        const year = date.getFullYear();
+        const month = date.getMonth() + 1;
+        const day = date.getDate();
+
+        let hours = date.getHours();
+        const minutes = date.getMinutes();
+        const seconds = date.getSeconds();
+
+        const ampm = hours >= 12 ? '下午' : '上午';
+
+        hours = hours % 12;
+        hours = hours ? hours : 12;
+
+        const pad = (num) => num.toString().padStart(2, '0');
+
+        return `${year}/${month}/${day} ${ampm} ${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
+    }
+
     function fetchData() {
-        
-        if (Id !== 'add') {
+        if (Id && Id !== 'add') {
             const url = `${BASE_URL}/AE_SAL/House_agency_SQuery?Id=${Id}`;
-            fetch(url, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            })
+            fetch(url)
                 .then(response => response.json())
                 .then(response => {
                     if (response.resultCode === '000') {
                         const data = JSON.parse(response.objResult)[0];
-                        $("input[name='AG_id']").val(data.AG_id);
+
                         $("input[name='case_com']").val(data.case_com);
                         $("input[name='agency_com']").val(data.agency_com);
                         $("input[name='case_text']").val(data.case_text);
@@ -164,74 +179,52 @@
                         $("input[name='get_data']").val(data.get_data);
                         $("input[name='process_charge']").val(data.process_charge);
                         $('textarea#AG_note').val(data.AG_note);
-                        
+
                         $("input[name='check_leader_num']").val(data.check_leader_num);
                         $("input[name='check_leader_name']").val(data.check_leader_name);
                         $("input[name='check_process_num']").val(data.check_process_num);
                         $("input[name='check_process_name']").val(data.check_process_name);
-                        Before_check_process_num = data.check_process_num ? data.check_process_num : '';
                         $("input[name='check_process_note']").val(data.check_process_note);
-                        
-                        
-                        
-                        document.getElementById('lbCheck_process_note').innerHTML = data.check_process_note;
 
-                        Before_check_process_type = data.check_process_type;
-                        let lbcheck_process_type;
-                        if (data.check_process_type === 'Y') {
-                            lbcheck_process_type = '對保完成';
-                            $("input[name='check_process_type'][value='Y']").prop('checked', true);
-                        } else {
-                            lbcheck_process_type = '尚未對保';
-                            $("input[name='check_process_type'][value='N']").prop('checked', true);
-                        }
+                        Before_check_process_num = data.check_process_num || '';
+                        Before_check_process_type = data.check_process_type || 'N';
+                        Before_close_type = data.close_type || 'N';
 
-                        if (data.close_type === 'Y')
-                            $("input[name='close_type'][value='Y']").prop('checked', true);
-                        else
-                            $("input[name='close_type'][value='N']").prop('checked', true);
+                        let lbcheck_process_type = data.check_process_type === 'Y' ? '對保完成' : '尚未對保';
+                        $(`input[name='check_process_type'][value='${data.check_process_type || 'N'}']`).prop('checked', true);
+                        $('#lbCheck_process_note').text(data.check_process_note || '');
 
+                        // 使用格式化函式來顯示日期
                         if (data.check_process_date) {
-                            document.getElementById('check_process_date').innerHTML = `${lbcheck_process_type} / 日期：${data.check_process_date}`;
+                            $('#check_process_date').text(`${lbcheck_process_type} / 日期：${formatCustomDateTime(data.check_process_date)}`);
                         }
 
                         if (data.set_process_date) {
-                            document.getElementById('set_process_date').innerHTML = `分配日期:${data.set_process_date}`;
+                            $('#set_process_date').text(`分配日期: ${formatCustomDateTime(data.set_process_date)}`);
                         }
-                        
-                        $("input[name='close_date']").val(data.close_date);
 
-                        
-
+                        $(`input[name='close_type'][value='${data.close_type || 'N'}']`).prop('checked', true);
+                        if (data.close_type === 'Y' && data.close_type_date) {
+                            $('#close_type_date_label').text(`／ 日期：${formatCustomDateTime(data.close_type_date)}`);
+                        }
                     } else {
-                        alert(response.resultMsg);
+                        alert(response.resultMsg || '讀取資料失敗');
                     }
                 })
                 .catch(error => {
-                    alert('API 請求失敗:', error);
+                    console.error('API 請求失敗:', error);
+                    alert('API 請求失敗，請洽詢資訊人員。');
                 });
-
         }
     }
-    function saveData() {
 
-        // 判斷使用者有改變：對保處理進度
-        let cpdate;
-        if ($("input[name='check_process_type']:checked").val() === Before_check_process_type) {
-            cpdate = ''; // 沒有改變
-        } else {
-            cpdate = new Date(); // 有改變：給值
-        }
-        
-        let spdate;
-        if ($("input[name='check_process_num']:checked").val() === Before_check_process_num) {
-            spdate = ''; // 沒有改變
-        } else {
-            spdate = new Date(); // 有改變：給值
-        }
+    function saveData() {
+        const hasProcessTypeChanged = $("input[name='check_process_type']:checked").val() !== Before_check_process_type;
+        const hasProcessNumChanged = $("input[name='check_process_num']").val() !== Before_check_process_num;
+        const hasCloseTypeChanged = $("input[name='close_type']:checked").val() !== Before_close_type;
 
         let formData = {
-            AG_id: Id === 'add'? 0: Id,
+            AG_id: Id === 'add' ? 0 : Id,
             case_com: $("input[name='case_com']").val(),
             agency_com: $("input[name='agency_com']").val(),
             case_text: $("input[name='case_text']").val(),
@@ -246,184 +239,115 @@
             AG_note: $('textarea#AG_note').val(),
             check_leader_num: $("input[name='check_leader_num']").val(),
             check_process_num: $("input[name='check_process_num']").val(),
-            set_process_date: spdate,
-            check_process_type: $("input[name='check_process_type']:checked") ? $("input[name='check_process_type']:checked").val() : '',
+            set_process_date: hasProcessNumChanged ? new Date().toISOString() : null,
+            check_process_type: $("input[name='check_process_type']:checked").val() || null,
             check_process_note: $("input[name='check_process_note']").val(),
-            check_process_date: cpdate,
-            close_type: $("input[name='close_type']:checked") ? $("input[name='close_type']:checked").val() : '',
+            check_process_date: hasProcessTypeChanged ? new Date().toISOString() : null,
+            close_type: $("input[name='close_type']:checked").val() || null,
+            close_type_date: hasCloseTypeChanged && $("input[name='close_type']:checked").val() === 'Y' ? new Date().toISOString() : null,
             add_num: WebUser,
             edit_num: WebUser
         };
 
-        if (Id === 'add') {
+        const isAdd = (Id === 'add');
+        const url = isAdd ? `${BASE_URL}/AE_SAL/House_agency_Ins` : `${BASE_URL}/AE_SAL/House_agency_Upd`;
+        const method = 'POST';
 
-            const url = `${BASE_URL}/AE_SAL/House_agency_Ins`;
-
-            fetch(url, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                credentials: 'include',
-                body: JSON.stringify(formData)
-            })
-                .then(response => response.json())
-                .then(response => {
-                    if (response.resultCode === '000') {
-                        alert('新增成功');
-                        window.close();
-                        if (window.opener) {
-                            window.opener.location.reload();
-                        }
-                    } else {
-                        alert(data.resultMsg);
-                    }
-                })
-                .catch(error => {
-                    alert('請求失敗，請稍後再試。');
-                });
-        } else {
-            const url = `${BASE_URL}/AE_SAL/House_agency_Upd`;
-
-            fetch(url, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(formData)
-            })
-                .then(response => response.json())
-                .then(response => {
-                    if (response.resultCode === '000') {
-                        alert('修改成功');
-                        window.close();
-                        if (window.opener) {
-                            window.opener.location.reload();
-                        }
-                        
-                    } else {
-                        alert(data.resultMsg);
-                    }
-                })
-                .catch(error => {
-                    alert('請求失敗，請稍後再試。');
-                });
-        }
-
+        fetch(url, {
+            method: method,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(formData)
+        })
+        .then(response => response.json())
+        .then(response => {
+            if (response.resultCode === '000') {
+                alert(isAdd ? '新增成功' : '修改成功');
+                if (window.opener) {
+                    window.opener.location.reload();
+                }
+                window.close();
+            } else {
+                alert(response.resultMsg || '操作失敗');
+            }
+        })
+        .catch(error => {
+            console.error('請求失敗:', error);
+            alert('請求失敗，請稍後再試。');
+        });
     }
 
-    // 顯示模式:新增、修改、對保處理進度
     function ShowMode() {
-        const savebox = document.getElementById('btnSave');
+        const saveButton = $('#btnSave');
+        setAllFieldsReadOnly(false);
+        unhideAllRows();
+        $('#set_process_date').css('visibility', 'hidden');
+        $('#divCheck_process_type').css('display', 'block');
+        $('#check_process_date').css('display', 'none');
+
         switch (Opt) {
-            case 'add': //新增
-                document.getElementById('lb_fun').innerHTML = `委對單 - 新增`;
-                savebox.value = "確定送出";
-                
-                HiddenMode(); // 隱藏：'none'/ 顯示:'table-row';
-                const tr_check_process_num = document.getElementById('tr_check_process_num');
-                tr_check_process_num.style.display = 'none';
-
+            case 'add':
+                $('#lb_fun').text('委對單 - 新增');
+                saveButton.val("確定送出");
+                hideFields(['tr_check_process_num', 'tr_check_process_type', 'tr_check_process_note', 'tr_close_type']);
                 break;
-            case 'Upd': // 修改:
-                //不可修改對保處理進度(check_process_date)/對保說明(check_process_note)
-                //顯示:是否結案 < tr >
-                
-                savebox.value = "確定修改";
-                document.getElementById('lb_fun').innerHTML = `委對單 - 對保人員處理`;
-                document.getElementById('tr_close_type').style.display = 'table-row'; // 顯示:是否結案 < tr >
-                document.getElementById('check_process_note').style.display = 'none'; //visibility = 'hidden'; // 會保留原字元位置
-                
-                const divCheck_process_type = document.getElementById('divCheck_process_type');
-                divCheck_process_type.style.display = 'none';
-                
-                const cts = document.getElementsByName('close_type');
-                cts.forEach(ct => ct.style.accentColor = "blue");
+
+            case 'Upd':
+                $('#lb_fun').text('委對單 - 修改');
+                saveButton.val("確定修改");
+                $('#divCheck_process_type').css('display', 'none');
+                $('#check_process_date').css('display', 'block');
+                setFieldsReadOnly(['check_process_name', 'check_process_note']);
+                $('#check_process_note').css('display', 'none');
+                $('#set_process_date').css('visibility', 'visible');
                 break;
-            case 'check_process_name': //對保人員:
-                document.getElementById('lb_fun').innerHTML = `委對單 - 分配對保人員`;
-                HiddenMode(); // 隱藏：'none'/ 顯示:'table-row';
 
-                 //隱藏:對保人員.分配日期 set_process_date
-                 document.getElementById('set_process_date').style.visibility = "hidden";
-                 setReadOnlyMode('Y');
-                 setOneReadOnlyMode('check_process_name', 'N'); // Name ,N：顯示/Y:隱藏
-                 setOneReadOnlyMode('btnSave', 'N'); // Name ,N：顯示/Y:隱藏
-                 document.getElementById('btCheck_process_num').removeAttribute('readonly');
-                 document.getElementById('btCheck_process_num').removeAttribute('disabled');
+            case 'check_process_name':
+                $('#lb_fun').text('委對單 - 分配對保人員');
+                saveButton.val("確定分配");
+                setAllFieldsReadOnly(true);
+                setFieldsReadOnly(['check_process_num', 'check_process_name', 'btnSave'], false);
+                $('#btCheck_leader_num').prop('disabled', true);
+                $('#btCheck_process_num').prop('disabled', false);
+                hideFields(['tr_check_process_type', 'tr_check_process_note', 'tr_close_type']);
                 break;
-            case 'check_process_type': //對保處理進度:
-                //可修改：對保處理進度/對保備註
-                //隱藏:是否結案 < tr >
-                //其他都不行
-                document.getElementById('lb_fun').innerHTML = `委對單 - 對保人員處理`;
-                setReadOnlyMode('Y');
 
-                setOneReadOnlyMode('check_process_type', 'N'); // Name ,N：顯示/Y:隱藏
-                const cpts = document.getElementsByName('check_process_type');
-                cpts.forEach(cpt => cpt.style.accentColor = "blue");
-
-                setOneReadOnlyMode('check_process_note', 'N'); // Name ,N：顯示/Y:隱藏
-                document.getElementById('lbCheck_process_note').style.visibility = "hidden";
-                document.getElementById('set_process_date').style.visibility = "hidden";
-                
-                check_process_date.style.display = "none";
-                document.getElementById('tr_close_type').style.display = 'none';
-                setOneReadOnlyMode('btnSave', 'N'); // Name ,N：顯示/Y:隱藏
+            case 'check_process_type':
+                $('#lb_fun').text('委對單 - 對保人員處理');
+                saveButton.val("更新進度");
+                setAllFieldsReadOnly(true);
+                setFieldsReadOnly(['check_process_type', 'check_process_note', 'btnSave'], false);
+                $('#divCheck_process_type').css('display', 'block');
+                $('#check_process_date').css('display', 'none');
+                $('#lbCheck_process_note').css('visibility', 'hidden');
+                hideFields(['tr_close_type']);
                 break;
         }
     }
 
-    function HiddenMode() {
-        let status = 'none'; // 隱藏：'none'/ 顯示:'table-row';
-        
-
-        const tr_check_process_note = document.getElementById('tr_check_process_note');
-        tr_check_process_note.style.display = status; 
-
-        const tr_check_process_type = document.getElementById('tr_check_process_type');
-        tr_check_process_type.style.display = status;
-
-        const tr_close_type = document.getElementById('tr_close_type');
-        tr_close_type.style.display = status; 
-
+    function hideFields(rowIds) {
+        rowIds.forEach(id => $(`#${id}`).css('display', 'none'));
     }
 
-    function setReadOnlyMode(Read) {
-        if (Read === 'Y') {
-
-            const inputs = document.querySelectorAll('input');
-            inputs.forEach(input => {
-                input.setAttribute('readonly', true);
-                input.setAttribute('disabled', true);
-            });
-
-            const selects = document.querySelectorAll('select');
-            selects.forEach(select => {
-                select.setAttribute('disabled', true);
-            });
-
-            //const buttons = document.querySelectorAll('button');
-            //buttons.forEach(button => {
-            //    button.setAttribute('disabled', true);
-            //});
-            //$('textarea#AG_note').prop("readOnly", true);
-            const txAG_note = document.getElementById('AG_note');
-            txAG_note.readOnly = true;
-            txAG_note.style.backgroundColor='#EFEFEF4D';
-        }
+    function unhideAllRows() {
+        $('tr[id]').css('display', '');
     }
 
-    function setOneReadOnlyMode(name, Read) {
-        const inputs = document.getElementsByName(name);
-        if (Read === 'N') {
-            inputs.forEach(input => {
-                input.removeAttribute('readonly');
-                input.removeAttribute('disabled');
-                
-            });
-        }
+    function setFieldsReadOnly(names, readOnly = true) {
+        names.forEach(name => {
+            $(`[name="${name}"]`).prop('readonly', readOnly).prop('disabled', readOnly);
+        });
     }
 
-
+    function setAllFieldsReadOnly(readOnly = true) {
+        $('input, textarea, select, button').each(function() {
+            if (this.id !== 'btnSave') {
+                $(this).prop('readonly', readOnly).prop('disabled', readOnly);
+                if (readOnly && this.tagName.toLowerCase() === 'textarea') {
+                    $(this).css('background-color', '#EFEFEF4D');
+                } else if (this.tagName.toLowerCase() === 'textarea') {
+                    $(this).css('background-color', '');
+                }
+            }
+        });
+    }
 </script>
