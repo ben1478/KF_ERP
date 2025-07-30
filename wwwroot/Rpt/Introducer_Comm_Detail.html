@@ -1,59 +1,106 @@
 ﻿<!DOCTYPE html>
-<html>
+<html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>介紹人佣金資料</title>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+
     <link href="../_include/main.css" rel="stylesheet" type="text/css">
     <script src="../Base.js"></script>
-    <title>作業平台</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+
+        .box {
+            padding: 4px;
+            border: 1px solid #999;
+        }
+
+        .c14k {
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .c12-k {
+            font-size: 12px;
+        }
+
+        /* ====================【核心修改：修正按鈕樣式】==================== */
+        .btn {
+            background-color: #f0f0f0;
+            border: 1px solid #767676;
+            border-radius: 3px;
+            padding: 5px 15px;
+            cursor: pointer;
+            font-size: 12px;
+            font-family: inherit;
+            transition: border-color 0.2s, box-shadow 0.2s; /* 加入過渡效果 */
+            color: #000000;
+        }
+
+            /* 滑鼠懸停時的輕微變色效果 */
+            .btn:hover {
+                background-color: #e5e5e5;
+            }
+
+            /* 移除預設的藍色外框，並在聚焦時改為黑色外框 */
+            .btn:focus, .btn:active {
+                outline: none; /* 必須移除預設 outline */
+                border-color: #000000; /* 將邊框顏色變為黑色 */
+                box-shadow: 0 0 0 1px #000000; /* 額外加上一層陰影模擬更清晰的外框 */
+            }
+        /* ================================================================ */
+    </style>
 </head>
 <body>
     <table width="700" border="0" cellspacing="1" cellpadding="2" bgcolor="#999999">
         <tbody>
             <tr class="c12-k" bgcolor="#CCCCFF" height="30">
-                <td colspan="2" align="center"><span class="c14k" id="dtFun"></span></td>
+                <td colspan="2" align="center"><span class="c14k" id="dtFun">介紹人佣金資料</span></td>
             </tr>
             <tr class="c12-k" bgcolor="#FFFFFF">
                 <td width="150" align="right" bgcolor="#CCCCFF">介紹人</td>
-                <td width="440" align="left">
-                    <input type="text" id="Introducer_name" name="Introducer_name" size="40" maxlength="20" class="box" value="">
+                <td width="540" align="left">
+                    <input type="text" id="Introducer_name" name="Introducer_name" size="40" maxlength="20" class="box" value="" required data-required-message="介紹人">
                 </td>
             </tr>
             <tr class="c12-k" bgcolor="#FFFFFF">
                 <td align="right" bgcolor="#CCCCFF">介紹人生日</td>
                 <td align="left">
-                    <input type="text" name="Introducer_HBD" size="10" maxlength="10" class="datepickerTW" value="" readonly="" style="width:150px;">
+                    <input type="text" id="Introducer_HBD" name="Introducer_HBD" size="12" maxlength="10" class="box datepickerTW" readonly>
                 </td>
             </tr>
             <tr class="c12-k" bgcolor="#FFFFFF">
                 <td align="right" bgcolor="#CCCCFF">身分證字號/統一編號</td>
                 <td align="left">
-                    <input type="text" id="Introducer_PID" name="Introducer_PID" size="20" maxlength="10" class="box" value="">
-                    <input type="checkbox" name="isCompany"> 公司行號/自營商
+                    <input type="text" id="Introducer_PID" name="Introducer_PID" size="20" maxlength="10" class="box" value="" required data-required-message="身分證字號/統一編號">
+                    <input type="checkbox" id="isCompany" name="isCompany"> <label for="isCompany">公司行號/自營商</label>
                 </td>
             </tr>
             <tr class="c12-k" bgcolor="#FFFFFF">
                 <td align="right" bgcolor="#CCCCFF">收款帳號</td>
-                <td align="left"><input type="text" id="Bank_account" name="Bank_account" size="20" maxlength="50" class="box" value=""></td>
+                <td align="left"><input type="text" id="Bank_account" name="Bank_account" size="30" maxlength="50" class="box" value="" required data-required-message="收款帳號"></td>
             </tr>
             <tr class="c12-k" bgcolor="#FFFFFF">
                 <td align="right" bgcolor="#CCCCFF">收款總行</td>
-                <td align="left"><input type="text" id="Bank_head" name="Bank_head" size="20" maxlength="20" class="box" value=""></td>
+                <td align="left"><input type="text" id="Bank_head" name="Bank_head" size="30" maxlength="20" class="box" value="" required data-required-message="收款總行"></td>
             </tr>
             <tr class="c12-k" bgcolor="#FFFFFF">
                 <td align="right" bgcolor="#CCCCFF">收款分行</td>
-                <td align="left"><input type="text" id="Bank_branches" name="Bank_branches" size="20" maxlength="20" class="box" value=""></td>
+                <td align="left"><input type="text" id="Bank_branches" name="Bank_branches" size="30" maxlength="20" class="box" value="" required data-required-message="收款分行"></td>
             </tr>
             <tr class="c12-k" bgcolor="#FFFFFF">
                 <td align="right" bgcolor="#CCCCFF">收款銀行</td>
-                <td align="left"><input type="text" id="Bank_name" name="Bank_name" size="20" maxlength="20" class="box" value=""></td>
+                <td align="left"><input type="text" id="Bank_name" name="Bank_name" size="30" maxlength="20" class="box" value="" required data-required-message="收款銀行"></td>
             </tr>
             <tr class="c12-k" bgcolor="#FFFFFF">
                 <td align="right" bgcolor="#CCCCFF">介紹人地址</td>
-                <td align="left"><input type="text" id="Introducer_addr" name="Introducer_addr" size="40" class="box" value=""></td>
+                <td align="left"><input type="text" id="Introducer_addr" name="Introducer_addr" size="60" class="box" value="" required data-required-message="介紹人地址"></td>
             </tr>
             <tr class="c12-k" bgcolor="#FFFFFF">
                 <td align="right" bgcolor="#CCCCFF">備註</td>
@@ -61,204 +108,145 @@
             </tr>
             <tr class="c12-k" bgcolor="#CCCCFF" height="30">
                 <td colspan="2" align="center">
-                    <input type="submit" name="submit" class="btn" value="儲存" onclick="saveData();">
+                    <input type="button" name="submit" class="btn" value="儲存" onclick="saveData();">
                 </td>
             </tr>
         </tbody>
     </table>
-</body>
-</html>
-<script>
-    let Params = new URLSearchParams(window.location.search);
-    let Id = decryptParameter(Params.get('Id'));
-    let WebUser = decryptParameter(Params.get('User'));
 
-    let ChkRole;
-    dateTW();
+    <script>
+        // 從 URL 取得參數並解密
+        const Params = new URLSearchParams(window.location.search);
+        const Id = decryptParameter(Params.get('Id'));
+        const WebUser = decryptParameter(Params.get('User'));
 
-    
-    fetchData();
-    
-    
-   
-    function fetchData() {
-        let dtFun = '';
-        if (Id !== 'add') {
-            dtFun = '修改';
-            const url = `${BASE_URL}/AE_RPT/Introducer_Comm_DetQuery?U_ID=${Id}`;
-            fetch(url, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            })
-                .then(response => response.json())
+        // 呼叫 Base.js 中的 dateTW() 函數來初始化民國年日曆
+        dateTW();
+
+        // 頁面載入時執行
+        document.addEventListener("DOMContentLoaded", function() {
+            fetchData();
+        });
+
+        /**
+         * 根據 Id 判斷是新增還是修改，並獲取資料
+         */
+        function fetchData() {
+            let dtFun = '';
+            if (Id !== 'add') {
+                dtFun = '修改';
+                const url = `${BASE_URL}/AE_RPT/Introducer_Comm_DetQuery?U_ID=${Id}`;
+                fetch(url, {
+                    method: 'GET',
+                    credentials: 'include'
+                })
+                .then(response => {
+                    if (!response.ok) throw new Error('無法獲取資料');
+                    return response.json();
+                })
                 .then(response => {
                     if (response.resultCode === '000') {
                         const data = JSON.parse(response.objResult)[0];
-                        $("input[name='Introducer_name']").val(data.Introducer_name);
-                        $("input[name='Introducer_HBD']").val(data.Introducer_HBD);
-                        $("input[name='Introducer_PID']").val(data.Introducer_PID);
-                        $("input[name='Bank_account']").val(data.Bank_account);
-                        $("input[name='Bank_head']").val(data.Bank_head);
-                        $("input[name='Bank_branches']").val(data.Bank_branches);
-                        $("input[name='Bank_name']").val(data.Bank_name);
-                        $("input[name='Introducer_addr']").val(data.Introducer_addr);
-                        $("input[name='Remark']").val(data.Remark);
-                        document.querySelector('input[name="isCompany"]').checked = data.isCompany==="Y";
+                        $("#Introducer_name").val(data.Introducer_name);
+                        $("#Introducer_HBD").val(data.Introducer_HBD);
+                        $("#Introducer_PID").val(data.Introducer_PID);
+                        $("#Bank_account").val(data.Bank_account);
+                        $("#Bank_head").val(data.Bank_head);
+                        $("#Bank_branches").val(data.Bank_branches);
+                        $("#Bank_name").val(data.Bank_name);
+                        $("#Introducer_addr").val(data.Introducer_addr);
+                        $("#Remark").val(data.Remark);
+                        document.getElementById('isCompany').checked = data.isCompany === "Y";
                     } else {
                         alert(response.resultMsg);
                     }
                 })
                 .catch(error => {
-                    console.log(`API 請求失敗:${error}`);
-                    alert('API 請求失敗:', error);
+                    alert(`API 請求失敗: ${error.message}`);
                 });
+            }
+            else {
+                dtFun = '新增';
+            }
+            document.getElementById('dtFun').innerHTML = `介紹人佣金資料${dtFun}`;
         }
-        else
-        {
-            dtFun = '新增';
-        }
-        document.getElementById('dtFun').innerHTML = `介紹人佣金資料${dtFun}`;
-    }
 
-    
-
-    function saveData() {
-
-        var inputs = document.querySelectorAll('input[required]');
-        
-        let errMsg = '';
-        for (var i = 0; i < inputs.length; i++) {
-            var input = inputs[i];
-            if (input.validity.valid===false) {
-                if(input.dataset.requiredMessage != undefined)
-                {
-                    if(errMsg == '')
-                    {
-                        input.focus();
-                        errMsg=input.dataset.requiredMessage;
-                    }
-                    else
-                        errMsg = errMsg +',' + input.dataset.requiredMessage;
+        /**
+         * 儲存資料（新增或修改）
+         */
+        function saveData() {
+            var inputs = document.querySelectorAll('input[required]');
+            let errMsg = '';
+            for (var i = 0; i < inputs.length; i++) {
+                var input = inputs[i];
+                if (!input.value.trim()) {
+                    const message = input.dataset.requiredMessage || input.name;
+                    if (!errMsg) input.focus();
+                    errMsg += (errMsg ? ', ' : '') + message;
                 }
             }
-        }
-        
-        if (errMsg !== '') {
-            alert(`${errMsg}必填請輸入`);
-            return;
-        }
-        
-        let formData = {
-            U_ID:Id,
-            Introducer_name :$("input[name='Introducer_name']").val(),
-            Introducer_HBD :$("input[name='Introducer_HBD']").val(),
-            Introducer_PID :$("input[name='Introducer_PID']").val(),
-            Bank_account :$("input[name='Bank_account']").val(),
-            Bank_head :$("input[name='Bank_head']").val(),
-            Bank_branches :$("input[name='Bank_branches']").val(),
-            Bank_name :$("input[name='Bank_name']").val(),
-            Introducer_addr :$("input[name='Introducer_addr']").val(),
-            isCompany: document.querySelector('input[name="isCompany"]:checked') ? "Y" : "N",
-            Remark: $("input[name='Remark']").val(),
-            add_num: WebUser,
-            edit_num: WebUser 
-        };
 
-        if (Id === 'add') {
+            if (errMsg) {
+                alert(`[${errMsg}] 為必填欄位，請輸入！`);
+                return;
+            }
 
-            const url = `${BASE_URL}/AE_RPT/Introducer_Comm_DetIns`;
+            let formData = {
+                U_ID: Id,
+                Introducer_name : $("#Introducer_name").val(),
+                Introducer_HBD : $("#Introducer_HBD").val(),
+                Introducer_PID : $("#Introducer_PID").val(),
+                Bank_account : $("#Bank_account").val(),
+                Bank_head : $("#Bank_head").val(),
+                Bank_branches : $("#Bank_branches").val(),
+                Bank_name : $("#Bank_name").val(),
+                Introducer_addr : $("#Introducer_addr").val(),
+                isCompany: document.getElementById('isCompany').checked ? "Y" : "N",
+                Remark: $("#Remark").val(),
+                add_num: WebUser,
+                edit_num: WebUser
+            };
 
-            fetch(url, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                credentials: 'include',
-                body: JSON.stringify(formData)
-            })
-                .then(response => response.json())
-                .then(response => {
-                    if (response.resultCode === '000') {
-                        alert('新增成功');
-                        window.close();
-                        window.opener.location.reload();
-                    } else {
-                        alert(data.resultMsg);
-                    }
-                })
-                .catch(error => {
-                    alert('請求失敗，請稍後再試。');
-                });
-        } else {
-            const url = `${BASE_URL}/AE_RPT/Introducer_Comm_DetUpd`;
+            const url = (Id === 'add')
+                ? `${BASE_URL}/AE_RPT/Introducer_Comm_DetIns`
+                : `${BASE_URL}/AE_RPT/Introducer_Comm_DetUpd`;
 
             fetch(url, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
+                headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',
                 body: JSON.stringify(formData)
             })
-                .then(response => response.json())
-                .then(response => {
-                    if (response.resultCode === '000') {
-                        alert('修改成功');
-                        window.close();
-                        if (window.opener) {
-                            window.opener.location.reload();
-                        }
-                        
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(errData => {
+                        throw new Error(errData.resultMsg || `伺服器錯誤碼: ${response.status}`);
+                    });
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.resultCode === '000') {
+                    alert(Id === 'add' ? '新增成功' : '修改成功');
+
+                    if (window.opener && typeof window.opener.refreshData === 'function') {
+                        window.opener.refreshData();
                     } else {
-                        alert(data.resultMsg);
+                        console.warn("找不到 opener 或 refreshData 函數，將使用 location.reload() 作為備用方案。");
+                        if(window.opener) window.opener.location.reload();
                     }
-                })
-                .catch(error => {
-                    alert('請求失敗，請稍後再試。');
-                });
+
+                    window.close();
+                } else {
+                    alert(data.resultMsg || '發生未知錯誤');
+                }
+            })
+            .catch(error => {
+                console.error('儲存失敗:', error);
+                alert(error.message);
+            });
         }
+    </script>
 
-    }
-
-    function convertDate(dateString,YearType) 
-    {  
-
-        var parts = dateString.split('-');
-        var year = parseInt(parts[0])
-	    if (YearType=="ROC")
-	    {
-		    year = parseInt(year) - 1911; 
-	    }
-	    else
-	    {
-		    year = parseInt(year) + 1911; 
-	    }
-	
-        var month = parseInt(parts[1]);
-        var day = parseInt(parts[2]);
-	    return year + "-" + String(month).padStart(2,"0") + "-" + String(day).padStart(2,"0");
-    }
-
-    function DateAdd(dateString) 
-    {
-        var date = new Date(dateString);
-        date.setFullYear(date.getFullYear() + 3);
-        date.setDate(date.getDate() - 1);
-        var resultDateString = date.getFullYear() + "-" + (date.getMonth() + 1) + "-" + date.getDate();
-        return resultDateString;
-    }
-
-    $('.datepickerTW').datepickerTW({
-        changeYear: true,
-        changeMonth: true,
-        dateFormat: 'yy-mm-dd',
-        onSelect: function (dateText, inst) {
-            if (inst.input.attr('id') === 'certificate_date_S') {
-        	    var resultROC = convertDate(DateAdd(dateText),"ROC")
-	            $("#certificate_date_E").val(resultROC);
-            } 
-        }
-    });
-</script>
+</body>
+</html>

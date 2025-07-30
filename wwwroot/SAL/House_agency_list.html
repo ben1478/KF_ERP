@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
     <link href="../_include/main.css" rel="stylesheet" type="text/css">
     <script src="../Base.js"></script>
-    <title>作業平台</title>
+    <title>作業平台 - 委對單列表</title>
 </head>
 <body>
     <table border="0" width="100%">
@@ -18,7 +18,9 @@
                 <td width="230" height="24" background="../../image/title-bk.gif">
                     <span class="c14k"><strong>委對單</strong></span>
                 </td>
-                <td width="770"></td>
+                <td class="c12-k" align="right" width="770">
+                    <input type="button" name="add" value="【新增委對單】" onclick="add();" class="btn-link">
+                </td>
             </tr>
             <tr class="c12-k">
                 <td></td>
@@ -33,15 +35,15 @@
                                 <input type="text" name="Date_S" size="10" maxlength="10" class="datepickerTW" value="">
                                 ~
                                 <input type="text" name="Date_E" size="10" maxlength="10" class="datepickerTW" value="">
-                                <input type="button" value="查詢" onclick="fetchData();" />  &nbsp;
-                                <input type="button" name="add" value="新增委對單" onclick="add();">
+                                <input type="button" value="查詢" onclick="fetchData();" />
                             </td>
                         </tr>
                     </table>
-</tr>
+                </td>
+            </tr>
         </tbody>
     </table>
-    
+
     <table width="1050" border="0" cellspacing="0" cellpadding="0">
         <tbody>
             <tr>
@@ -65,18 +67,10 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr align="center" class="c12-k" bgcolor="#FFFFFF" onmouseover="this.style.background='#FFFF66';" onmouseout="this.style.background='#FFFFFF'; " style="background: rgb(255, 255, 255);">
-                            </tr>
-                            <tr align="center" class="c12-k" bgcolor="#FFFFFF" onmouseover="this.style.background='#FFFF66';" onmouseout="this.style.background='#FFFFFF'; " style="background: rgb(255, 255, 255);">
-                            </tr>
-                            <tr align="center" height="30" bgcolor="#CCCCFF">
-                                <td class="c12-k" colspan="16">
-                                </td>
-                            </tr>
                         </tbody>
                         <tfoot>
                             <tr align="center" height="15" bgcolor="#CCCCFF">
-                                <td class="c12-k" colspan="15">
+                                <td class="c12-k" colspan="12">
                                     <font color="#000080">
                                         <label id="CountRows"></label>
                                     </font>
@@ -92,25 +86,24 @@
 </body>
 </html>
 <script>
+    // 取得 URL 參數
     const Params = getQueryParams();
     let WebUser = Params.WebUser;
     let WebBC = Params.WebBC;
-    
-    const itemsPerPage = 20;  
+
+    // 分頁設定
+    const itemsPerPage = 20;
     let currentPage = 1;
-    let data = []; 
-    let CanEditor = 'N';
+    let data = [];
 
+    // 頁面載入後執行的初始化
     window.onload = function () {
-        
-        dateTW();
+        dateTW(); // 初始化日期選擇器
+        // 設定預設查詢日期區間為最近兩個月
         const currentDate = new Date();
-
         const dateStart = new Date(currentDate);
         dateStart.setMonth(currentDate.getMonth() - 2);
-
         const dateEnd = new Date(currentDate);
-        dateEnd.setDate(currentDate.getDate());
 
         const getRepublicDate = (date) =>
             `${date.getFullYear() - 1911}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
@@ -118,51 +111,48 @@
         document.querySelector('input[name="Date_S"]').value = getRepublicDate(dateStart);
         document.querySelector('input[name="Date_E"]').value = getRepublicDate(dateEnd);
 
-        // 權限判定  SpecialCkeck
-        Permissions();
-        
+        fetchData(); // 載入預設資料
     }
 
-
+    // 從後端 API 取得資料
     function fetchData() {
-        
         let Req = {
             AG_id: $("input[name='AG_ID']").val() || 0,
             Date_S: document.querySelector('input[name="Date_S"]').value,
             Date_E: document.querySelector('input[name="Date_E"]').value,
-            U_num:WebUser,
-            U_BC:WebBC
+            U_num: WebUser,
+            U_BC: WebBC
         };
 
         const url = `${BASE_URL}/AE_SAL/House_agency_LQuery`;
 
         fetch(url, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(Req)
         })
-            .then(response => response.json())
-            .then(responseData => {
-                if (responseData.resultCode == "000") {
-                    data = JSON.parse(responseData.objResult);
-                    showPage(currentPage);
-                    createPagination();
-                } else {
-                    alert(response.resultMsg);
-                }
-            })
-            .catch(error => {
-                alert('API 請求失敗:', error);
-            });
+        .then(response => response.json())
+        .then(responseData => {
+            if (responseData.resultCode == "000") {
+                data = JSON.parse(responseData.objResult);
+                showPage(1); // 從第一頁開始顯示
+                createPagination(data.length, itemsPerPage, showPage);
+            } else {
+                alert(responseData.resultMsg || '查詢失敗');
+                document.querySelector('#MainTable tbody').innerHTML = ''; // 清空表格
+                $('#CountRows').text('筆數: 0');
+            }
+        })
+        .catch(error => {
+            console.error('API 請求失敗:', error);
+            alert('API 請求失敗，請洽詢資訊人員。');
+        });
     }
 
+    // 將資料渲染到頁面上
     function showPage(page) {
-        
-        
-        document.getElementById('CountRows').innerHTML = `筆數:${data.length}`;
+        currentPage = page;
+        $('#CountRows').text(`筆數: ${data.length}`);
         const tbody = document.querySelector('#MainTable tbody');
         tbody.innerHTML = '';
 
@@ -170,177 +160,152 @@
         const endIndex = Math.min(startIndex + itemsPerPage, data.length);
         const pageData = data.slice(startIndex, endIndex);
 
-        for (let item of pageData) {
+        for (let i = 0; i < pageData.length; i++) {
+            const item = pageData[i];
             const row = document.createElement('tr');
-            row.setAttribute('align', 'center');
-            row.setAttribute('class', 'c12-k');
-            row.setAttribute('bgcolor', '#FFFFFF');
-            row.setAttribute('onmouseover', "this.style.background='#FCFCC0';");
-            row.setAttribute('onmouseout', "this.style.background='#FFFFFF';");
+            row.className = 'c12-k';
+            row.style.backgroundColor = '#FFFFFF';
+            row.align = 'center';
+            row.onmouseover = function() { this.style.background='#FFFF66'; };
+            row.onmouseout = function() { this.style.background='#FFFFFF'; };
 
-            const columnOrder = ['AG_id', 'add_date', 'add_name', 'case_com', 'agency_com', 'check_leader_name', 'check_process_name', 'check_process_type', 'isEdit', 'close_type', 'isDel'];
-
-            const serialCell = document.createElement('td');
-            serialCell.textContent = startIndex + pageData.indexOf(item) + 1;
-            row.appendChild(serialCell);
-
-            let Id;
+            let Id = item.AG_id;
             let encryptedWebUser = encryptParameter(WebUser);
-            let encryptedId = '';
-            for (let key of columnOrder) {
-                const cell = document.createElement('td');
-                switch (key) {
-                    case 'AG_id':
-                        Id = item[key];
-                        encryptedId = encryptParameter(Id);
-                        cell.textContent = Id;
-                        row.appendChild(cell);
-                        break;
-                    case 'check_process_name':
-                        if(item['check_leader_num'] === WebUser)
-                        {
-                            let encryptedOpt_check_process_name = encryptParameter('check_process_name');
-                            const buttonCPN = document.createElement('input');
-                            buttonCPN.type = 'button';
-                            buttonCPN.value = item[key] === null ? '未分配' : item[key];
-                            buttonCPN.onclick = function () {
-                                window.open(`House_agency_Detail.html?Id=${encryptedId}&User=${encryptedWebUser}&Opt=${encryptedOpt_check_process_name}`, '_blank', 'scrollbars=yes,resizable=yes,top=100,width=800,height=500');
-                            };
-                            cell.style.textAlign = 'center';
-                            cell.style.verticalAlign = 'middle';
-                            cell.appendChild(buttonCPN);
-                        }
-                        else
-                        {
-                            cell.textContent = item[key] === null ? '未分配' : item[key];
-                        }
-                        row.appendChild(cell);
-                        break;
-                    case 'check_process_type':
-                        let encryptedOpt_check_process_type = encryptParameter('check_process_type');
-                        const button = document.createElement('input');
-                        button.type = 'button';
-                        button.value = item[key] === 'N' ? '尚未對保' : '對保完成';
-                        button.onclick = function () {
-                            window.open(`House_agency_Detail.html?Id=${encryptedId}&User=${encryptedWebUser}&Opt=${encryptedOpt_check_process_type}`, '_blank', 'scrollbars=yes,resizable=yes,top=100,width=800,height=500');
-                        };
-                        cell.style.textAlign = 'center';
-                        cell.style.verticalAlign = 'middle';
-                        cell.appendChild(button);
-                        row.appendChild(cell);
-                        break;
-                    case 'isEdit':
-                        if(item[key] === 'Y')
-                        {
-                            let encryptedOpt_Upd = encryptParameter('Upd');
-                            row.appendChild(createButtonCell(
-                                "../images/edit.png",
-                                "修改",
-                                function () {
-                                    window.open(`House_agency_Detail.html?Id=${encryptedId}&User=${encryptedWebUser}&Opt=${encryptedOpt_Upd}`, '_blank', 'scrollbars=yes,resizable=yes,top=100,width=800,height=500');
-                                }
-                            ));
-                        } else
-                        {
-                            cell.textContent = '-' ;
-                            row.appendChild(cell);
-                        }
-                        break;
-                    case 'close_type':
-                        if (item[key] === 'N') {
-                            cell.textContent = '未結案';
-                        } else {
-                            cell.textContent = '結案';
-                        }
-                        row.appendChild(cell);
-                        break;
-                    case 'isDel':
-                        if(item[key] === 'Y')
-                        {
-                            row.appendChild(createButtonCell(
-                                "../images/edit.png",
-                                "刪除",
-                                function () {
-                                    if (Id !== '') {
-                                        const url = `${BASE_URL}/AE_SAL/House_agency_Del?Id=${Id}`;
-                                        fetch(url, {
-                                            method: 'DELETE',
-                                            headers: {
-                                                'Content-Type': 'application/json'
-                                            }
-                                        })
-                                            .then(response => response.json())
-                                            .then(responseData => {
-                                                console.log(responseData.resultCode);
-                                                if (responseData.resultCode === '000') {
-                                                    alert('已刪除');
-                                                    location.reload();
-                                                } else {
-                                                    alert('刪除失敗，請洽資訊人員。');
-                                                }
-                                            })
-                                            .catch(error => {
-                                                alert('刪除失敗，請洽資訊人員。');
-                                            })
-                                    }
-                                }
-                            ));
-                        } else
-                        {
-                            cell.textContent = '-' ;
-                            row.appendChild(cell);
-                        }
-                        break;
-                    default:
-                        cell.textContent = item[key] || '';
-                        row.appendChild(cell);
-                }
+            let encryptedId = encryptParameter(Id.toString());
+
+            // 序
+            row.appendChild(createCell(startIndex + i + 1));
+            // 委對單號
+            row.appendChild(createCell(item.AG_id));
+            // 申請日期
+            row.appendChild(createCell(item.add_date));
+            // 申請人
+            row.appendChild(createCell(item.add_name));
+            // 案件單位
+            row.appendChild(createCell(item.case_com));
+            // 對保單位
+            row.appendChild(createCell(item.agency_com));
+            // 對保單位主管
+            row.appendChild(createCell(item.check_leader_name));
+
+            // 對保人員
+            const cellProcessor = document.createElement('td');
+            // 如果當前使用者是這筆紀錄的對保主管，則顯示可點擊的按鈕
+            if (item.check_leader_num === WebUser) {
+                let encryptedOpt = encryptParameter('check_process_name');
+                const button = createActionButton(item.check_process_name || '未分配', function() {
+                    window.open(`House_agency_Detail.html?Id=${encryptedId}&User=${encryptedWebUser}&Opt=${encryptedOpt}`, '_blank', 'scrollbars=yes,resizable=yes,top=100,width=800,height=500');
+                });
+                cellProcessor.appendChild(button);
+            } else {
+                cellProcessor.textContent = item.check_process_name || '未分配';
             }
-                        
+            row.appendChild(cellProcessor);
+
+            // 對保處理進度
+            const cellProgress = document.createElement('td');
+            let encryptedOptProgress = encryptParameter('check_process_type');
+            const progressText = item.check_process_type === 'Y' ? '對保完成' : '尚未對保';
+            const progressButton = createActionButton(progressText, function() {
+                window.open(`House_agency_Detail.html?Id=${encryptedId}&User=${encryptedWebUser}&Opt=${encryptedOptProgress}`, '_blank', 'scrollbars=yes,resizable=yes,top=100,width=800,height=500');
+            });
+            cellProgress.appendChild(progressButton);
+            row.appendChild(cellProgress);
+
+            // 修改
+            const cellEdit = document.createElement('td');
+            if (item.isEdit === 'Y') {
+                let encryptedOptEdit = encryptParameter('Upd');
+                const editButton = createActionButton('修改', function() {
+                    window.open(`House_agency_Detail.html?Id=${encryptedId}&User=${encryptedWebUser}&Opt=${encryptedOptEdit}`, '_blank', 'scrollbars=yes,resizable=yes,top=100,width=800,height=500');
+                });
+                cellEdit.appendChild(editButton);
+            } else {
+                cellEdit.textContent = '-';
+            }
+            row.appendChild(cellEdit);
+
+            // 是否結案
+            row.appendChild(createCell(item.close_type === 'N' ? '未結案' : '結案'));
+
+            // 刪除
+            const cellDelete = document.createElement('td');
+            if (item.isDel === 'Y') {
+                const deleteButton = createActionButton('刪除', function() {
+                    if (confirm('刪除後資料將無法回復，確定要刪除？')) {
+                        deleteRecord(Id);
+                    }
+                }, 'delete-btn');
+                cellDelete.appendChild(deleteButton);
+            } else {
+                cellDelete.textContent = '-';
+            }
+            row.appendChild(cellDelete);
+
             tbody.appendChild(row);
         }
     }
 
-    function add() {
-        const id = 'add';
-        let encryptedID = encryptParameter(id);
-        let encryptedWebUser = encryptParameter(WebUser);
-        let encryptedOpt_add = encryptParameter('add');
-        window.open(`House_agency_Detail.html?Id=${encryptedID}&User=${encryptedWebUser}&Opt=${encryptedOpt_add}`, '_blank', 'scrollbars=yes,resizable=yes,top=100,width=800,height=500');
-    }
-
-    function Permissions()
-    {
-        // 可查詢全部人員資料
-        // 可查詢全部人員資料且不限3個月內
-        //ChkEditor(); // 修改權限
-        fetchData();
-    }
-
-    // 委對單修改需判斷權限
-    function ChkEditor() {
-        const url = `${BASE_URL}/AE_SAL/ChkEditor?User=${WebUser}`;
+    // 刪除紀錄
+    function deleteRecord(id) {
+        const url = `${BASE_URL}/AE_SAL/House_agency_Del?Id=${id}&UserNum=${WebUser}`;
         fetch(url, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json'
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' }
+        })
+        .then(response => response.json())
+        .then(responseData => {
+            if (responseData.resultCode === '000') {
+                alert('已刪除');
+                fetchData(); // 重新整理列表
+            } else {
+                alert(responseData.resultMsg || '刪除失敗，請洽資訊人員。');
             }
         })
-            .then(response => response.json())
-            .then(responseData => {
-                if (responseData.resultCode === '000') {
-                    ChkRole = responseData.objResult;
-                    if (ChkRole === 'Y') {
-                        CanEditor = 'Y';
-                    }
-                    else {
-                        CanEditor = 'N';
-                    }
-                }
-                
-            })
-            .catch(error => {
-                alert('角色辨別失敗，請稍後再試。');
-            })
+        .catch(error => {
+            console.error('刪除失敗:', error);
+            alert('刪除失敗，請洽資訊人員。');
+        });
+    }
+
+    // 新增委對單
+    function add() {
+        const encryptedID = encryptParameter('add');
+        const encryptedWebUser = encryptParameter(WebUser);
+        const encryptedOpt = encryptParameter('add');
+        window.open(`House_agency_Detail.html?Id=${encryptedID}&User=${encryptedWebUser}&Opt=${encryptedOpt}`, '_blank', 'scrollbars=yes,resizable=yes,top=100,width=800,height=500');
+    }
+
+    // 輔助函式：建立表格儲存格
+    function createCell(text) {
+        const cell = document.createElement('td');
+        cell.textContent = text;
+        return cell;
+    }
+
+    // 輔助函式：建立操作按鈕
+    function createActionButton(text, onClick, className = '') {
+        const button = document.createElement('input');
+        button.type = 'button';
+        button.value = text;
+        button.onclick = onClick;
+        button.className = `btn-link ${className}`; // 使用 class 以便於 CSS 美化
+        return button;
     }
 </script>
+<style>
+    /* 讓按鈕看起來像超連結 */
+    .btn-link {
+        border: none;
+        background: none;
+        padding: 0;
+        font: inherit;
+        color: #0000FF;
+        text-decoration: underline;
+        cursor: pointer;
+    }
+
+    .delete-btn {
+        color: #FF0000;
+    }
+</style>
