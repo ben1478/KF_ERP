@@ -5,89 +5,95 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
-    <script type="text/javascript" src="/tool_js/scroll.js"></script>
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
     <script src="../Base.js"></script>
     <link href="../_include/main.css" rel="stylesheet" type="text/css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <title>作業平台</title>
 </head>
 <body>
     <style type="text/css">
-        #spActStatus {
-            font-size: 20px;
-            color: red;
-            font-weight: 600;
+        #gridContainer {
+            width: 100%;
+            height: 75vh;
+            overflow: auto;
+            border: 1px solid #999;
         }
 
-        .frozenHd {
+        #MainTable {
+            border-collapse: collapse;
+            width: 1100px;
+            table-layout: fixed;
+            border-spacing: 0;
+        }
+
+            #MainTable th, #MainTable td {
+                border: 1px solid #ddd;
+                padding: 8px;
+                text-align: center;
+                background-color: #fff;
+                white-space: normal;
+                word-break: break-word;
+            }
+
+            #MainTable thead th {
+                background-color: #CCCCFF;
+                font-weight: bold;
+                position: sticky;
+                top: 0;
+                z-index: 10;
+            }
+
+            #MainTable tfoot td {
+                background-color: #CCCCFF;
+                font-weight: bold;
+                position: sticky;
+                bottom: 0;
+                z-index: 10;
+            }
+
+        .frozen-col {
+            position: sticky;
+            z-index: 5;
+        }
+
+        #MainTable thead .frozen-col {
             background-color: #CCCCFF;
+            z-index: 20;
         }
 
-        .frozenBd {
+        #MainTable tbody .frozen-col {
             background-color: #FFFFFF;
         }
 
-        .frozen1 {
-            position: sticky;
-            left: 0;
-            z-index: 1;
-            border-right: 1px solid #000;
+        #MainTable tbody tr:hover .frozen-col {
+            background-color: #FCFCC0;
         }
 
-        .frozen2 {
-            position: sticky;
-            left: 60;
-            z-index: 1;
-            border-right: 1px solid #000;
+        #MainTable tfoot .frozen-col {
+            background-color: #CCCCFF;
+            z-index: 15;
         }
 
-        .frozen3 {
-            position: sticky;
-            left: 120;
-            z-index: 1;
-            border-right: 1px solid #000;
+        .col-1 {
+            left: 0px;
         }
 
-        .frozen4 {
-            position: sticky;
-            left: 210;
-            z-index: 1;
-            border-right: 1px solid #000;
+        .col-2 {
+            left: 55px;
         }
 
-        .frozen5 {
-            position: sticky;
-            left: 295;
-            z-index: 1;
-            border-right: 1px solid #000;
+        .col-3 {
+            left: 143px;
         }
 
-        .frozen6 {
-            position: sticky;
-            left: 380;
-            z-index: 1;
-            border-right: 1px solid #000;
+        .col-4 {
+            left: 253px;
         }
 
-        #MainTable tr.Red td {
-            background: #FFD2D2;
-        }
-
-        #RefInfo tr td {
-            align: center;
-        }
-
-        tr.Sel td {
-            font-weight: bold;
-            background: #FFD2D2;
-        }
-
-
-        td.Ref {
-            text-decoration: underline;
-            font-weight: bold;
-            color: #FF2D2D;
-            cursor: pointer;
+        .col-5 {
+            left: 363px;
+            border-right: 2px solid #999;
         }
 
         td.Red {
@@ -95,454 +101,355 @@
             background: #FFD2D2;
         }
 
-        td.Cancel {
-            text-decoration: line-through;
-        }
-
-        td.Confirm {
-            font-weight: bold;
-            background: #BBFFBB;
-        }
-
-        #MainTable tr.Confirm td {
-            background: #BBFFBB;
-        }
-
         #MainTable tr.Cancel td {
             text-decoration: line-through;
+            color: #888 !important;
+            background-color: #f0f0f0 !important;
         }
 
-        #MainTable tr.Change td {
-            background: #A6FFFF;
-            cursor: pointer;
+        #MainTable tbody tr.Cancel:hover .frozen-col,
+        #MainTable tbody tr.Cancel:hover td {
+            background-color: #e0e0e0 !important;
         }
-
-        #MainTable tr.disable td {
-            text-decoration: line-through;
-        }
-
-
-        #MainTable td.LogEDIT {
-            text-decoration: underline;
-            font-weight: bold;
-            color: blue;
-            cursor: pointer;
-        }
-
-        #MainTable td.EDIT {
-            text-decoration: underline;
-            font-weight: bold;
-            color: blue;
-            cursor: pointer;
-        }
-
-        #MainTable tr.Notice td {
-            font-weight: bold;
-            background: #FFFFB9;
-        }
-
     </style>
 
-    <table width="1100px" xwidth="1100px" id="TOPage" class="Main" border="0" cellspacing="0" cellpadding="0">
-        <tbody>
-            <tr>
-                <td></td>
-                <td>
-                    <table width="100%" border="0" cellspacing="0" cellpadding="0">
-                        <tbody>
-                            <tr>
-                                <td width="20">　</td>
-                                <td width="230" height="24" background="../../image/title-bk.gif">
-                                    <span class="c14k"><strong>撥款及費用確認書</strong></span>
-                                </td>
-                                <td width="770"></td>
-                            </tr>
-                            <tr class="c12-k">
-                                <td colspan="4" align="left" width="86%">
-                                    申請人：
-                                    <input type="text" name="CS_name" size="10" maxlength="10" value="">
-                                    區：
-                                    <select name="U_BC" id="U_BC" class=""></select>
-                                    業務：
-                                    <input type="hidden" name="plan_num" id="U_num" value="">
-                                    <input type="text" name="plan_name" id="U_name" size="10" maxlength="10" class="box" value="" readonly="">
-                                    <input type="button" value="..." name="_select_user_one" onclick="openUserOne('appUser')">
-                                    撥款年月：
-                                    <select name="selYear_S" id="selYear_S"></select>
-                                    排序：
-                                    <select name="OrderByStr" id="OrderByStr" class="">
-                                        <option value="M.U_BC,M.U_name" selected>區-業務</option>
-                                        <option value="get_amount_date">撥款日期</option>
-                                    </select> &nbsp;
-                                    <input type="button" value="查詢" onclick="fetchData();" />
+    <div style="width: 98%; margin: auto;">
+        <table width="100%" border="0" cellspacing="0" cellpadding="0">
+            <tbody>
+                <tr>
+                    <td width="20">　</td>
+                    <td width="230" height="24" background="../../image/title-bk.gif">
+                        <span class="c14k"><strong>撥款及費用確認書</strong></span>
+                    </td>
+                    <td width="770"></td>
+                </tr>
+                <tr class="c12-k">
+                    <td></td>
+                    <td colspan="2">
+                        <form id="queryForm">
+                            申請人：
+                            <input type="text" name="CS_name" size="10" maxlength="10" value="">
 
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </td>
-            </tr>
-            <tr>
-                <td valign="top"></td>
-                <Td id="GridTD">
-                    <div id="DivHead" class="scroll" style="width: 1045px; overflow: hidden; display: inline-block; outline: none;" tabindex="1">
-                        <table id="MainTableH" style="width:1100px" border="0" cellpadding="4" cellspacing="1" bgcolor="#666666">
-                            <tbody>
-                                <tr align="center" style="height:43px " bgcolor="#CCCCFF" class="c12-k">
-                                    <td width="5%">No.</td>
-                                    <td width="8%">區</td>
-                                    <td width="10%">進件日</td>
-                                    <td width="10%">申請人</td>
-                                    <td width="18%">介紹人</td>
-                                    <td width="7%">業務</td>
-                                    <td width="10%">撥款日</td>
-                                    <td width="10%">撥款金額(萬)</td>
-                                    <td width="10%">承作利率(%)</td>
-                                    <td width="12%">上傳</td>
+                            <span id="filter-group-bc">
+                                <label> 區：</label>
+                                <select name="U_BC" id="U_BC"></select>
+                            </span>
 
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                    <div id="DivBody" class="scroll" style="width: 1045px; height: 473.25px; overflow: hidden; outline: none;" tabindex="2">
-                        <table id="MainTable" style="width:1100px;height:auto;" border="0" cellpadding="4" cellspacing="1" bgcolor="#666666">
-                            <tbody>
-                                <tr align="center" style="display:none" bgcolor="#CCCCFF" class="c12-k">
-                                    <td width="5%">No.</td>
-                                    <td width="8%">區</td>
-                                    <td width="10%">進件日</td>
-                                    <td width="10%">申請人</td>
-                                    <td width="18%">介紹人</td>
-                                    <td width="7%">業務</td>
-                                    <td width="10%">撥款日</td>
-                                    <td width="10%">撥款金額(萬)</td>
-                                    <td width="10%">承作利率(%)</td>
-                                    <td width="12%">上傳</td>
-                                </tr>
-                                <tr align="center" class="c12-k" bgcolor="#FFFFFF" onmouseover="this.style.background='#FFFF66';" onmouseout="this.style.background='#FFFFFF'; " style="background: rgb(255, 255, 255);">
-                                </tr>
-                                <tr align="center" class="c12-k" bgcolor="#FFFFFF" onmouseover="this.style.background='#FFFF66';" onmouseout="this.style.background='#FFFFFF'; " style="background: rgb(255, 255, 255);">
-                                </tr>
-                                <tr align="center" height="30" bgcolor="#CCCCFF">
-                                    <td class="c12-k" colspan="10">
-                                    </td>
-                                </tr>
-                            </tbody>
-                            <tfoot>
-                                <tr class="foot" align="center" height="30" bgcolor="#CCCCFF">
-                                    <td class="c12-k" colspan="4">
-                                        <font color="#000080">
-                                            <label id="CountRows"></label>
-                                        </font>
-                                    </td>
-                                    <td class="c12-k" colspan="3" id="TRSum" style="text-align:right"><font color="#000080"> 合計:</font></td>
-                                    <td class="c12-k" id="TRget_amount_T"><font color="#000080"></font></td>
-                                    <td class="c12-k" colspan="2"></td>
-                                </tr>
-                            </tfoot>
-                        </table>
-                    </div>
-                </Td>
-            </tr>
-        </tbody>
-    </table>
-</body>
-</html>
-<script>
-    const Params = getQueryParams();
-    let WebUser = Params.WebUser;
-    let WebBC = Params.WebBC;
+                            <span id="filter-group-plan">
+                                <label> 業務：</label>
+                                <input type="hidden" name="plan_num" id="U_num" value="">
+                                <input type="text" name="plan_name" id="U_name" size="10" maxlength="10" class="box" value="" readonly>
+                                <input type="button" value="..." name="_select_user_one" onclick="selectUserOne()">
+                            </span>
 
-    // const itemsPerPage = 20;  
-    // let currentPage = 1;
-    let data = []; 
+                            撥款年月：
+                            <select name="selYear_S" id="selYear_S"></select>
 
-    window.onload = function () {
-        dateTW();
-        loadItemDropdown({
-            selectId: "U_BC",
-            itemCode: "branch_company"
-        });
-        loadYearDown();
-        //console.log('window.onload end');
-    }
+                            <span id="filter-group-orderby">
+                                <label> 排序：</label>
+                                <select name="OrderByStr" id="OrderByStr">
+                                    <option value="M.U_BC,M.U_name" selected>區-業務</option>
+                                    <option value="get_amount_date">撥款日期</option>
+                                </select>
+                            </span>
+                            &nbsp;
+                            <input type="button" value="查詢" onclick="fetchData();" />
+                            <input type="button" value="匯出Excel" name="btnExcel" onclick="exportToExcel()">
+                        </form>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
 
-    $(document).ready(function() {
+        <div id="gridContainer">
+            <table id="MainTable">
+                <thead>
+                    <tr align="center" style="height:43px" class="c12-k">
+                        <th width="5%">No.</th>
+                        <th width="8%">區</th>
+                        <th width="10%">進件日</th>
+                        <th width="10%">申請人</th>
+                        <th width="18%">介紹人</th>
+                        <th width="7%">業務</th>
+                        <th width="10%">撥款日</th>
+                        <th width="10%">撥款金額(萬)</th>
+                        <th width="10%">承作利率(%)</th>
+                        <th width="12%">上傳</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+                <tfoot>
+                </tfoot>
+            </table>
+        </div>
+    </div>
 
+    <script>
+        const Params = getQueryParams();
+        let WebUser = Params.WebUser;
+        let UserProfile = {};
+        let data = [];
 
-													var DivWidth=$("#GridTD").width()*0.95+"px";
-													$("#DivBody").width(DivWidth)
-													$("#DivHead").width(DivWidth)
-													var windowHeight = $("#TOPage").height()*0.75;
-
-													$("#DivBody").height(windowHeight+"px")
-													$(".scroll").niceScroll({ autohidemode: false, cursorwidth: "15px",  cursorcolor: "#00FFFF", cursoropacitymax: 0.5, cursorwidth: 7 });
-													$("#DivBody").on("scroll", function () {
-														$("#DivHead").scrollLeft($(this).scrollLeft());
-														$("#LfIdx").text($(this).scrollLeft());
-														if($(this).scrollLeft()>2)
-														{
-															$("#DivHead td:eq(0)").addClass("frozen1").addClass("frozenHd");
-															$("#DivBody tr td:first-child").addClass("frozen1").addClass("frozenBd");
-															$("#DivBody tr.foot td").removeClass("frozen1").removeClass("frozenBd");
-														}
-														else
-														{
-															$("#DivHead td:eq(0)").removeClass("frozen1").removeClass("frozenHd");
-															$("#DivBody tr td:first-child").removeClass("frozen1").removeClass("frozenBd");
-
-														}
-														if($(this).scrollLeft()>10)
-														{
-															$("#DivHead td:eq(1)").addClass("frozen2").addClass("frozenHd");
-															$("#DivBody tr td:nth-child(2)").addClass("frozen2").addClass("frozenBd");
-															$("#DivBody tr.foot td").removeClass("frozen2").removeClass("frozenBd");
-														}
-														else
-														{
-															$("#DivHead td:eq(1)").removeClass("frozen2").removeClass("frozenHd");
-															$("#DivBody tr td:nth-child(2)").removeClass("frozen2").removeClass("frozenBd");
-														}
-														if($(this).scrollLeft()>28)
-														{
-															$("#DivHead td:eq(2)").addClass("frozen3").addClass("frozenHd");
-															$("#DivBody tr td:nth-child(3)").addClass("frozen3").addClass("frozenBd");
-															$("#DivBody tr.foot td").removeClass("frozen3").removeClass("frozenBd");
-														}
-														else
-														{
-															$("#DivHead td:eq(2)").removeClass("frozen3").removeClass("frozenHd");
-															$("#DivBody tr td:nth-child(3)").removeClass("frozen3").removeClass("frozenBd");
-														}
-														if($(this).scrollLeft()>32)
-														{
-															$("#DivHead td:eq(3)").addClass("frozen4").addClass("frozenHd");
-															$("#DivBody tr td:nth-child(4)").addClass("frozen4").addClass("frozenBd");
-															$("#DivBody tr.foot td").removeClass("frozen4").removeClass("frozenBd");
-														}
-														else
-														{
-															$("#DivHead td:eq(3)").removeClass("frozen4").removeClass("frozenHd");
-															$("#DivBody tr td:nth-child(4)").removeClass("frozen4").removeClass("frozenBd");
-														}
-														if($(this).scrollLeft()>38)
-														{
-															$("#DivHead td:eq(4)").addClass("frozen5").addClass("frozenHd");
-															$("#DivBody tr td:nth-child(5)").addClass("frozen5").addClass("frozenBd");
-															$("#DivBody tr.foot td").removeClass("frozen5").removeClass("frozenBd");
-															$("#TRrecordcount").addClass("frozen1").addClass("frozenHd");
-															$("#MTRrecordcount").addClass("frozen1").addClass("frozenHd");
-
-														}
-														else
-														{
-															$("#DivHead td:eq(4)").removeClass("frozen5").removeClass("frozenHd");
-															$("#DivBody tr td:nth-child(5)").removeClass("frozen5").removeClass("frozenBd");
-															$("#TRrecordcount").removeClass("frozen1").removeClass("frozenHd");
-															$("#MTRrecordcount").removeClass("frozen1").removeClass("frozenHd");
-
-														}
-														if($(this).scrollLeft()>601)
-														{
-															$("#DivHead td:eq(11)").addClass("frozen6").addClass("frozenHd");
-															$("#DivBody tr td:nth-child(12)").addClass("frozen6").addClass("frozenBd");
-															$("#DivBody tr.foot td").removeClass("frozen6").removeClass("frozenBd");
-															$("#TRget_amount_T").addClass("frozen6").addClass("frozenHd");
-															$("#MTRget_amount_T").addClass("frozen6").addClass("frozenHd");
-															$("#TRSum").addClass("frozen5").addClass("frozenHd");
-															$("#MTRSum").addClass("frozen5").addClass("frozenHd");
-														}
-														else
-														{
-															$("#DivHead td:eq(11)").removeClass("frozen6").removeClass("frozenHd");
-															$("#DivBody tr td:nth-child(12)").removeClass("frozen6").removeClass("frozenBd");
-															$("#TRget_amount_T").removeClass("frozen6").removeClass("frozenHd");
-															$("#MTRget_amount_T").removeClass("frozen6").removeClass("frozenHd");
-															$("#TRSum").removeClass("frozen5").removeClass("frozenHd");
-															$("#MTRSum").removeClass("frozen5").removeClass("frozenHd");
-														}
-
-													});
-													$("#DivHead").on("scroll", function () {
-														$("#DivBody").scrollLeft($(this).scrollLeft());
-													});
-													$('.LogEDIT').on('click', function() {
-														Edit_AMT($(this).attr("Rowidx"),$(this).attr("LogTable"),$(this).attr("DisplayNa"),$(this).attr("ColumnNa"),$(this).attr("Remark"),$(this).attr("RemarkVal"),$(this)[0].innerText)
-													});
-
-												});
-
-    function fetchData() {
-        // 需引用與WebApi.LQuery一致參數
-        let Req = {
-            CS_name: document.querySelector('input[name="CS_name"]').value || '',
-            BC_code: document.querySelector('#U_BC').value,
-            plan_name: document.querySelector('input[name="plan_name"]').value || '',
-            selYear_S: document.getElementById('selYear_S').value,
-            OrderByStr: document.querySelector('select[name="OrderByStr"]').value
+        window.onload = function () {
+            loadItemDropdown({ selectId: "U_BC", itemCode: "branch_company" });
+            loadYearDown();
         };
 
-        const url = `${BASE_URL}/AE_SAL/House_SendCase_LQuery`;
-        
-        console.log('fetchData');
-        
-        fetch(url, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            credentials: 'include',
-            body: JSON.stringify(Req)
-        })
-            .then(response => response.json())
+        function loadYearDown() {
+            const url = `${BASE_URL}/AE_SAL/House_SendCase_GYMQuery`;
+            fetch(url)
+                .then(response => response.json())
+                .then(apiData => {
+                    const selectElement = document.getElementById('selYear_S');
+                    if (apiData.resultCode === "000") {
+                        const options = JSON.parse(apiData.objResult);
+                        options.forEach((option, index) => {
+                            const opt = new Option(option.t, option.v);
+                            if (index === 0) opt.selected = true;
+                            selectElement.add(opt);
+                        });
+                    }
+                    fetchUserProfile();
+                })
+                .catch(error => {
+                    console.error('撥款年月載入失敗:', error);
+                    alert('撥款年月載入失敗: ' + error.message);
+                    fetchUserProfile();
+                });
+        }
+
+        function fetchUserProfile() {
+            if (!WebUser) return;
+            const url = `${BASE_URL}/AE_SAL/GetUserProfile?userNum=${WebUser}`;
+            fetch(url)
+                .then(response => response.json())
+                .then(response => {
+                    if (response.resultCode === '000') {
+                        const profileData = JSON.parse(response.objResult)[0];
+                        UserProfile = {
+                            num: profileData.U_num,
+                            role: profileData.Role_num,
+                            bc: profileData.U_BC
+                        };
+                        configureUIForRole();
+                        fetchData();
+                    } else {
+                         throw new Error(response.resultMsg || '無法獲取使用者資料');
+                    }
+                })
+                .catch(error => {
+                    console.error('獲取使用者設定檔失敗:', error);
+                    alert('獲取使用者設定檔失敗: ' + error.message);
+                });
+        }
+
+        function configureUIForRole() {
+            const adminRoles = ["1001", "1002", "1004", "1007"];
+            const managerRoles = ["1008", "1014"];
+            const assistantRoles = ["1010", "1011"];
+
+            const bcGroup = $('#filter-group-bc');
+            const planGroup = $('#filter-group-plan');
+            const orderByGroup = $('#filter-group-orderby');
+
+            bcGroup.hide();
+            planGroup.hide();
+            orderByGroup.hide();
+
+            if (adminRoles.includes(UserProfile.role)) {
+                bcGroup.show();
+                planGroup.show();
+                orderByGroup.show();
+            } else if (managerRoles.includes(UserProfile.role)) {
+                bcGroup.show();
+                $('#U_BC').val(UserProfile.bc).prop('disabled', true);
+                planGroup.show();
+            } else if (assistantRoles.includes(UserProfile.role)) {
+                bcGroup.show();
+                $('#U_BC').val(UserProfile.bc).prop('disabled', true);
+            }
+        }
+
+        function selectUserOne() {
+            const managerRoles = ["1008", "1014"];
+            let u_bc = $('#U_BC').is(':disabled') ? UserProfile.bc : $('#U_BC').val();
+            let lock_bc = (managerRoles.includes(UserProfile.role)) ? 'Y' : 'N';
+            openUserOne('appUser', u_bc, lock_bc);
+        }
+
+        function fetchData() {
+            let Req = {
+                CS_name: $('input[name="CS_name"]').val() || '',
+                BC_code: $('select[name="U_BC"]').val(),
+                plan_name: $('input[name="plan_name"]').val() || '',
+                selYear_S: $('#selYear_S').val(),
+                OrderByStr: $('#OrderByStr').val(),
+                UserNum: UserProfile.num,
+                UserRole: UserProfile.role,
+                UserBC: UserProfile.bc
+            };
+
+            const url = `${BASE_URL}/AE_SAL/House_SendCase_LQuery`;
+            fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(Req)
+            })
+            .then(response => {
+                 if (!response.ok) {
+                    throw new Error(`HTTP 錯誤! 狀態: ${response.status}`);
+                }
+                return response.json();
+            })
             .then(responseData => {
                 if (responseData.resultCode == "000") {
                     data = JSON.parse(responseData.objResult);
-                    showPage();
+                    showPage(data);
                 } else {
-                    alert(response.resultMsg);
+                    alert(responseData.resultMsg);
+                    showPage([]);
                 }
             })
             .catch(error => {
-                alert('API 請求失敗:', error);
+                console.error('API 請求失敗:', error);
+                alert('API 請求失敗: ' + error.message);
+                showPage([]);
             });
-    }
-
-    function showPage() {
-        const tbody = document.querySelector('#MainTable tbody');
-        tbody.innerHTML = '';
-        let startIndex = 0;
-        
-        let encryptedWebUser = encryptParameter(WebUser);
-        let sumAmount = 0;
-        for (let item of data) {
-            const row = document.createElement('tr');
-            row.setAttribute('align', 'center');
-            row.setAttribute('class', 'c12-k');
-            row.setAttribute('bgcolor', '#FFFFFF');
-            row.setAttribute('onmouseover', "this.style.background='#FCFCC0';");
-            row.setAttribute('onmouseout', "this.style.background='#FFFFFF';");
-            //List.顯示序順:欄位名稱需與t-sql欄位(大小)一致
-            const columnOrder = ['File_ID', 'U_BC_name', 'Send_amount_date', 'CS_name', 'CS_introducer', 'plan_name', 'get_amount_date', 'get_amount', 'interest_rate_pass','upLoad_Count'];
-            //List.序欄位
-            const serialCell = document.createElement('td');
-            startIndex = startIndex + 1;
-            serialCell.textContent = startIndex;
-            serialCell.width='5%';
-            row.appendChild(serialCell);
-           
-            let File_ID; // SendCase上傳檔案key 
-            for (let key of columnOrder) {
-                const cell = document.createElement('td');
-                switch (key) {
-                    case 'File_ID': // SendCase上傳檔案key 
-                        File_ID = item[key];
-                        break;
-                    case 'U_BC_name':
-                        cell.width = '8%';
-                        cell.textContent = item[key] || '';
-                        row.appendChild(cell);
-                        break;
-                    case 'Send_amount_date':
-                        cell.width = '10%';
-                        cell.textContent = item[key] || '';
-                        row.appendChild(cell);
-                        break;
-                    case 'CS_name':
-                        cell.width = '10%';
-                        cell.innerHTML = item[key] || '';
-                        row.appendChild(cell);
-                        break;
-                    case 'CS_introducer':
-                        cell.width = '18%';
-                        cell.innerHTML = item[key] || '';
-                        row.appendChild(cell);
-                        break;
-                    case 'plan_name':
-                        cell.width = '7%';
-                        cell.innerHTML = item[key] || '';
-                        row.appendChild(cell);
-                        break;
-                    case 'get_amount_date':
-                        cell.width = '10%';
-                        cell.textContent = item[key] || '';
-                        row.appendChild(cell);
-                        break;
-                    case 'get_amount':
-                        cell.width = '10%';
-                        sumAmount +=  parseInt(item[key]);
-                        cell.textContent = item[key].toLocaleString() || '0';
-                        row.appendChild(cell);
-                        break;
-                    case 'interest_rate_pass':
-                        cell.width = '10%';
-                        cell.textContent = item[key] || '';
-                        row.appendChild(cell);
-                        break;
-                    case 'upLoad_Count':
-                            const button = document.createElement('input');
-                            button.type = 'button';
-                            button.value = '附加檔案(' + item[key] + ')';
-                            button.onclick = function () {
-                                window.open(`../File/File_UpLoad_List.html?cknum=${File_ID}&user=${encryptedWebUser}`, '_blank', 'scrollbars=yes,resizable=yes,top=100,width=800,height=500');
-                            };
-                            cell.width = '12%';
-                            cell.style.textAlign = 'center';
-                            cell.style.verticalAlign = 'middle';
-                            cell.appendChild(button);
-                            row.appendChild(cell);
-                            break;
-                    default:
-                        cell.textContent = item[key] || '';
-                        row.appendChild(cell);
-                }
-            }
-            tbody.appendChild(row);
         }
-        document.getElementById("TRget_amount_T").textContent = sumAmount.toLocaleString();
-        document.getElementById("CountRows").textContent = `筆數:${startIndex.toLocaleString()}`;
-        
-        console.log('sumAmount= ${sumAmount}');
-    }
 
-    function loadYearDown() {
-        const url = `${BASE_URL}/AE_SAL/House_SendCase_GYMQuery`;
+        function showPage(pageData) {
+                const table = document.getElementById('MainTable');
+                const tbody = table.querySelector('tbody');
+                const tfoot = table.querySelector('tfoot');
+                tbody.innerHTML = '';
+                tfoot.innerHTML = '';
 
-        fetch(url)
-        .then(response => response.json())
-        .then(data => {
-            if (data.resultCode === "000") {
-                const selectElement = document.getElementById('selYear_S');
+                let sumAmount = 0;
 
-                const options = JSON.parse(data.objResult);
+                pageData.forEach((item, index) => {
+                    const row = tbody.insertRow();
+                    row.align = 'center';
+                    row.className = 'c12-k';
+                    row.style.backgroundColor = '#FFFFFF';
+                    row.onmouseover = () => { if (!row.classList.contains('Cancel')) row.style.backgroundColor = '#FCFCC0'; };
+                    row.onmouseout = () => { if (!row.classList.contains('Cancel')) row.style.backgroundColor = '#FFFFFF'; };
 
-                let isFirstOption = true;
-                options.forEach(option => {
-                    if(isFirstOption)
-                    {
-                        selectElement.innerHTML = `<option value=${option.v} selected>${option.t}</option>`;
-                        //optionElement.selected = isFirstOption;
-                    }else{
-                        const optionElement = document.createElement('option');
-                        optionElement.value = option.v; 
-                        optionElement.textContent = option.t;
-                        selectElement.appendChild(optionElement);
+                    if (item.isCancel === 'Y') {
+                        row.classList.add('Cancel');
                     }
-                    
-                    isFirstOption = false;
+
+                    sumAmount += (item.isCancel !== 'Y' ? parseFloat(item.get_amount || 0) : 0);
+
+                    if (item.I_Count > 1 && !item.Introducer_PID) {
+                        row.classList.add('Red');
+                    }
+
+                    const cells = [
+                        index + 1,
+                        item.U_BC_name || '',
+                        item.Send_amount_date || '',
+                        item.CS_name || '',
+                        item.CS_introducer || '',
+                        item.plan_name || '',
+                        item.get_amount_date || '',
+                        parseFloat(item.get_amount || 0).toLocaleString(),
+                        item.interest_rate_pass || '',
+                        `<input type="button" class="${(item.upLoad_Count > 0 ? 'btn_red_1' : 'btn')}"
+                               value="附加檔案 (${item.upLoad_Count})"
+                               onclick="window.open('../File/File_UpLoad_List.html?cknum=${item.File_ID}&user=${encryptParameter(WebUser)}', '_file_list', 'scrollbars=yes,resizable=no,width=725,height=400,top=300,left=150');">`
+                    ];
+
+                    cells.forEach(cellHTML => {
+                        const cell = row.insertCell();
+                        cell.innerHTML = cellHTML;
+                    });
                 });
 
-                fetchData();
-            } else {
-                alert('錯誤: ' + (data.resultMsg || '未知錯誤'));
+                const footerRow = tfoot.insertRow();
+                footerRow.className = 'foot';
+                footerRow.align = 'center';
+
+                footerRow.innerHTML = `
+                    <td colspan="4"><font color="#000080"><label id="CountRows">筆數: ${pageData.length}</label></font></td>
+                    <td colspan="3" style="text-align:right;"><font color="#000080">合計:</font></td>
+                    <td><font color="#000080">${sumAmount.toLocaleString()}</font></td>
+                    <td colspan="2"></td>
+                `;
+
+                applyStickyStyles();
             }
 
-            //console.log(`[loadYearDown] selYear_S = ${document.getElementById('selYear_S').value}`);
-        })
-        .catch(error => {
-            console.error('載入選項時出錯:', error);
-            alert('無法載入資料，請稍後再試。');
-        });
+        function applyStickyStyles() {
+            $('#MainTable .frozen-col').removeClass('frozen-col col-1 col-2 col-3 col-4 col-5');
+            $('#MainTable thead tr, #MainTable tbody tr, #MainTable tfoot tr').each(function() {
+                $(this).find('th:lt(5), td:lt(5)').each(function(index) {
+                    $(this).addClass('frozen-col col-' + (index + 1));
+                });
+            });
+        }
 
-    }
-</script>
+        function getFormattedDate() {
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = String(today.getMonth() + 1).padStart(2, '0');
+            const day = String(today.getDate()).padStart(2, '0');
+            return `${year}${month}${day}`;
+        }
+
+        function exportToExcel() {
+            if (!data || data.length === 0) {
+                alert("沒有可匯出的資料。");
+                return;
+            }
+
+            const headers = [
+                "No.", "區", "進件日", "申請人", "介紹人", "業務", "撥款日", "撥款金額(萬)", "承作利率(%)"
+            ];
+
+            const dataForExport = data.map((item, index) => [
+                index + 1,
+                item.U_BC_name || '',
+                item.Send_amount_date || '',
+                item.CS_name || '',
+                item.CS_introducer || '',
+                item.plan_name || '',
+                item.get_amount_date || '',
+                parseFloat(item.get_amount || 0),
+                item.interest_rate_pass || ''
+            ]);
+
+            const totalAmount = data.reduce((sum, item) =>
+                sum + (item.isCancel !== 'Y' ? parseFloat(item.get_amount || 0) : 0), 0);
+
+            const footerRow = [
+                `筆數: ${data.length}`, null, null, null, null, null, '合計:', totalAmount, null
+            ];
+
+            const sheetData = [headers, ...dataForExport, footerRow];
+            const ws = XLSX.utils.aoa_to_sheet(sheetData);
+
+            ws['!cols'] = [
+                { wch: 5 }, { wch: 10 }, { wch: 12 }, { wch: 12 }, { wch: 20 },
+                { wch: 10 }, { wch: 12 }, { wch: 15 }, { wch: 15 }
+            ];
+
+            const currencyFormat = '#,##0';
+            const range = XLSX.utils.decode_range(ws['!ref']);
+            for (let R = 1; R <= range.e.r; ++R) {
+                const cell_ref = XLSX.utils.encode_cell({ c: 7, r: R });
+                if (ws[cell_ref] && ws[cell_ref].v !== null) {
+                    ws[cell_ref].z = currencyFormat;
+                }
+            }
+
+            ws['!merges'] = [{ s: { r: data.length + 1, c: 0 }, e: { r: data.length + 1, c: 5 } }];
+
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, '撥款及費用確認書');
+            const filename = `撥款及費用確認書-${getFormattedDate()}.xlsx`;
+            XLSX.writeFile(wb, filename);
+        }
+    </script>
+</body>
+</html>
