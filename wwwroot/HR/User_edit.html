@@ -253,23 +253,17 @@
 <script>
     const params = new URLSearchParams(window.location.search);
     const U_num = params.get('U_num');
+    const WebUser = params.get('User');
     let data = [];
 
     loadRolmDropdown();
-    loadItemDropdown({
-        selectId: "U_BC",
-        itemCode: "branch_company"
-    });
-    loadItemDropdown({
-        selectId: "School_Level",
-        itemCode: "School_Level"
-    });
-    loadItemDropdown({
-        selectId: "U_PFT",
-        itemCode: "professional_title"
-    });
+    [
+        { selectId: "U_BC", itemCode: "branch_company" },
+        { selectId: "School_Level", itemCode: "School_Level" },
+        { selectId: "U_PFT", itemCode: "professional_title" }
+    ].forEach(loadItemDropdown);
     dateTW();
-    fetchData();
+    setTimeout(fetchData, 600);
 
     function fetchData() {
         const url = `${BASE_URL}/AE_HR/User_M_SQuery?U_num=${encodeURIComponent(U_num)}`;
@@ -354,6 +348,7 @@
                 console.error('API 請求失敗:', error);
             });
     }
+
     function setCheckBoxes(userCheckBC) {
         if (!userCheckBC) {
             let checkboxes = document.querySelectorAll('input[name="U_Check_BC"]');
@@ -374,91 +369,60 @@
             }
         });
     }
-    function UpdateUser() {
-        const U_id = document.querySelector('input[name="U_id"]').value;
-        const U_num = document.querySelector('input[name="U_num"]').value;
-        const U_name = document.querySelector('input[name="U_name"]').value;
-        const U_Ename = document.querySelector('input[name="U_Ename"]').value;
-        const str_U_Birthday = document.querySelector('input[name="str_U_Birthday"]').value;
-        const U_sex = document.querySelector('input[name="U_sex"]:checked').value;
-        const Marriage = document.querySelector('input[name="Marriage"]:checked').value;
-        const Children = document.querySelector('input[name="Children"]').value;
-        const U_PID = document.querySelector('input[name="U_PID"]').value;
-        const Military = document.querySelector('input[name="Military"]:checked').value;
-        const Military_SDate = document.querySelector('input[name="Military_SY"]').value + "/" + document.querySelector('input[name="Military_SM"]').value;
-        const Military_EDate = document.querySelector('input[name="Military_EY"]').value + "/" + document.querySelector('input[name="Military_EM"]').value;
-        const Military_Exemption = document.querySelector('input[name="Military_Exemption"]').value;
-        const License_Car = document.querySelector('input[name="License_Car"]:checked') ? "C" : "";
-        const Self_Car = document.querySelector('input[name="Self_Car"]:checked').value;
-        const License_Motorcycle = document.querySelector('input[name="License_Motorcycle"]:checked') ? "M" : "";
-        const Self_Motorcycle = document.querySelector('input[name="Self_Motorcycle"]:checked').value;
-        const U_Tel = document.querySelector('input[name="U_Tel"]').value;
-        const U_MTel = document.querySelector('input[name="U_MTel"]').value;
-        const U_Email = document.querySelector('input[name="U_Email"]').value;
-        const Emergency_contact = document.querySelector('input[name="Emergency_contact"]').value;
-        const Emergency_Tel = document.querySelector('input[name="Emergency_Tel"]').value;
-        const Emergency_MTel = document.querySelector('input[name="Emergency_MTel"]').value;
-        const School_Level = document.querySelector('select[name="School_Level"]').value;
-        const School_Name = document.querySelector('input[name="School_Name"]').value;
-        const School_SDate = document.querySelector('input[name="School_SY"]').value + "/" + document.querySelector('input[name="School_SM"]').value;
-        const School_EDate = document.querySelector('input[name="School_EY"]').value + "/" + document.querySelector('input[name="School_EM"]').value;
-        const School_Graduated = document.querySelector('input[name="School_Graduated"]:checked').value;
-        const School_D_N = document.querySelector('input[name="School_D_N"]:checked').value;
-        const School_Major = document.querySelector('input[name="School_Major"]').value;
-        const U_BC = document.querySelector('select[name="U_BC"]').value;
-        const U_PFT = document.querySelector('select[name="U_PFT"]').value;
-        const Role_num = document.querySelector('select[name="role"]').value;
-        const U_agent_num = document.querySelector('input[name="U_agent_num"]').value;
-        const U_leader_1_num = document.querySelector('input[name="U_leader_1_num"]').value;
-        const U_leader_2_num = document.querySelector('input[name="U_leader_2_num"]').value;
-        const U_address_live = document.querySelector('input[name="U_address_live"]').value;
-        const str_U_arrive_date = document.querySelector('input[name="str_U_arrive_date"]').value;
-        const str_U_leave_date = document.querySelector('input[name="str_U_leave_date"]').value;
-        const U_Check_BC = Array.from(document.querySelectorAll('input[name="U_Check_BC"]:checked'))
-            .map(checkbox => "#" + checkbox.value)
-            .join('');
 
+    function UpdateUser() {
         const userData = {
-            U_id,
-            U_num,
-            U_name,
-            U_Ename,
-            str_U_Birthday,
-            U_sex,
-            Marriage,
-            Children: parseInt(Children),
-            U_PID,
-            Military,
-            Military_SDate,
-            Military_EDate,
-            Military_Exemption,
-            License_Car,
-            Self_Car,
-            License_Motorcycle,
-            Self_Motorcycle,
-            U_Tel,
-            U_MTel,
-            U_Email,
-            Emergency_contact,
-            Emergency_Tel,
-            Emergency_MTel,
-            School_Level,
-            School_Name,
-            School_SDate,
-            School_EDate,
-            School_Graduated,
-            School_D_N,
-            School_Major,
-            U_BC,
-            U_PFT,
-            Role_num,
-            U_agent_num,
-            U_leader_1_num,
-            U_leader_2_num,
-            U_address_live,
-            str_U_arrive_date,
-            str_U_leave_date,
-            U_Check_BC
+            U_id: document.querySelector('input[name="U_id"]').value,
+            U_num: document.querySelector('input[name="U_num"]').value,
+            U_name: document.querySelector('input[name="U_name"]').value,
+            U_Ename: document.querySelector('input[name="U_Ename"]').value,
+            str_U_Birthday: document.querySelector('input[name="str_U_Birthday"]').value,
+            U_sex: document.querySelector('input[name="U_sex"]:checked').value,
+            Marriage: document.querySelector('input[name="Marriage"]:checked').value,
+            Children: parseInt(document.querySelector('input[name="Children"]').value),
+            U_PID: document.querySelector('input[name="U_PID"]').value,
+            Military: document.querySelector('input[name="Military"]:checked')?.value || null,
+            Military_SDate:
+                (document.querySelector('input[name="Military_SY"]')?.value || "") + "/" +
+                (document.querySelector('input[name="Military_SM"]')?.value || ""),
+            Military_EDate:
+                (document.querySelector('input[name="Military_EY"]')?.value || "") + "/" +
+                (document.querySelector('input[name="Military_EM"]')?.value || ""),
+            Military_Exemption: document.querySelector('input[name="Military_Exemption"]')?.value || "",
+            License_Car: document.querySelector('input[name="License_Car"]:checked') ? "C" : "",
+            Self_Car: document.querySelector('input[name="Self_Car"]:checked')?.value || null,
+            License_Motorcycle: document.querySelector('input[name="License_Motorcycle"]:checked') ? "M" : "",
+            Self_Motorcycle: document.querySelector('input[name="Self_Motorcycle"]:checked')?.value || null,
+            U_Tel: document.querySelector('input[name="U_Tel"]').value,
+            U_MTel: document.querySelector('input[name="U_MTel"]').value,
+            U_Email: document.querySelector('input[name="U_Email"]').value,
+            Emergency_contact: document.querySelector('input[name="Emergency_contact"]').value,
+            Emergency_Tel: document.querySelector('input[name="Emergency_Tel"]').value,
+            Emergency_MTel: document.querySelector('input[name="Emergency_MTel"]').value,
+            School_Level: document.querySelector('select[name="School_Level"]').value,
+            School_Name: document.querySelector('input[name="School_Name"]').value,
+            School_SDate:
+                document.querySelector('input[name="School_SY"]').value + "/" +
+                document.querySelector('input[name="School_SM"]').value,
+            School_EDate:
+                document.querySelector('input[name="School_EY"]').value + "/" +
+                document.querySelector('input[name="School_EM"]').value,
+            School_Graduated: document.querySelector('input[name="School_Graduated"]:checked')?.value || null,
+            School_D_N: document.querySelector('input[name="School_D_N"]:checked')?.value || null,
+            School_Major: document.querySelector('input[name="School_Major"]').value,
+            U_BC: document.querySelector('select[name="U_BC"]').value,
+            U_PFT: document.querySelector('select[name="U_PFT"]').value,
+            Role_num: document.querySelector('select[name="role"]').value,
+            U_agent_num: document.querySelector('input[name="U_agent_num"]').value,
+            U_leader_1_num: document.querySelector('input[name="U_leader_1_num"]').value,
+            U_leader_2_num: document.querySelector('input[name="U_leader_2_num"]').value,
+            U_address_live: document.querySelector('input[name="U_address_live"]').value,
+            str_U_arrive_date: document.querySelector('input[name="str_U_arrive_date"]').value,
+            str_U_leave_date: document.querySelector('input[name="str_U_leave_date"]').value,
+            U_Check_BC: Array.from(document.querySelectorAll('input[name="U_Check_BC"]:checked'))
+                .map(checkbox => "#" + checkbox.value)
+                .join(''),
+            User: WebUser
         };
         const url = `${BASE_URL}/AE_HR/User_M_SUpd`;
 
@@ -474,7 +438,7 @@
             .then(response => {
                 if (response.resultCode == "000") {
                     alert('資料修改成功');
-                    window.close();
+                    location.reload();
                 } else {
                     alert('資料修改失敗');
                 }
@@ -483,6 +447,5 @@
                 console.error('Error:', error);
                 alert('請求失敗');
             });
-
     }
 </script>
