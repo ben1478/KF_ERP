@@ -1830,10 +1830,9 @@
                         row.get_amount_date,
                         Math.round(Number(row.get_amount) || 0),
                         `${row.show_fund_company || ''}-${row.show_project_title || ''}`,
-                        // **需求3**: 利率 * 100 並加上 '%'
-                        `${(Number(row.Loan_rate) || 0).toFixed(1)}%`,
-                        `${(Number(row.interest_rate_original) || 0).toFixed(1)}%`,
-                        `${(Number(row.interest_rate_pass) || 0).toFixed(1)}%`,
+                        row.Loan_rate || '', // 貸款成數
+                        row.interest_rate_original || '', // 原始利率
+                        row.interest_rate_pass || '', // 承作利率
                         Math.round(Number(row.charge_flow) || 0),
                         Math.round(Number(row.charge_agent) || 0),
                         Math.round(Number(row.charge_check) || 0),
