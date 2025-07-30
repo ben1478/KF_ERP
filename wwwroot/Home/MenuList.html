@@ -138,14 +138,18 @@
                                 <td width="13%" align="center">
                                     <input type="button" name="add" value="撥款及費用確認書" onclick="openHouse_sendcase_list();">
                                 </td>
-                                <td width="13%" align="center"></td>
+                                <td width="13%" align="center">
+                                    <input type="button" name="add" value="使用者管理" onclick="openUserM();">
+                                </td>
                                 <td width="13%" align="center"></td>
                             </tr>
                             <tr>
                                 <td width="13%" align="center">
                                     <input type="button" name="add" value="客訴資料" onclick="openComplaint_LQuery();">
                                 </td>
-                                <td width="13%" align="center"></td>
+                                <td width="13%" align="center">
+                                    <input type="button" name="add" value="角色管理" onclick="">
+                                </td>
                                 <td width="13%" align="center"></td>
                             </tr>
                             <tr>
@@ -351,5 +355,9 @@
 
     function AvgTatget_Rpt() {
         window.open(`/Rpt/AvgTarget_Rpt.html?User=${WebUser}&U_BC=${WebBC}`, 'list', 'scrollbars=yes,resizable=yes,width=1000,height=500,left=250,top=100')
+    }
+
+    function openUserM() {
+        window.open(`/HR/User_list.html?User=${WebUser}&U_BC=${WebBC}`, 'list', 'scrollbars=yes,resizable=yes,width=1300,height=500,left=250,top=100')
     }
 </script>

@@ -223,6 +223,7 @@
                 if (responseData.resultCode == "000") {
                     data = JSON.parse(responseData.objResult);  // 儲存資料
                     alert("修改成功");
+                    location.reload();
                 } else {
                     alert("修改失敗");
                 }
@@ -230,5 +231,7 @@
             .catch(error => {
                 alert('API 請求失敗:', error);
             });
+
+        
     }
 </script>
