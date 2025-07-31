@@ -7,10 +7,10 @@
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
     <script type="text/javascript" src="../tool_js/jquery.blockUI.js"></script>
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
-    <script type="text/javascript" src="../tool_js/jquery.table2excel.js"></script>
     <link href="../_include/main.css" rel="stylesheet" type="text/css">
     <script src="../Base.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
     <title>作業平台</title>
     <style type="text/css">
         /* 強制修正盒模型，確保不受任何外部 CSS 檔案干擾 */
@@ -51,15 +51,16 @@
             font-weight: bold;
         }
 
-        .status-label.unfulfilled {
-            background-color: #FFD2D2; /* 未齊件的背景色 */
-            color: #c00;
-            font-size: 12px;
-        }
+            .status-label.unfulfilled {
+                background-color: #FFD2D2; /* 未齊件的背景色 */
+                color: #c00;
+                font-size: 12px;
+            }
 
-        .status-label.other-fees {
-            color: blue;
-        }
+            .status-label.other-fees {
+                color: blue;
+            }
+
         .other-fees-link {
             color: blue;
             cursor: pointer;
@@ -75,7 +76,7 @@
 
         table {
             border-collapse: collapse;
-            width: 2800px; /* 根據您的欄位寬度總和設定 */
+            width: 2920px; /* 根據您的欄位寬度總和設定 */
             table-layout: fixed;
             border-spacing: 0;
         }
@@ -153,30 +154,32 @@
             left: 260px;
         }
 
+        /* Col 5: 介紹人 (新的凍結欄) */
         th:nth-child(5), td:nth-child(5) {
-            width: 150px;
+            width: 100px;
         }
 
         th.frozen-col:nth-child(5), td.frozen-col:nth-child(5) {
             left: 360px;
         }
 
-        /* 其他欄位寬度... */
+        /* Col 6: ID (新的非凍結欄) */
         th:nth-child(6), td:nth-child(6) {
             width: 120px;
         }
 
         th:nth-child(7), td:nth-child(7) {
-            width: 140px;
+            width: 120px;
         }
 
         th:nth-child(8), td:nth-child(8) {
-            width: 100px;
+            width: 140px;
         }
 
         th:nth-child(9), td:nth-child(9) {
-            width: 110px;
+            width: 100px;
         }
+
 
         th:nth-child(10), td:nth-child(10) {
             width: 110px;
@@ -191,11 +194,11 @@
         }
 
         th:nth-child(13), td:nth-child(13) {
-            width: 180px;
+            width: 110px;
         }
 
         th:nth-child(14), td:nth-child(14) {
-            width: 100px;
+            width: 180px;
         }
 
         th:nth-child(15), td:nth-child(15) {
@@ -207,7 +210,7 @@
         }
 
         th:nth-child(17), td:nth-child(17) {
-            width: 90px;
+            width: 100px;
         }
 
         th:nth-child(18), td:nth-child(18) {
@@ -227,11 +230,11 @@
         }
 
         th:nth-child(22), td:nth-child(22) {
-            width: 120px;
+            width: 90px;
         }
 
         th:nth-child(23), td:nth-child(23) {
-            width: 110px;
+            width: 120px;
         }
 
         th:nth-child(24), td:nth-child(24) {
@@ -243,14 +246,18 @@
         }
 
         th:nth-child(26), td:nth-child(26) {
-            width: 100px;
-        }
-
-        th:nth-child(27), td:nth-child(25) {
             width: 110px;
         }
 
-        th:nth-child(28), td:nth-child(26) {
+        th:nth-child(27), td:nth-child(27) {
+            width: 100px;
+        }
+
+        th:nth-child(28), td:nth-child(28) {
+            width: 110px;
+        }
+
+        th:nth-child(29), td:nth-child(29) {
             width: 100px;
         }
         /* 權限控制：隱藏欄位的 CSS */
@@ -295,6 +302,7 @@
             border-radius: 10px; /* 確保整個容器有圓角 */
             border: 1px solid #999;
         }
+
         .custom-modal-title {
             background-color: #e0e0e0; /* 灰色背景 */
             color: #333;
@@ -306,6 +314,7 @@
             border-top-left-radius: 10px;
             border-top-right-radius: 10px;
         }
+
         .custom-modal-content {
             padding: 15px;
             overflow-y: auto;
@@ -317,59 +326,62 @@
             margin: auto;
             border: 1px solid #666;
         }
-        #RefInfo th, #RefInfo td {
-            padding: 8px;
-            text-align: center;
-            border: 1px solid #666;
-            /* 為避免內容過長破壞版面，增加文字截斷效果 */
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        #RefInfo thead th {
-            background-color: #CCCCFF;
-        }
-        /* 設定 BlockUI 彈出視窗的表格中，表尾的樣式 */
-        #RefInfo tfoot tr td {
-            background-color: #CCCCFF; /* 與表頭相同的顏色 */
-            font-weight: bold;
-        }
-        #RefInfo tr.Sel td,
-        div.blockMsg table#RefInfo tr.Sel td {
-            font-weight: bold;
-            background-color: #FFD2D2; /* 使用 !important 強制覆蓋 */
-        }
 
-        /* --- 欄位寬度調整 --- */
-        /* Col 1: 專案名稱 */
-        #RefInfo th:nth-child(1), #RefInfo td:nth-child(1) {
-            width: 120px;
-        }
+            #RefInfo th, #RefInfo td {
+                padding: 8px;
+                text-align: center;
+                border: 1px solid #666;
+                /* 為避免內容過長破壞版面，增加文字截斷效果 */
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
 
-        /* Col 2: 貸款成數 (加寬) */
-        #RefInfo th:nth-child(2), #RefInfo td:nth-child(2) {
-            width: 110px;
-        }
+            #RefInfo thead th {
+                background-color: #CCCCFF;
+            }
+            /* 設定 BlockUI 彈出視窗的表格中，表尾的樣式 */
+            #RefInfo tfoot tr td {
+                background-color: #CCCCFF; /* 與表頭相同的顏色 */
+                font-weight: bold;
+            }
 
-        /* Col 3: 承作利率 (縮減) */
-        #RefInfo th:nth-child(3), #RefInfo td:nth-child(3) {
-            width: 80px;
-        }
+            #RefInfo tr.Sel td,
+            div.blockMsg table#RefInfo tr.Sel td {
+                font-weight: bold;
+                background-color: #FFD2D2; /* 使用 !important 強制覆蓋 */
+            }
 
-        /* Col 4: 佣金 (縮減) */
-        #RefInfo th:nth-child(4), #RefInfo td:nth-child(4) {
-            width: 80px;
-        }
+            /* --- 欄位寬度調整 --- */
+            /* Col 1: 專案名稱 */
+            #RefInfo th:nth-child(1), #RefInfo td:nth-child(1) {
+                width: 120px;
+            }
 
-        /* Col 5: 參考維護人 */
-        #RefInfo th:nth-child(5), #RefInfo td:nth-child(5) {
-            width: 100px;
-        }
+            /* Col 2: 貸款成數 (加寬) */
+            #RefInfo th:nth-child(2), #RefInfo td:nth-child(2) {
+                width: 110px;
+            }
 
-        /* Col 6: 參考建立時間 (加寬) */
-        #RefInfo th:nth-child(6), #RefInfo td:nth-child(6) {
-            width: 160px;
-        }
+            /* Col 3: 承作利率 (縮減) */
+            #RefInfo th:nth-child(3), #RefInfo td:nth-child(3) {
+                width: 80px;
+            }
+
+            /* Col 4: 佣金 (縮減) */
+            #RefInfo th:nth-child(4), #RefInfo td:nth-child(4) {
+                width: 80px;
+            }
+
+            /* Col 5: 參考維護人 */
+            #RefInfo th:nth-child(5), #RefInfo td:nth-child(5) {
+                width: 100px;
+            }
+
+            /* Col 6: 參考建立時間 (加寬) */
+            #RefInfo th:nth-child(6), #RefInfo td:nth-child(6) {
+                width: 160px;
+            }
         /* ===== START: 修正後的表尾樣式 ===== */
 
         /* 5. 為凍結表尾的「儲存格」設定通用樣式 */
@@ -419,7 +431,7 @@
                 /* 設定標籤欄位的樣式 */
                 .fee-form-table td.label-cell {
                     width: 80px; /* 仍然保持固定寬度，以對齊冒號 */
-                    text-align: left; 
+                    text-align: left;
                     font-weight: bold;
                     padding-right: 10px;
                 }
@@ -475,7 +487,8 @@
                         <th class="frozen-col">區</th>
                         <th class="frozen-col">進件日</th>
                         <th class="frozen-col">申請人</th>
-                        <th class="frozen-col">介紹人/ID</th>
+                        <th class="frozen-col">介紹人</th>
+                        <th>ID</th>
                         <th>銀行名稱</th>
                         <th>銀行帳號</th>
                         <th>業務</th>
@@ -734,9 +747,7 @@
                     //temp_actualCommCell = temp_actualCommCell + actualCommCell.numericValue;
                     //console.log(`actualCommCell=${actualCommCell.numericValue} total=${temp_actualCommCell}`);
 
-                    console.log(`${row.show_fund_company} - ${row.show_project_title}`);
-
-                    const introducerDisplay = `${row.CS_introducer || ''}<br>${(row.Introducer_PID || '').replace('NA', '')}`;
+                    //console.log(`${row.show_fund_company} - ${row.show_project_title}`);
                     const commRemarkDisplay = (displayAMT === 'Y') ? (row.Comm_Remark || '') : 'NA';
 
                     // 3. 渲染 <tr> (使用與 SQL 別名一致的命名)
@@ -745,7 +756,8 @@
                         <td class="frozen-col">${row.U_BC_name || ''}</td>
                         <td class="frozen-col">${row.Send_amount_date || ''}</td>
                         <td class="frozen-col">${row.CS_name || ''}</td>
-                        <td class="frozen-col">${introducerDisplay}</td>
+                        <td class="frozen-col">${row.CS_introducer || ''}</td>
+                        <td>${row.Introducer_PID || ''}</td>                        
                         <td>${row.Bank_name || ''}</td><td>${row.Bank_account || ''}</td><td>${row.plan_name || ''}</td>
                         <td>${row.Send_result_date || ''}</td><td>${formatNumber(row.pass_amount)}</td><td>${row.get_amount_date || ''}</td>
                         <td>${formatNumber(row.get_amount)}</td><td>${row.show_fund_company || ''}-${row.show_project_title || ''}</td>
@@ -837,9 +849,9 @@
                     // 白色底色
                     otherFeesRow.style.backgroundColor = '#fff'; 
         
-                    // 找到「對保費」(第19欄) 和「結餘」(第20欄) 的位置
+                    // 找到「對保費」(第20欄) 和「結餘」(第21欄) 的位置
                     otherFeesRow.innerHTML = `
-                        <td colspan="20"></td>
+                        <td colspan="21"></td>
                         <td style="text-align:right; font-weight:bold;">其他費用:</td>
                         <td style="color:red; font-weight:bold;">-${formatNumber(totalOtherAmount)}</td>
                         <td colspan="6"></td>
@@ -855,7 +867,7 @@
                 footerRow.classList.add('footer-row-misaligned');
                 footerRow.innerHTML = `
                     <td class="frozen-col" colspan="5">總筆數: ${data.length}</td>
-                    <td colspan="5"></td>
+                    <td colspan="6"></td>
                     <td style="text-align:right;">合計:</td>
                     <td>${formatNumber(totals.get_amount)}</td>
                     <td colspan="4"></td><td>${formatNumber(totals.charge_flow)}</td><td>${formatNumber(totals.charge_agent)}</td>
@@ -873,7 +885,7 @@
                     misalignedFooterRow.classList.add('footer-row-misaligned');
                     misalignedFooterRow.innerHTML = `
                         <td class="frozen-col"  colspan="5">未齊件筆數: ${misalignedCount}</td>
-                        <td colspan="5"></td>
+                        <td colspan="6"></td>
                         <td style="text-align:right;">未齊件合計:</td>
                         <td>${formatNumber(misalignedTotals.get_amount)}萬</td>
                         <td colspan="4"></td><td>${formatNumber(misalignedTotals.charge_flow)}</td><td>${formatNumber(misalignedTotals.charge_agent)}</td>
@@ -1795,196 +1807,180 @@
             /**
              * exportToExcel 函式 =====
              */
-            function exportToExcel() {
-                // 從快取中讀取資料
+            async function exportToExcel() {
                 if (!reportCache.data || reportCache.data.length === 0) {
                     alert("沒有可匯出的資料。");
                     return;
                 }
 
-                // 1. 定義表頭 (順序必須與下方資料處理的順序一致)
+                // 1. 建立 Excel 工作簿和工作表
+                const workbook = new ExcelJS.Workbook();
+                const worksheet = workbook.addWorksheet('核准放款表');
+                const currencyFormat = '#,##0';
+                // 2. 定義表頭並設定欄位寬度
                 const headers = [
-                    "No.", "區", "進件日", "申請人", "介紹人/ID", "銀行名稱", "銀行帳號",
+                    "No.", "區", "進件日", "申請人", "介紹人", "ID", "銀行名稱", "銀行帳號",
                     "業務", "核准日", "核准金額(萬)", "撥款日", "撥款金額(萬)", "專案",
                     "貸款成數(%)", "原始利率(%)", "承作利率(%)", "收費", "代書費用",
                     "對保費", "補貼代書費", "補貼過車費", "結餘", "補貼息", "退傭備註", "預估退佣金",
                     "作業服務費", "實際退佣金", "委對/外對"
                 ];
+    
+                worksheet.columns = [
+                    { header: headers[0], key: 'no', width: 6 },
+                    { header: headers[1], key: 'area', width: 12 },
+                    { header: headers[2], key: 'applyDate', width: 12 },
+                    { header: headers[3], key: 'applicant', width: 12 },
+                    { header: headers[4], key: 'introducer', width: 12 },
+                    { header: headers[5], key: 'introducerId', width: 15 },
+                    { header: headers[6], key: 'bankName', width: 15 },
+                    { header: headers[7], key: 'bankAccount', width: 18 },
+                    { header: headers[8], key: 'sales', width: 12 },
+                    { header: headers[9], key: 'approveDate', width: 12 },
+                    { header: headers[10], key: 'passAmount', width: 15, style: { numFmt: '#,##0' } },
+                    { header: headers[11], key: 'disburseDate', width: 16 }, // 加寬撥款日
+                    { header: headers[12], key: 'disburseAmount', width: 15, style: { numFmt: '#,##0' } },
+                    { header: headers[13], key: 'project', width: 25 },
+                    { header: headers[14], key: 'ltv', width: 12 },
+                    { header: headers[15], key: 'origRate', width: 12 },
+                    { header: headers[16], key: 'actualRate', width: 12 },
+                    { header: headers[17], key: 'charge1', width: 12, style: { numFmt: '#,##0' } },
+                    { header: headers[18], key: 'charge2', width: 12, style: { numFmt: '#,##0' } },
+                    { header: headers[19], key: 'charge3', width: 12, style: { numFmt: '#,##0' } },
+                    { header: headers[20], key: 'subsidyAgent', width: 12, style: { numFmt: '#,##0' } },
+                    { header: headers[21], key: 'subsidyFares', width: 12, style: { numFmt: '#,##0' } },
+                    { header: headers[22], key: 'balance', width: 12, style: { numFmt: '#,##0' } },
+                    { header: headers[23], key: 'subsidyInterest', width: 12, style: { numFmt: '#,##0' } },
+                    { header: headers[24], key: 'commRemark', width: 30 },
+                    { header: headers[25], key: 'estComm', width: 15, style: { numFmt: '#,##0' } },
+                    { header: headers[26], key: 'serviceFee', width: 15, style: { numFmt: '#,##0' } },
+                    { header: headers[27], key: 'actualComm', width: 15, style: { numFmt: '#,##0' } },
+                    { header: headers[28], key: 'comparison', width: 12 },
+                ];
 
-                // 2. 處理資料：將物件陣列轉換為陣列的陣列，並在過程中進行格式化
-                const dataForExport = reportCache.data.map((row, index) => {
-                    const serviceFeeCell = generateServiceFeeCell(row, displayAMT, '', index);
-                    const actualCommCell = generateActualCommissionCell(row, displayAMT, '', serviceFeeCell.value);
-            
-                    return [
-                        index + 1,
-                        row.U_BC_name,
-                        row.Send_amount_date,
-                        row.CS_name,
-                        `${row.CS_introducer || ''} / ${row.Introducer_PID || ''}`,
-                        row.Bank_name,
-                        String(row.Bank_account || ''), // **需求1**: 確保銀行帳號是文字
-                        row.plan_name,
-                        row.Send_result_date,
-                        Math.round(Number(row.pass_amount) || 0),
-                        row.get_amount_date,
-                        Math.round(Number(row.get_amount) || 0),
-                        `${row.show_fund_company || ''}-${row.show_project_title || ''}`,
-                        row.Loan_rate || '', // 貸款成數
-                        row.interest_rate_original || '', // 原始利率
-                        row.interest_rate_pass || '', // 承作利率
-                        Math.round(Number(row.charge_flow) || 0),
-                        Math.round(Number(row.charge_agent) || 0),
-                        Math.round(Number(row.charge_check) || 0),
-                        Math.round(Number(row.Subsidy_agent) || 0),
-                        Math.round(Number(row.Subsidy_amt) || 0),
-                        Math.round(Number(row.get_amount_final) || 0),
-                        Math.round(Number(row.subsidized_interest) || 0),
-                        row.Comm_Remark,
-                        Math.round(Number(row.Expe_comm_amt) || 0),
-                        Math.round(serviceFeeCell.value || 0),
-                        Math.round(actualCommCell.numericValue || 0),
-                        row.Comparison
-                    ];
+                // 3. 處理並加入資料列
+                reportCache.data.forEach((row, index) => {
+                    const IsmisalignedSUM = (row.misaligned_date && row.ismisaligned === 'ThisMon') ? 'Y' : 'N';
+                    const commissionData = generateCommissionCells(row, displayAMT, IsmisalignedSUM, '', index);
+                    const actualCommCell = generateActualCommissionCell(row, displayAMT, IsmisalignedSUM, commissionData.serviceFee.numericValue);
+    
+                    worksheet.addRow({
+                        no: index + 1,
+                        area: row.U_BC_name,
+                        applyDate: row.Send_amount_date,
+                        applicant: row.CS_name,
+                        introducer: row.CS_introducer,
+                        introducerId: row.Introducer_PID,
+                        bankName: row.Bank_name,
+                        bankAccount: String(row.Bank_account || ''),
+                        sales: row.plan_name,
+                        approveDate: row.Send_result_date,
+                        passAmount: Number(row.pass_amount) || 0,
+                        disburseDate: row.get_amount_date,
+                        disburseAmount: Number(row.get_amount) || 0,
+                        project: `${row.show_fund_company || ''}-${row.show_project_title || ''}`,
+                        ltv: row.Loan_rate || '',
+                        origRate: row.interest_rate_original || '',
+                        actualRate: row.interest_rate_pass || '',
+                        charge1: Number(row.charge_flow) || 0,
+                        charge2: Number(row.charge_agent) || 0,
+                        charge3: Number(row.charge_check) || 0,
+                        subsidyAgent: Number(row.Subsidy_agent) || 0,
+                        subsidyFares: Number(row.Subsidy_amt) || 0,
+                        balance: Number(row.get_amount_final) || 0,
+                        subsidyInterest: Number(row.subsidized_interest) || 0,
+                        commRemark: (displayAMT === 'Y') ? row.Comm_Remark : 'NA',
+                        estComm: commissionData.estimatedCommission.displayText,
+                        serviceFee: commissionData.serviceFee.displayText,
+                        actualComm: actualCommCell.displayText,
+                        comparison: row.Comparison
+                    });
                 });
 
-                // 手動建立並加入表尾列 =====
-                let footerRows = [];
+                // 4. 新增表尾列並設定樣式與合併
+                const footerFont = { color: { argb: 'FF0000FF' }, bold: true }; // 藍色粗體
+                const footerAlignRight = { horizontal: 'right' };
+                const footerAlignLeft = { horizontal: 'left' }; // 靠左對齊
 
-                // 1. 加入「其他費用」列 (如果有)
+                // 4.1 其他費用列
                 if (reportCache.totalOtherAmount > 0) {
-                    const otherFeesRow = Array(headers.length).fill(''); // 建立一個空白陣列
-                    otherFeesRow[20] = '其他費用:';
-                    otherFeesRow[21] = -reportCache.totalOtherAmount;
-                    footerRows.push(otherFeesRow);
+                    const row = worksheet.addRow([]);
+                    const cellLabel = row.getCell(21);
+                    const cellValue = row.getCell(22);
+                    cellLabel.value = '其他費用:';
+                    cellValue.value = -reportCache.totalOtherAmount;
+                    cellLabel.font = footerFont;
+                    cellValue.font = footerFont;
+                    cellValue.numFmt = currencyFormat;
+                    cellLabel.alignment = footerAlignRight;
+                    cellValue.alignment = footerAlignRight;
                 }
 
-                // 2. 加入「未齊件合計」列 (如果有)
+                // 4.2 總合計列
+                const totalRow = worksheet.addRow([]);
+                totalRow.getCell(1).value = `總筆數: ${reportCache.data.length}`;
+                totalRow.getCell(12).value = '合計:';
+                totalRow.getCell(13).value = reportCache.totals.get_amount;
+                totalRow.getCell(18).value = reportCache.totals.charge_flow;
+                totalRow.getCell(19).value = reportCache.totals.charge_agent;
+                totalRow.getCell(20).value = reportCache.totals.charge_check;
+                totalRow.getCell(21).value = reportCache.totals.Subsidy_agent;
+                totalRow.getCell(22).value = reportCache.totals.Subsidy_amt;
+                totalRow.getCell(23).value = reportCache.totals.get_amount_final;
+                totalRow.getCell(24).value = reportCache.totals.subsidized_interest;
+                totalRow.getCell(26).value = reportCache.totals.Expe_comm_amt;
+                totalRow.getCell(27).value = reportCache.totals.act_service_amt;
+                totalRow.getCell(28).value = reportCache.totals.act_comm_amt;
+                worksheet.mergeCells(totalRow.number, 1, totalRow.number, 5); // **合併儲存格**
+                worksheet.mergeCells(totalRow.number, 6, totalRow.number, 11);
+                totalRow.eachCell({ includeEmpty: true }, (cell) => {
+                    if(cell.value) {
+                        cell.font = footerFont;
+                        cell.alignment = footerAlignRight;
+                        if (typeof cell.value === 'number') cell.numFmt = currencyFormat;
+                    }
+                });
+                totalRow.getCell(1).alignment = footerAlignLeft; // (總筆數) 的對齊方式單獨設為靠左
+                totalRow.getCell(12).alignment = footerAlignLeft;  //「合計:」文字儲存格靠左
+                // 4.3 未齊件合計列
                 if (reportCache.misalignedCount > 0) {
-                    const misalignedRow = Array(headers.length).fill(null);
-                    misalignedRow[0] = `未齊件筆數: ${reportCache.misalignedCount}`;
-                    misalignedRow[10] = '未齊件合計:';
-                    misalignedRow[11] = reportCache.misalignedTotals.get_amount;
-                    misalignedRow[16] = reportCache.misalignedTotals.charge_flow;
-                    misalignedRow[17] = reportCache.misalignedTotals.charge_agent;
-                    misalignedRow[18] = reportCache.misalignedTotals.charge_check;
-                    misalignedRow[19] = reportCache.misalignedTotals.Subsidy_agent;
-                    misalignedRow[20] = reportCache.misalignedTotals.Subsidy_amt;
-                    misalignedRow[21] = reportCache.misalignedTotals.get_amount_final;
-                    misalignedRow[22] = reportCache.misalignedTotals.subsidized_interest;
-                    //misalignedRow[24] = reportCache.misalignedTotals.Expe_comm_amt;
-                    //misalignedRow[25] = reportCache.misalignedTotals.act_service_amt;
-                    //misalignedRow[26] = reportCache.misalignedTotals.act_comm_amt;
-                    footerRows.push(misalignedRow);
-                }
+                    const misalignedRow = worksheet.addRow([]);
+                    misalignedRow.getCell(1).value = `未齊件筆數: ${reportCache.misalignedCount}`;
+                    misalignedRow.getCell(12).value = '未齊件合計:';
+                    misalignedRow.getCell(13).value = `${reportCache.misalignedTotals.get_amount}萬`;
+                    misalignedRow.getCell(18).value = reportCache.misalignedTotals.charge_flow;
+                    misalignedRow.getCell(19).value = reportCache.misalignedTotals.charge_agent;
+                    misalignedRow.getCell(20).value = reportCache.misalignedTotals.charge_check;
+                    misalignedRow.getCell(21).value = reportCache.misalignedTotals.Subsidy_agent;
+                    misalignedRow.getCell(22).value = reportCache.misalignedTotals.Subsidy_amt;
+                    misalignedRow.getCell(23).value = reportCache.misalignedTotals.get_amount_final;
+                    misalignedRow.getCell(24).value = reportCache.misalignedTotals.subsidized_interest;
 
-                // 3. 加入「總合計」列
-                const totalRow = Array(headers.length).fill(null);
-                totalRow[0] = `總筆數: ${reportCache.data.length}`;
-                totalRow[10] = '合計:';
-                totalRow[11] = reportCache.totals.get_amount;
-                totalRow[16] = reportCache.totals.charge_flow;
-                totalRow[17] = reportCache.totals.charge_agent;
-                totalRow[18] = reportCache.totals.charge_check;
-                totalRow[19] = reportCache.totals.Subsidy_agent;
-                totalRow[20] = reportCache.totals.Subsidy_amt;
-                totalRow[21] = reportCache.totals.get_amount_final;
-                totalRow[22] = reportCache.totals.subsidized_interest;
-                totalRow[24] = reportCache.totals.Expe_comm_amt;
-                totalRow[25] = reportCache.totals.act_service_amt;
-                totalRow[26] = reportCache.totals.act_comm_amt;
-                footerRows.push(totalRow);
-
-                // 3. 建立工作表 (Worksheet)
-                // 將表頭、內容、表尾組合起來
-                const sheetData = [headers, ...dataForExport, ...footerRows];
-                const ws = XLSX.utils.aoa_to_sheet(sheetData);
-
-                // 混合式欄寬計算 =====
-                // **步驟 1: 先根據「所有」內容計算出一個初始的欄寬設定**
-                const colWidths = headers.map((_, i) => {
-                    const all_lengths = sheetData.map(row => getCellVisualWidth(row[i]));
-                    return { wch: Math.max(...all_lengths) };
-                });
-
-                // **步驟 2: 手動校正「No.」欄 (第一欄，索引為 0) 的寬度**
-                // 我們只取「表頭」和「資料內容」來重新計算第一欄的寬度，忽略表尾的影響
-                const noColumnData = [headers[0], ...dataForExport.map(row => row[0])];
-                const noColumnMaxWidth = Math.max(...noColumnData.map(cell => getCellVisualWidth(cell)));
-                // 用這個更精確、更窄的寬度，覆蓋掉原本的設定
-                colWidths[0].wch = noColumnMaxWidth;
-
-                // **步驟 3: 為所有欄位寬度增加一點緩衝空間**
-                colWidths.forEach(width => {
-                    width.wch += 2;
-                });
-
-                ws['!cols'] = colWidths;
-        
-                // 5. **需求4**: 設定儲存格格式 (千分位)
-                const currencyFormat = '#,##0';
-                const range = XLSX.utils.decode_range(ws['!ref']);
-                for (let R = range.s.r + 1; R <= range.e.r; ++R) { // 從第二行 (資料列) 開始
-                    // 根據欄位索引設定格式 (0-based index)
-                    const colsToFormat = [9, 11, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26]; 
-                    colsToFormat.forEach(C => {
-                        const cell_address = { c: C, r: R };
-                        const cell_ref = XLSX.utils.encode_cell(cell_address);
-                        if (ws[cell_ref]) {
-                            ws[cell_ref].z = currencyFormat;
+                    worksheet.mergeCells(misalignedRow.number, 1, misalignedRow.number, 5); // **合併儲存格**
+                    worksheet.mergeCells(misalignedRow.number, 6, misalignedRow.number, 11); // **合併儲存格**
+                    misalignedRow.eachCell({ includeEmpty: true }, (cell) => {
+                        if(cell.value) {
+                            cell.font = footerFont;
+                            cell.alignment = footerAlignRight;
+                            if (typeof cell.value === 'number') cell.numFmt = currencyFormat;
                         }
                     });
-            
-                    // **需求1**: 再次確保銀行帳號欄位(第6欄)是文字格式
-                     const bankAccountCellRef = XLSX.utils.encode_cell({c: 6, r: R});
-                     if(ws[bankAccountCellRef]) {
-                         ws[bankAccountCellRef].t = 's';
-                     }
+                    misalignedRow.getCell(1).alignment = footerAlignLeft; // (未齊件筆數) 的對齊方式單獨設為靠左
+                    misalignedRow.getCell(12).alignment = footerAlignLeft; // 「未齊件合計:」文字儲存格靠左
                 }
-                // ===== START:  定義要合併的儲存格範圍 =====
-                const merges = [];
-                let footerRowIndex = 1 + dataForExport.length; // 表頭佔 1 列，資料 N 列
+                
+                // 5. 產生 buffer 並觸發下載
+                workbook.xlsx.writeBuffer().then(buffer => {
+                    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `核准放款表_佣金表-${getFormattedDate()}.xlsx`;
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                });
+            }            
 
-                if (reportCache.totalOtherAmount > 0) {
-                    footerRowIndex++; // 如果有其他費用列，起始索引要 +1
-                    // 1. 計算該儲存格的位置 (row 是 0-based index)
-                    const otherFeesCellRef = XLSX.utils.encode_cell({ r: footerRowIndex, c: 20 }); // 第 21 欄，索引為 20
-
-                    // 2. 確保該儲存格存在
-                    if (ws[otherFeesCellRef]) {
-                        // 3. 為其加上樣式物件 (s-property)
-                        ws[otherFeesCellRef].s = {
-                            font: {
-                                color: { rgb: "FF0000FF" } // ARGB 格式的藍色 (Alpha, Red, Green, Blue)
-                            },
-                            alignment: {
-                                horizontal: "right" // 水平靠右
-                            },
-                            numFmt: "#,##0" // 千分位整數格式
-                        };
-                    }
-                }
-    
-                if (reportCache.misalignedCount > 0) {
-                    // 合併「未齊件筆數」列的第一個到第五個儲存格 (索引 0 到 4)
-                    merges.push({ s: { r: footerRowIndex, c: 0 }, e: { r: footerRowIndex, c: 4 } });
-                    footerRowIndex++; // 指向下一個表尾列
-                }
-
-                // 合併「總筆數」列的第一個到第五個儲存格 (索引 0 到 4)
-                merges.push({ s: { r: footerRowIndex, c: 0 }, e: { r: footerRowIndex, c: 4 } });
-    
-                // 將定義好的合併規則賦予 worksheet
-                ws['!merges'] = merges;
-                // ===== END:  定義要合併的儲存格範圍 =====
-
-                // 2. 組合檔名
-                const filename = `核准放款表_佣金表-${getFormattedDate()}.xlsx`;
-                // 6. 建立工作簿 (Workbook) 並下載
-                const wb = XLSX.utils.book_new();
-                XLSX.utils.book_append_sheet(wb, ws, '核准放款表');
-                XLSX.writeFile(wb, filename);
-            }
             function getFormattedDate() {
                 const today = new Date();
                 const year = today.getFullYear();
