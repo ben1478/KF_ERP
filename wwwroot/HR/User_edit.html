@@ -252,8 +252,8 @@
 </html>
 <script>
     const params = new URLSearchParams(window.location.search);
-    const U_num = params.get('U_num');
-    const WebUser = params.get('User');
+    const U_num = decryptParameter(params.get('U_num'));
+    const WebUser = decryptParameter(params.get('User'));
     let data = [];
 
     loadRolmDropdown();

@@ -44,9 +44,12 @@
 </html>
 <script>
     const params = new URLSearchParams(window.location.search);
-    const U_num = params.get('U_num');
+    const U_num = decryptParameter(params.get('U_num'));
+    const WebUser = decryptParameter(params.get('User'));
+
     let data = [];
     fetchData();
+
     function fetchData() {
         const url = `${BASE_URL}/AE_HR/User_M_SQuery?U_num=${encodeURIComponent(U_num)}`;
 
@@ -81,7 +84,7 @@
         let Psw2 = document.querySelector('input[name="U_psw_2"]').value;
         console.log(U_num + ';' + Psw1);
         if (Psw1 === Psw2) {
-            const url = `${BASE_URL}/AE_HR/Password_Upd?U_num=${encodeURIComponent(U_num)}&Psw=${encodeURIComponent(Psw1)}`;
+            const url = `${BASE_URL}/AE_HR/Password_Upd?U_num=${encodeURIComponent(U_num)}&Psw=${encodeURIComponent(Psw1)}&User=${encodeURIComponent(WebUser)}`;
             fetch(url, {
                 method: 'POST',
                 headers: {

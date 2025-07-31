@@ -27,25 +27,29 @@
             <tr>
                 <td width="40"> </td>
                 <td width="1000">
-                    <span>ID104：</span>
-                    <select name="ID104" id="ID104" style="width:80px">
-                        <option value="">ALL</option>
-                        <option value="Y">有</option>
-                        <option value="N">沒有</option>
-                    </select>
-                    <span>員編／姓名：</span><input type="text" name="queryword" size="10" value="" class="c12-k">
-                    <span>(模糊比對)  公司別：</span><select name="U_BC" id="U_BC" class=""></select>&nbsp;&nbsp;
-                    <span>在職狀態：</span>
-                    <select name="job_status" id="job_status" style="width:80px">
-                        <option value="">請選擇</option>
-                        <option value="Y">在職</option>
-                        <option value="N">離職</option>
-                    </select>
+                    <span id="ID104_wrapper">
+                        ID104：
+                        <select name="ID104" id="ID104" style="width:80px">
+                            <option value="">ALL</option>
+                            <option value="Y">有</option>
+                            <option value="N">沒有</option>
+                        </select>
+                    </span>
+                    <span>員編／姓名：<input type="text" name="queryword" size="10" value="" class="c12-k"></span>
+                    <span>(模糊比對)  公司別：<select name="U_BC" id="U_BC" class=""></select></span>&nbsp;&nbsp;
+                    <span>
+                        在職狀態：
+                        <select name="job_status" id="job_status" style="width:80px">
+                            <option value="">請選擇</option>
+                            <option value="Y">在職</option>
+                            <option value="N">離職</option>
+                        </select>
+                    </span>
                     &nbsp;&nbsp;
-                    <span>角色名稱：</span><select name="role" id="role" style="width:80px"></select>
+                    <span>角色名稱：<select name="role" id="role" style="width:80px"></select></span>
                     <input type="button" name="query" class="" value="查詢" onclick="fetchData();">
                 <td width="160"  align="right">
-                    <input type="button" name="add" value="新增使用者" onclick="javascript: void window.open('User_add.html','add','scrollbars=yes,resizable=yes,width=800,height=500,left=250,top=100');">
+                    <input type="button" name="add" value="新增使用者" onclick="addUser(); ">
                 </td>
             </tr>
         </tbody>
@@ -60,7 +64,7 @@
                         <thead>
                             <tr align="center" bgcolor="#CCCCFF" class="c12-k">
                                 <td width="50">序號</td>
-                                <!--<td width="60">ID_104</td>-->
+                                <td id="ID104_row" width="60">ID_104</td>
                                 <td width="80">公司別</td>
                                 <td width="120">職稱</td>
                                 <td width="80">角色</td>
@@ -72,7 +76,6 @@
                                 <td width="60">是否在職</td>
                                 <td width="60">夾檔管理</td>
                                 <td width="30">修改</td>
-                                <!--<td class="none" width="30">刪除</td>-->
                                 <td width="50">密碼<br>變更</td>
                                 <td width="50">年假<br>管理</td>
                                 <td width="50">人事<br>異動</td>
@@ -90,9 +93,9 @@
 
 </html>
 <script>
-    const params = new URLSearchParams(window.location.search);
-    const WebUser = params.get('User');
-    const WebBC = params.get('U_BC');
+    const Params = getQueryParams();
+    let WebUser = Params.WebUser;
+    let WebBC = Params.WebBC;
 
     const itemsPerPage = 20;  
     let currentPage = 1;  
@@ -105,19 +108,24 @@
     loadRolmDropdown();
     fetchData();
 
-    function fetchData() {
-        const url = `${BASE_URL}/AE_HR/User_M_LQuery`;
-        const queryword = document.querySelector('input[name="queryword"]').value;  // 員編／姓名
-        const U_BC = document.querySelector('select[name="U_BC"]').value;  // 公司別
-        const Job_Status = document.querySelector('select[name="job_status"]').value;  // 在職狀態
-        const U_Role = document.querySelector('select[name="role"]').value;  // 角色名稱
+    if (WebUser === 'AA999') {
+        document.getElementById('ID104_wrapper').style.display = '';
+        document.getElementById('ID104_row').style.display = '';
+    } else {
+        document.getElementById('ID104_wrapper').style.display = 'none';
+        document.getElementById('ID104_row').style.display = 'none';
+    }
 
+    function fetchData() {
         const requestData = {
-            U_Num_Name: queryword,
-            U_BC: U_BC,
-            Job_Status: Job_Status,
-            U_Role: U_Role
+            U_Num_Name: document.querySelector('input[name="queryword"]').value,
+            U_BC: document.querySelector('select[name="U_BC"]').value,
+            Job_Status: document.querySelector('select[name="job_status"]').value,
+            U_Role: document.querySelector('select[name="role"]').value,
+            ID_104: document.querySelector('select[name="ID104"]').value
         };
+
+        const url = `${BASE_URL}/AE_HR/User_M_LQuery`;
 
         fetch(url, {
             method: 'POST',
@@ -180,21 +188,21 @@
                         "../images/edit.png",
                         "修改",
                         function () {
-                            window.open(`../HR/User_edit.html?U_num=${item.U_num}&User=${WebUser}`, '_blank', 'scrollbars=yes,resizable=yes,top=100,width=800,height=500');
+                            window.open(`../HR/User_edit.html?U_num=${encryptParameter(item.U_num)}&User=${encryptParameter(WebUser)}`, '_blank', 'scrollbars=yes,resizable=yes,top=100,width=800,height=500');
                         }
                     ));
                     row.appendChild(createButtonCell(
                         "../images/edit.png",
                         "密碼變更",
                         function () {
-                            window.open(`../HR/EditPsw.html?U_num=${item.U_num}&User=${WebUser}`, '_blank', 'scrollbars=yes,resizable=yes,top=100,width=500,height=300');
+                            window.open(`../HR/EditPsw.html?U_num=${encryptParameter(item.U_num)}&User=${encryptParameter(WebUser)}`, '_blank', 'scrollbars=yes,resizable=yes,top=100,width=500,height=300');
                         }
                     ));
                     row.appendChild(createButtonCell(
                         "../images/edit.png",
                         "年假異動",
                         function () {
-                            window.open(`../HR/Hday.html?U_num=${item.U_num}&User=${WebUser}`, '_blank', 'scrollbars=yes,resizable=yes,top=50,width=1200,height=500');
+                            window.open(`../HR/Hday.html?U_num=${encryptParameter(item.U_num)}&User=${encryptParameter(WebUser)}`, '_blank', 'scrollbars=yes,resizable=yes,top=50,width=1200,height=500');
                         }
                     ));
                     row.appendChild(createButtonCell(
@@ -205,8 +213,17 @@
                         }
                     ));
                 } else {
-                    cell.textContent = item[key];
-                    row.appendChild(cell);
+                    if (WebUser === 'AA999' && key === 'ID_104') {
+                        if (item[key] === null || item[key] === '') {
+                            cell.innerHTML = `<a href="#" onclick="GetSignIn_104('${item.U_num}')">取得ID_104</a>`;
+                        } else {
+                            cell.textContent = item[key];
+                        }
+                        row.appendChild(cell);
+                    } else if (key !== 'ID_104') {
+                        cell.textContent = item[key];
+                        row.appendChild(cell);
+                    }
                 }
             });
             tbody.appendChild(row);
@@ -234,5 +251,97 @@
             .catch(error => {
                 console.error('取得資料時發生錯誤：', error);
             });
+    }
+
+    function addUser() {
+        window.open(`../HR/User_add.html?User=${encryptParameter(WebUser)}`, 'add', 'scrollbars=yes,resizable=yes,width=800,height=500,left=250,top=100');
+    }
+
+    function GetSignIn_104(p_u_num) {
+        var Param =
+        {
+            "USER_ACCOUNT": "KF_ERP",
+            "USER_PWD": "Kf52611690"
+        };
+        $.ajax({
+            url: "http://192.168.1.239:3001/api/auth/signIn",
+            type: 'POST',
+            data: JSON.stringify(Param),
+            contentType: 'application/json',
+            async: false,
+            success: function (response) {
+                if (response.code == "200") {
+                    var ACCESS_TOKEN = response.data.ACCESS_TOKEN;
+                    GetID_104(ACCESS_TOKEN, p_u_num)
+                }
+                else {
+                    alert("GetSignIn_104轉入失敗,請聯絡IT:" + response.msg)
+                }
+            },
+            error: function (xhr, status, error) {
+                alert("Call104_singleLeave轉入失敗,請聯絡IT")
+                Result = false;
+            }
+        });
+    }
+
+    function GetID_104(ACCESS_TOKEN, p_u_num) {
+        var Param =
+        {
+            "CO_CODE": "52611690",
+            "EMP_NO": p_u_num
+        }
+
+        var result = {};
+        result.code = "000";
+        result.date = {};
+        $.ajax({
+            url: "http://192.168.1.239:3001/api/ed/emp_id",
+            type: "POST",
+            headers: { "Accept": "*/*", "Authorization": "Bearer " + ACCESS_TOKEN },
+            data: JSON.stringify(Param),
+            contentType: "application/json",
+            async: false,
+            success: function (response) {
+                if (response.code == "200") {
+                    if (response.data.length > 0) {
+                        var EMP_ID = response.data[0].EMP_ID;
+                        if ((window.confirm("ID_104:" + EMP_ID + ";是否更新??"))) {
+                            $.ajax({
+                                url: `${BASE_URL}/AE_HR/User_104_Upd`,
+                                type: 'POST',
+                                contentType: 'application/json',
+                                data: JSON.stringify({
+                                    U_num: p_u_num,
+                                    ID_104: EMP_ID
+                                }),
+                                async: false,
+                                success: function (response) {
+                                    if (response.resultCode === "000") {
+                                        alert("更新成功");
+                                        btnQuery.click();
+                                    }
+                                    else {
+                                        alert("取得ID_104失敗," + response.resultMsg)
+                                    }
+                                },
+                                error: function (xhr, status, error) {
+                                    alert("Modify_ID104取得失敗,請聯絡IT")
+                                }
+                            });
+                        }
+                    }
+                }
+                else {
+                    result.code = "999";
+                    alert("GetID_104 失敗,請聯絡IT:" + response.msg)
+                }
+            },
+            error: function (xhr, status, error) {
+                alert("GetID_104 失敗," + xhr.responseJSON.msg + ",請聯絡IT")
+                result.code = "999";
+            }
+        });
+        return result
     }
 </script>

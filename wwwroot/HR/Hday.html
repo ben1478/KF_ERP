@@ -59,7 +59,8 @@
 </html>
 <script>
     const params = new URLSearchParams(window.location.search);
-    const U_num = params.get('U_num');
+    const U_num = decryptParameter(params.get('U_num'));
+    const WebUser = decryptParameter(params.get('User'));
 
     dateTW();
     fetchDataUser();
@@ -94,7 +95,7 @@
     }
 
     function fetchData() {
-        const url = `${BASE_URL}/AE_HR/User_Hday_List_Change?U_num=${encodeURIComponent(U_num)}`;
+        const url = `${BASE_URL}/AE_HR/User_Hday_List_Change?U_num=${encodeURIComponent(U_num)}&User=${encodeURIComponent(WebUser)}`;
 
         fetch(url, {
             method: 'POST',
@@ -202,7 +203,8 @@
                 H_day_adjust: parseFloat(formDataObject[`H_day_adjust_${index}`]) || 0,
                 H_hours: parseFloat(formDataObject[`H_hours_${index}`]) || 0,
                 H_day_adjust_note: formDataObject[`H_day_adjust_note_${index}`] || "",
-                H_day_total: (parseFloat(formDataObject[`H_day_base_${index}`]) || 0) + (parseFloat(formDataObject[`H_day_adjust_${index}`]) || 0)
+                H_day_total: (parseFloat(formDataObject[`H_day_base_${index}`]) || 0) + (parseFloat(formDataObject[`H_day_adjust_${index}`]) || 0),
+                User: WebUser
             };
 
             userHdays.push(userHday);
