@@ -722,7 +722,7 @@
                 const totals = { pass_amount: 0, get_amount: 0, charge_flow: 0, charge_agent: 0, charge_check: 0, Subsidy_agent: 0, Subsidy_amt: 0, get_amount_final: 0, subsidized_interest: 0, Expe_comm_amt: 0, act_service_amt: 0, act_comm_amt: 0 };
                 const misalignedTotals = { pass_amount: 0, get_amount: 0, charge_flow: 0, charge_agent: 0, charge_check: 0, Subsidy_agent: 0, Subsidy_amt: 0, get_amount_final: 0, subsidized_interest: 0, Expe_comm_amt: 0, act_service_amt: 0, act_comm_amt: 0 };
                 let misalignedCount = 0;
-    
+                let footerRowsCount = 0; // 記錄表尾的行數
                 const selYearS = document.getElementById('SelYear_S').value;
 
                 //let temp_commissionData = 0;
@@ -857,6 +857,7 @@
                         <td colspan="6"></td>
                     `;
                     tfoot.appendChild(otherFeesRow);
+                    footerRowsCount++;
                 }
 
                 // 從總計的「結餘」中減去其他費用
@@ -879,6 +880,8 @@
                     <td>${formatNumber(totals.act_service_amt)}</td><td>${formatNumber(totals.act_comm_amt)}</td><td></td>
                 `;
                 tfoot.appendChild(footerRow);
+                footerRowsCount++;
+
                 // 表尾:未齊件筆數
                 if (misalignedCount > 0) {
                     const misalignedFooterRow = document.createElement('tr');
@@ -897,6 +900,7 @@
                     `;
 
                     tfoot.appendChild(misalignedFooterRow);
+                    footerRowsCount++;
                 }
                 // 快取都會被最新的計算結果覆蓋
                 reportCache = {
@@ -904,7 +908,8 @@
                     totals: totals,
                     misalignedTotals: misalignedTotals,
                     misalignedCount: misalignedCount,
-                    totalOtherAmount: totalOtherAmount
+                    totalOtherAmount: totalOtherAmount,
+                    footerRowsCount: footerRowsCount
                 };
             }
 
@@ -1120,10 +1125,14 @@
                 // 處理案件資訊
                 const caseInfo = data.find(d => d.sel === 'Y') || data[0];
                 if (caseInfo) {
+                    // 1. 先將小數乘以 100，並用 toFixed(2) 處理浮點數誤差並四捨五入到兩位小數
+                    const roundedPercentage  = (parseFloat(caseInfo.Discount || 0) * 100).toFixed(2);
+                    // 2. 再用 parseFloat 將字串轉回數字，這個過程會自動移除尾部的 0
+                    const commissionPercentage = parseFloat(roundedPercentage);
                     tableHtml += `<tr><th colspan="${colspan}">案件資訊</th></tr>`;
                     tableHtml += `<tr><td colspan="${colspan}" style="text-align:left; padding-left:10px;">` +
                                  `貸款成數: ${caseInfo.RefRateL}%; 承作利率: ${caseInfo.RefRateI}%; ` +
-                                 `佣金: ${caseInfo.FR_D_discount}%; 撥款金額: ${caseInfo.GetAmount};<br>` +
+                                 `佣金: ${commissionPercentage}%; 撥款金額: ${caseInfo.GetAmount};<br>` +
                                  `(${caseInfo.GetAmount} * ${caseInfo.Discount} = ${caseInfo.Expe_comm_amt})` +
                                  `</td></tr>`;
                 }
@@ -1671,7 +1680,8 @@
                 //console.log(`<td ${attributes}>${displayText}</td>`);
                 return {
                     html: `<td ${attributes}>${displayText}</td>`,
-                    numericValue: numericValueForTotal
+                    numericValue: numericValueForTotal,
+                    displayText: displayText
                 };
             }
 
@@ -1801,8 +1811,8 @@
              */
             function openKF_CommRate(hsId, isConfirm) {
                 // TODO: 未來在此處實現獲取和顯示國興專案佣金的邏輯
-                alert(`此功能尚未開放：開啟國興佣金參考 (hsId: ${hsId})`);
-                console.log("Called openKF_CommRate with:", { hsId, isConfirm });
+                //alert(`此功能尚未開放：開啟國興佣金參考 (hsId: ${hsId})`);
+                //console.log("Called openKF_CommRate with:", { hsId, isConfirm });
             }
             /**
              * exportToExcel 函式 =====
@@ -1817,53 +1827,47 @@
                 const workbook = new ExcelJS.Workbook();
                 const worksheet = workbook.addWorksheet('核准放款表');
                 const currencyFormat = '#,##0';
-                // 2. 定義表頭並設定欄位寬度
-                const headers = [
-                    "No.", "區", "進件日", "申請人", "介紹人", "ID", "銀行名稱", "銀行帳號",
-                    "業務", "核准日", "核准金額(萬)", "撥款日", "撥款金額(萬)", "專案",
-                    "貸款成數(%)", "原始利率(%)", "承作利率(%)", "收費", "代書費用",
-                    "對保費", "補貼代書費", "補貼過車費", "結餘", "補貼息", "退傭備註", "預估退佣金",
-                    "作業服務費", "實際退佣金", "委對/外對"
-                ];
-    
+                const footerFont = { color: { argb: 'FF0000FF' }, bold: true };
+                const footerAlignRight = { horizontal: 'right' };
+                const footerAlignLeft = { horizontal: 'left' };
+                // 2. 定義表頭與欄位 (包含 key)
                 worksheet.columns = [
-                    { header: headers[0], key: 'no', width: 6 },
-                    { header: headers[1], key: 'area', width: 12 },
-                    { header: headers[2], key: 'applyDate', width: 12 },
-                    { header: headers[3], key: 'applicant', width: 12 },
-                    { header: headers[4], key: 'introducer', width: 12 },
-                    { header: headers[5], key: 'introducerId', width: 15 },
-                    { header: headers[6], key: 'bankName', width: 15 },
-                    { header: headers[7], key: 'bankAccount', width: 18 },
-                    { header: headers[8], key: 'sales', width: 12 },
-                    { header: headers[9], key: 'approveDate', width: 12 },
-                    { header: headers[10], key: 'passAmount', width: 15, style: { numFmt: '#,##0' } },
-                    { header: headers[11], key: 'disburseDate', width: 16 }, // 加寬撥款日
-                    { header: headers[12], key: 'disburseAmount', width: 15, style: { numFmt: '#,##0' } },
-                    { header: headers[13], key: 'project', width: 25 },
-                    { header: headers[14], key: 'ltv', width: 12 },
-                    { header: headers[15], key: 'origRate', width: 12 },
-                    { header: headers[16], key: 'actualRate', width: 12 },
-                    { header: headers[17], key: 'charge1', width: 12, style: { numFmt: '#,##0' } },
-                    { header: headers[18], key: 'charge2', width: 12, style: { numFmt: '#,##0' } },
-                    { header: headers[19], key: 'charge3', width: 12, style: { numFmt: '#,##0' } },
-                    { header: headers[20], key: 'subsidyAgent', width: 12, style: { numFmt: '#,##0' } },
-                    { header: headers[21], key: 'subsidyFares', width: 12, style: { numFmt: '#,##0' } },
-                    { header: headers[22], key: 'balance', width: 12, style: { numFmt: '#,##0' } },
-                    { header: headers[23], key: 'subsidyInterest', width: 12, style: { numFmt: '#,##0' } },
-                    { header: headers[24], key: 'commRemark', width: 30 },
-                    { header: headers[25], key: 'estComm', width: 15, style: { numFmt: '#,##0' } },
-                    { header: headers[26], key: 'serviceFee', width: 15, style: { numFmt: '#,##0' } },
-                    { header: headers[27], key: 'actualComm', width: 15, style: { numFmt: '#,##0' } },
-                    { header: headers[28], key: 'comparison', width: 12 },
-                ];
-
+                        { header: "No.", key: 'no' },
+                        { header: "區", key: 'area' },
+                        { header: "進件日", key: 'applyDate' },
+                        { header: "申請人", key: 'applicant' },
+                        { header: "介紹人", key: 'introducer' },
+                        { header: "ID", key: 'introducerId' },
+                        { header: "銀行名稱", key: 'bankName' },
+                        { header: "銀行帳號", key: 'bankAccount' },
+                        { header: "業務", key: 'sales' },
+                        { header: "核准日", key: 'approveDate' },
+                        { header: "核准金額(萬)", key: 'passAmount', style: { numFmt: currencyFormat } },
+                        { header: "撥款日", key: 'disburseDate' },
+                        { header: "撥款金額(萬)", key: 'disburseAmount', style: { numFmt: currencyFormat } },
+                        { header: "專案", key: 'project' },
+                        { header: "貸款成數(%)", key: 'ltv' }, // <--- key 在此定義
+                        { header: "原始利率(%)", key: 'origRate' },
+                        { header: "承作利率(%)", key: 'actualRate' },
+                        { header: "收費", key: 'charge1', style: { numFmt: currencyFormat } },
+                        { header: "代書費用", key: 'charge2', style: { numFmt: currencyFormat } },
+                        { header: "對保費", key: 'charge3', style: { numFmt: currencyFormat } },
+                        { header: "補貼代書費", key: 'subsidyAgent', style: { numFmt: currencyFormat } },
+                        { header: "補貼過車費", key: 'subsidyFares', style: { numFmt: currencyFormat } },
+                        { header: "結餘", key: 'balance', style: { numFmt: currencyFormat } },
+                        { header: "補貼息", key: 'subsidyInterest', style: { numFmt: currencyFormat } },
+                        { header: "退傭備註", key: 'commRemark' },
+                        { header: "預估退佣金", key: 'estComm' },
+                        { header: "作業服務費", key: 'serviceFee' },
+                        { header: "實際退佣金", key: 'actualComm' },
+                        { header: "委對/外對", key: 'comparison' },
+                    ];
                 // 3. 處理並加入資料列
                 reportCache.data.forEach((row, index) => {
                     const IsmisalignedSUM = (row.misaligned_date && row.ismisaligned === 'ThisMon') ? 'Y' : 'N';
                     const commissionData = generateCommissionCells(row, displayAMT, IsmisalignedSUM, '', index);
                     const actualCommCell = generateActualCommissionCell(row, displayAMT, IsmisalignedSUM, commissionData.serviceFee.numericValue);
-    
+                    const commRemarkDisplay = (displayAMT === 'Y') ? row.Comm_Remark : 'NA';
                     worksheet.addRow({
                         no: index + 1,
                         area: row.U_BC_name,
@@ -1889,86 +1893,132 @@
                         subsidyFares: Number(row.Subsidy_amt) || 0,
                         balance: Number(row.get_amount_final) || 0,
                         subsidyInterest: Number(row.subsidized_interest) || 0,
-                        commRemark: (displayAMT === 'Y') ? row.Comm_Remark : 'NA',
+                        commRemark: commRemarkDisplay,
                         estComm: commissionData.estimatedCommission.displayText,
                         serviceFee: commissionData.serviceFee.displayText,
                         actualComm: actualCommCell.displayText,
                         comparison: row.Comparison
                     });
                 });
-
-                // 4. 新增表尾列並設定樣式與合併
-                const footerFont = { color: { argb: 'FF0000FF' }, bold: true }; // 藍色粗體
-                const footerAlignRight = { horizontal: 'right' };
-                const footerAlignLeft = { horizontal: 'left' }; // 靠左對齊
-
                 // 4.1 其他費用列
                 if (reportCache.totalOtherAmount > 0) {
-                    const row = worksheet.addRow([]);
-                    const cellLabel = row.getCell(21);
-                    const cellValue = row.getCell(22);
-                    cellLabel.value = '其他費用:';
-                    cellValue.value = -reportCache.totalOtherAmount;
-                    cellLabel.font = footerFont;
-                    cellValue.font = footerFont;
-                    cellValue.numFmt = currencyFormat;
-                    cellLabel.alignment = footerAlignRight;
-                    cellValue.alignment = footerAlignRight;
+                    const otherFeesData = {
+                        // 使用欄位的 key 來指定資料要放在哪一欄
+                        subsidyAgent: '其他費用:',
+                        subsidyFares: -reportCache.totalOtherAmount
+                    };
+                    worksheet.addRow(otherFeesData);
                 }
-
                 // 4.2 總合計列
-                const totalRow = worksheet.addRow([]);
-                totalRow.getCell(1).value = `總筆數: ${reportCache.data.length}`;
-                totalRow.getCell(12).value = '合計:';
-                totalRow.getCell(13).value = reportCache.totals.get_amount;
-                totalRow.getCell(18).value = reportCache.totals.charge_flow;
-                totalRow.getCell(19).value = reportCache.totals.charge_agent;
-                totalRow.getCell(20).value = reportCache.totals.charge_check;
-                totalRow.getCell(21).value = reportCache.totals.Subsidy_agent;
-                totalRow.getCell(22).value = reportCache.totals.Subsidy_amt;
-                totalRow.getCell(23).value = reportCache.totals.get_amount_final;
-                totalRow.getCell(24).value = reportCache.totals.subsidized_interest;
-                totalRow.getCell(26).value = reportCache.totals.Expe_comm_amt;
-                totalRow.getCell(27).value = reportCache.totals.act_service_amt;
-                totalRow.getCell(28).value = reportCache.totals.act_comm_amt;
-                worksheet.mergeCells(totalRow.number, 1, totalRow.number, 5); // **合併儲存格**
-                worksheet.mergeCells(totalRow.number, 6, totalRow.number, 11);
-                totalRow.eachCell({ includeEmpty: true }, (cell) => {
-                    if(cell.value) {
-                        cell.font = footerFont;
-                        cell.alignment = footerAlignRight;
-                        if (typeof cell.value === 'number') cell.numFmt = currencyFormat;
-                    }
-                });
-                totalRow.getCell(1).alignment = footerAlignLeft; // (總筆數) 的對齊方式單獨設為靠左
-                totalRow.getCell(12).alignment = footerAlignLeft;  //「合計:」文字儲存格靠左
+                const totalRowData = {
+                    no: `總筆數: ${reportCache.data.length}`,
+                    disburseDate: '合計:',
+                    disburseAmount: reportCache.totals.get_amount,
+                    charge1: reportCache.totals.charge_flow,
+                    charge2: reportCache.totals.charge_agent,
+                    charge3: reportCache.totals.charge_check,
+                    subsidyAgent: reportCache.totals.Subsidy_agent,
+                    subsidyFares: reportCache.totals.Subsidy_amt,
+                    balance: reportCache.totals.get_amount_final,
+                    subsidyInterest: reportCache.totals.subsidized_interest,
+                    estComm: reportCache.totals.Expe_comm_amt,
+                    serviceFee: reportCache.totals.act_service_amt,
+                    actualComm: reportCache.totals.act_comm_amt,
+                };                
+                worksheet.addRow(totalRowData);
                 // 4.3 未齊件合計列
                 if (reportCache.misalignedCount > 0) {
-                    const misalignedRow = worksheet.addRow([]);
-                    misalignedRow.getCell(1).value = `未齊件筆數: ${reportCache.misalignedCount}`;
-                    misalignedRow.getCell(12).value = '未齊件合計:';
-                    misalignedRow.getCell(13).value = `${reportCache.misalignedTotals.get_amount}萬`;
-                    misalignedRow.getCell(18).value = reportCache.misalignedTotals.charge_flow;
-                    misalignedRow.getCell(19).value = reportCache.misalignedTotals.charge_agent;
-                    misalignedRow.getCell(20).value = reportCache.misalignedTotals.charge_check;
-                    misalignedRow.getCell(21).value = reportCache.misalignedTotals.Subsidy_agent;
-                    misalignedRow.getCell(22).value = reportCache.misalignedTotals.Subsidy_amt;
-                    misalignedRow.getCell(23).value = reportCache.misalignedTotals.get_amount_final;
-                    misalignedRow.getCell(24).value = reportCache.misalignedTotals.subsidized_interest;
-
-                    worksheet.mergeCells(misalignedRow.number, 1, misalignedRow.number, 5); // **合併儲存格**
-                    worksheet.mergeCells(misalignedRow.number, 6, misalignedRow.number, 11); // **合併儲存格**
-                    misalignedRow.eachCell({ includeEmpty: true }, (cell) => {
-                        if(cell.value) {
-                            cell.font = footerFont;
-                            cell.alignment = footerAlignRight;
-                            if (typeof cell.value === 'number') cell.numFmt = currencyFormat;
+                    // 步驟 1: 建立一個與表頭等長的空陣列範本
+                    const misalignedRowData = {
+                        no: `未齊件筆數: ${reportCache.misalignedCount}`,
+                        disburseDate: '未齊件合計:',
+                        disburseAmount: `${reportCache.misalignedTotals.get_amount}萬`,
+                        charge1: reportCache.misalignedTotals.charge_flow,
+                        charge2: reportCache.misalignedTotals.charge_agent,
+                        charge3: reportCache.misalignedTotals.charge_check,
+                        subsidyAgent: reportCache.misalignedTotals.Subsidy_agent,
+                        subsidyFares: reportCache.misalignedTotals.Subsidy_amt,
+                        balance: reportCache.misalignedTotals.get_amount_final,
+                        subsidyInterest: reportCache.misalignedTotals.subsidized_interest,
+                        estComm: reportCache.misalignedTotals.Expe_comm_amt,
+                        serviceFee: reportCache.misalignedTotals.act_service_amt,
+                        actualComm: reportCache.misalignedTotals.act_comm_amt,
+                    };
+                    worksheet.addRow(misalignedRowData);
+                }
+                // --- 5. 統一處理排版與樣式 ---
+                //自動欄寬計算
+                worksheet.columns.forEach((column, colNumber) => {
+                    let maxLength = 0;
+                    column.eachCell({ includeEmpty: true }, (cell, rowNumber) => {
+                        // 檢查是否為表尾的合併儲存格，如果是，則不納入計算
+                        const isMergedFooterCell = (cell.isMerged && rowNumber > (1 + reportCache.data.length));
+            
+                        if (!isMergedFooterCell && cell.value) {
+                            const length = getCellVisualWidth(cell.value);
+                            if (length > maxLength) {
+                                maxLength = length;
+                            }
                         }
                     });
-                    misalignedRow.getCell(1).alignment = footerAlignLeft; // (未齊件筆數) 的對齊方式單獨設為靠左
-                    misalignedRow.getCell(12).alignment = footerAlignLeft; // 「未齊件合計:」文字儲存格靠左
-                }
-                
+                    column.width = maxLength < 10 ? 12 : maxLength + 4;
+                });
+
+                // --- 6. 統一處理表尾的合併與樣式 ---
+                const footerStartIndex = 1 + reportCache.data.length+1; // 表頭+資料
+                for (let i = footerStartIndex; i <= worksheet.lastRow.number; i++) {
+                    const row = worksheet.getRow(i);
+                    if (!row.hasValues) continue;
+
+                    // 設定統一的藍色字體、靠右對齊和數字格式
+                    row.eachCell({ includeEmpty: false }, cell => {
+                        cell.font = footerFont;
+                        cell.alignment = footerAlignRight;
+                        if (typeof cell.value === 'number') {
+                            cell.numFmt = currencyFormat;
+                        }
+                    });
+
+                    if (String(row.getCell('no').value).includes('筆數')) {
+                        worksheet.mergeCells(i, 1, i, 5);
+                        worksheet.mergeCells(i, 6, i, 11);
+                        row.getCell('no').alignment = footerAlignLeft;
+                        row.getCell('disburseDate').alignment = footerAlignLeft;
+                    }
+                }                
+                // ===== START: 排版與樣式設定區塊 =====
+    
+                // **步驟 A: 自動計算所有欄位的最適寬度 (使用新規則)**
+                worksheet.columns.forEach(column => {
+                    let maxLength = 0;
+                    column.eachCell({ includeEmpty: true }, (cell, rowNumber) => {
+                        let isExcluded = false;
+                        // 判斷條件：如果是表尾列，且是合併儲存格
+                        if (rowNumber >= footerStartIndex && cell.isMerged) {
+                            isExcluded = true;
+                        }
+
+                        // 如果不被排除，才納入寬度計算
+                        if (!isExcluded) {
+                            const length = getCellVisualWidth(cell.value);
+                            if (length > maxLength) {
+                                maxLength = length;
+                            }
+                        }
+                    });
+                    column.width = maxLength < 10 ? 12 : maxLength + 4;
+                });
+
+
+                // 設定指定欄位的內容靠右對齊**
+                const colsToAlignRight = ['ltv', 'origRate', 'actualRate', 'estComm', 'serviceFee', 'actualComm'];
+                colsToAlignRight.forEach(key => {
+                    const col = worksheet.getColumn(key);
+                    if (col) {
+                        col.alignment = { horizontal: 'right' };
+                    }
+                });                
+
                 // 5. 產生 buffer 並觸發下載
                 workbook.xlsx.writeBuffer().then(buffer => {
                     const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
