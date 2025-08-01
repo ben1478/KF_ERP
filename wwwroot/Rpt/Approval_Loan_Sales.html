@@ -705,13 +705,15 @@
                 tfoot.innerHTML = '';
 
                 // 先將 reportCache 清空或設為當前狀態，即使沒有資料也要更新
-                reportCache = {
-                    data: data || [],
-                    totals: {},
-                    misalignedTotals: {},
-                    misalignedCount: 0,
-                    totalOtherAmount: totalOtherAmount || 0
-                };
+                 if (!data || !Array.isArray(data) || data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="28">查無資料</td></tr>';
+                    // 當查無資料時，也要清空快取，確保匯出時也是空的
+                    reportCache = {
+                        data: [], totals: {}, misalignedTotals: {},
+                        misalignedCount: 0, totalOtherAmount: 0
+                    };
+                    return; // 結束函式
+                }
 
                 if (!data || data.length === 0) {
                     tbody.innerHTML = '<tr><td colspan="28">查無資料</td></tr>';
@@ -1818,8 +1820,8 @@
              * exportToExcel 函式 =====
              */
             async function exportToExcel() {
-                if (!reportCache.data || reportCache.data.length === 0) {
-                    alert("沒有可匯出的資料。");
+                if (!reportCache || !Array.isArray(reportCache.data) || reportCache.data.length === 0) {
+                    alert("沒有可匯出的資料，請先執行查詢。");
                     return;
                 }
 
@@ -1863,12 +1865,12 @@
                         { header: "委對/外對", key: 'comparison' },
                     ];
                 // 3. 處理並加入資料列
-                reportCache.data.forEach((row, index) => {
+                const dataForExport = reportCache.data.map((row, index) => {
                     const IsmisalignedSUM = (row.misaligned_date && row.ismisaligned === 'ThisMon') ? 'Y' : 'N';
                     const commissionData = generateCommissionCells(row, displayAMT, IsmisalignedSUM, '', index);
                     const actualCommCell = generateActualCommissionCell(row, displayAMT, IsmisalignedSUM, commissionData.serviceFee.numericValue);
                     const commRemarkDisplay = (displayAMT === 'Y') ? row.Comm_Remark : 'NA';
-                    worksheet.addRow({
+                    return {
                         no: index + 1,
                         area: row.U_BC_name,
                         applyDate: row.Send_amount_date,
@@ -1898,16 +1900,16 @@
                         serviceFee: commissionData.serviceFee.displayText,
                         actualComm: actualCommCell.displayText,
                         comparison: row.Comparison
-                    });
+                    };
                 });
+                worksheet.addRows(dataForExport);
+
                 // 4.1 其他費用列
                 if (reportCache.totalOtherAmount > 0) {
-                    const otherFeesData = {
-                        // 使用欄位的 key 來指定資料要放在哪一欄
+                    worksheet.addRow({
                         subsidyAgent: '其他費用:',
                         subsidyFares: -reportCache.totalOtherAmount
-                    };
-                    worksheet.addRow(otherFeesData);
+                    });
                 }
                 // 4.2 總合計列
                 const totalRowData = {
@@ -1948,7 +1950,7 @@
                 }
                 // --- 5. 統一處理排版與樣式 ---
                 //自動欄寬計算
-                worksheet.columns.forEach((column, colNumber) => {
+                worksheet.columns.forEach(column => {
                     let maxLength = 0;
                     column.eachCell({ includeEmpty: true }, (cell, rowNumber) => {
                         // 檢查是否為表尾的合併儲存格，如果是，則不納入計算
@@ -1986,31 +1988,19 @@
                         row.getCell('disburseDate').alignment = footerAlignLeft;
                     }
                 }                
-                // ===== START: 排版與樣式設定區塊 =====
-    
-                // **步驟 A: 自動計算所有欄位的最適寬度 (使用新規則)**
-                worksheet.columns.forEach(column => {
-                    let maxLength = 0;
-                    column.eachCell({ includeEmpty: true }, (cell, rowNumber) => {
-                        let isExcluded = false;
-                        // 判斷條件：如果是表尾列，且是合併儲存格
-                        if (rowNumber >= footerStartIndex && cell.isMerged) {
-                            isExcluded = true;
-                        }
-
-                        // 如果不被排除，才納入寬度計算
-                        if (!isExcluded) {
-                            const length = getCellVisualWidth(cell.value);
-                            if (length > maxLength) {
-                                maxLength = length;
-                            }
-                        }
-                    });
-                    column.width = maxLength < 10 ? 12 : maxLength + 4;
+                // 7.排版與樣式設定區塊
+                const headers = worksheet.columns.map(col => col.header);
+                const sheetData = [];
+                worksheet.eachRow({ includeEmpty: true }, (row) => {
+                    // 從 worksheet 中將每一列轉換回陣列格式，以供欄寬計算使用
+                    sheetData.push(row.values.slice(1)); // .slice(1) 是為了去除 ExcelJS 自動加入的行號
                 });
-
-
-                // 設定指定欄位的內容靠右對齊**
+                // 7.1.呼叫計算欄寬
+                const colWidths = calculateColumnWidths(sheetData, headers, dataForExport.map(item => Object.values(item)));
+                    worksheet.columns.forEach((column, i) => {
+                        column.width = colWidths[i].wch;
+                });
+                // 7.2.設定指定欄位的內容靠右對齊**
                 const colsToAlignRight = ['ltv', 'origRate', 'actualRate', 'estComm', 'serviceFee', 'actualComm'];
                 colsToAlignRight.forEach(key => {
                     const col = worksheet.getColumn(key);
@@ -2019,7 +2009,7 @@
                     }
                 });                
 
-                // 5. 產生 buffer 並觸發下載
+                // 8. 產生 buffer 並觸發下載
                 workbook.xlsx.writeBuffer().then(buffer => {
                     const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
                     const url = window.URL.createObjectURL(blob);
@@ -2030,6 +2020,37 @@
                     window.URL.revokeObjectURL(url);
                 });
             }            
+
+            /**
+             * ===== START: 最終修正版的 calculateColumnWidths 函式 =====
+             * (採用混合式計算，確保 No. 欄位寬度正確)
+             */
+            function calculateColumnWidths(sheetData, headers, dataForExport) {
+                // 步驟 1: 先根據「所有」內容（包含表頭、資料、表尾）計算出一個初始的欄寬設定
+                // 這能確保像「收費」、「合計」等在表尾可能有較長內容的欄位寬度足夠
+                const colWidths = headers.map((_, i) => {
+                    const all_lengths = sheetData.map(row => getCellVisualWidth(row[i]));
+                    return { wch: Math.max(...all_lengths) };
+                });
+
+                // 步驟 2: **核心修正** - 手動校正「No.」欄 (第一欄，索引為 0) 的寬度
+                // 為了避免被表尾的「總筆數...」等合併儲存格的長文字影響，
+                // 我們只取「表頭」和「資料內容」來重新計算第一欄的寬度。
+                const noColumnData = [headers[0], ...dataForExport.map(row => row[0])];
+                const noColumnMaxWidth = Math.max(...noColumnData.map(cell => getCellVisualWidth(cell)));
+    
+                // 用這個更精確、更窄的寬度，覆蓋掉第一步針對「No.」欄的計算結果
+                colWidths[0].wch = noColumnMaxWidth;
+
+                // 步驟 3: 為所有欄位寬度增加一點緩衝空間，避免文字太貼邊
+                colWidths.forEach(width => {
+                    width.wch += 2;
+                });
+
+                console.log("欄寬計算完成:", colWidths);
+                return colWidths;
+            }
+            // ===== END: 最終修正版的函式 =====            
 
             function getFormattedDate() {
                 const today = new Date();
