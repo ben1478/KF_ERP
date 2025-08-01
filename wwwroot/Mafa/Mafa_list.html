@@ -47,16 +47,16 @@
                                 <td width="40">修改</td>
                             </tr>
                         </thead>
-                        <tbody>
-                            <tr align="center" class="c12-k" bgcolor="#FFFFFF" onmouseover="this.style.background='#FFFF66';" onmouseout="this.style.background='#FFFFFF'; " style="background: rgb(255, 255, 255);">
-                            </tr>
-                            <tr align="center" class="c12-k" bgcolor="#FFFFFF" onmouseover="this.style.background='#FFFF66';" onmouseout="this.style.background='#FFFFFF'; " style="background: rgb(255, 255, 255);">
-                            </tr>
-                            <tr align="center" height="30" bgcolor="#CCCCFF">
-                                <td class="c12-k" colspan="16">
+                        <tbody></tbody>
+                        <tfoot>
+                            <tr align="center" height="15" bgcolor="#CCCCFF">
+                                <td class="c12-k" colspan="8">
+                                    <font color="#000080">
+                                        <label id="CountRows"></label>
+                                    </font>
                                 </td>
                             </tr>
-                        </tbody>
+                        </tfoot>
                     </table>
                     <div id="pagination"></div>
                 </td>
@@ -109,6 +109,7 @@
     }
 
     function showPage(page) {
+        document.getElementById('CountRows').innerHTML = `筆數:${data.length}`;
         const tbody = document.querySelector('#MainTable tbody');
         tbody.innerHTML = '';
 

@@ -83,6 +83,15 @@
                             </tr>
                         </thead>
                         <tbody></tbody>
+                        <tfoot>
+                            <tr align="center" height="15" bgcolor="#CCCCFF">
+                                <td class="c12-k" colspan="16">
+                                    <font color="#000080">
+                                        <label id="CountRows"></label>
+                                    </font>
+                                </td>
+                            </tr>
+                        </tfoot>
                     </table>
                     <div id="pagination"></div>
                 </td>
@@ -151,6 +160,7 @@
     }
 
     function showPage(page) {
+        document.getElementById('CountRows').innerHTML = `筆數:${data.length}`;
         const tbody = document.querySelector('#MainTable tbody');
         tbody.innerHTML = '';
 
