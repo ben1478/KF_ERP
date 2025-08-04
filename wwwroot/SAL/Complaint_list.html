@@ -6,7 +6,7 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
-    <script type="text/javascript" src="../tool_js/jquery.table2excel.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <link href="../_include/main.css" rel="stylesheet" type="text/css">
     <script src="../Base.js"></script>
     <title>作業平台</title>
@@ -411,12 +411,49 @@
             alert("目前沒有資料可匯出。");
             return;
         }
-        $("#MainTable").table2excel({
-		    exclude: ".noExl",
-		    name: "Worksheet Name",
-		    filename: "客訴資料-" + getCurrentDateTime(),
-		    fileext: ".xls"
-	    }); 
+
+        // 1. 定義要匯出的欄位標頭
+        const headers = ['序號', '客戶名稱', '負責業務', '業務部門', '客訴事由', '來電時間', '備註'];
+
+        // 2. 準備要匯出的資料 (Array of Arrays)
+        // 從全域變數 data 映射資料，並排除不要的欄位
+        const exportData = data.map((item, index) => [
+            index + 1,
+            item.CS_name || "",
+            item.Sales_name || "",
+            item.BC_name || "",
+            item.Complaint || "",
+            item.CompDate || "",
+            item.Remark || ""
+        ]);
+
+        // 3. 將標頭和資料合併
+        const worksheetData = [headers, ...exportData];
+
+        // 4. 使用 aoa_to_sheet 將陣列轉換為 worksheet
+        const ws = XLSX.utils.aoa_to_sheet(worksheetData);
+
+        // 5. 計算最適欄寬
+        const colWidths = [];
+        worksheetData.forEach(row => {
+            row.forEach((cell, colIndex) => {
+                // 處理中文字元寬度 (約為英數的兩倍)
+                const cellValue = cell ? cell.toString() : '';
+                const charWidth = cellValue.replace(/[\u4e00-\u9fa5]/g, 'aa').length;
+                if (!colWidths[colIndex] || charWidth > colWidths[colIndex]) {
+                    colWidths[colIndex] = charWidth;
+                }
+            });
+        });
+        // 套用計算出的寬度，並加上一些額外邊距
+        ws['!cols'] = colWidths.map(width => ({ wch: Math.max(10, width + 2) }));
+
+        // 6. 建立新的 workbook，並將 worksheet 加入
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, '客訴資料');
+
+        // 7. 產生並下載 XLSX 檔案 (注意副檔名為 .xlsx)
+        XLSX.writeFile(wb, `客訴資料-${getCurrentDateTime()}.xlsx`);
     }
 
     function getCurrentDateTime() {

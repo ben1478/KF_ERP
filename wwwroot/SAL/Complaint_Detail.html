@@ -144,7 +144,7 @@
                         $("input[name='Sales_name']").val(data.Sales_name);
                         $('textarea#Complaint').val(data.Complaint);
                         $("input[name='CompDate']").val(data.CompDate);
-                        $("input[name='CompTime']").val(data.CompTime);
+                        $("#CompTime").val(data.CompTime);
                         $('textarea#Remark').val(data.Remark);
                         $("input[name='add_date']").val(data.add_date);
                         $("input[name='add_num']").val(data.add_num);
@@ -215,7 +215,7 @@
             Sales_num: $("input[name='Sales_num']").val(),
             Complaint: $('textarea#Complaint').val(),
             CompDate: $("input[name='CompDate']").val(),
-            CompTime: document.getElementById('CompTime').value,
+            CompTime: $("#CompTime").val(),
             Remark: $('textarea#Remark').val(),
             add_date: $("input[name='add_date']").val(),
             add_num: WebUser,

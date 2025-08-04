@@ -6,6 +6,7 @@
     <title>介紹人佣金管理</title>
     <link href="../_include/main.css" rel="stylesheet" type="text/css">
     <script src="../Base.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         .btn {
             background-color: #f0f0f0;
@@ -19,15 +20,15 @@
             color: #000000;
         }
 
-        .btn:hover {
-            background-color: #e5e5e5;
-        }
+            .btn:hover {
+                background-color: #e5e5e5;
+            }
 
-        .btn:focus, .btn:active {
-            outline: none;
-            border-color: #000000;
-            box-shadow: 0 0 0 1px #000000;
-        }
+            .btn:focus, .btn:active {
+                outline: none;
+                border-color: #000000;
+                box-shadow: 0 0 0 1px #000000;
+            }
 
         .action-icon {
             cursor: pointer;
@@ -228,28 +229,57 @@
         }
 
         function exportToExcel() {
-            const introducerName = document.getElementById('introducer').value;
-            const isCompany = document.getElementById('isCompany').value;
+            const table = document.getElementById('MainTable');
+            if (!table) {
+                alert('錯誤：找不到 ID 為 MainTable 的表格。');
+                return;
+            }
+            
+            // 複製表格以進行操作，避免修改原始頁面
+            const tableClone = table.cloneNode(true);
 
-            const form = document.createElement('form');
-            form.method = 'POST';
-            form.action = `${BASE_URL}/AE_RPT/Introducer_Comm_Exccel`;
+            // 從複製的表格中移除最後兩個包含操作圖示的欄位
+            // CORRECTED: The correct method is deleteCell(), not removeCell().
+            Array.from(tableClone.rows).forEach(row => {
+                row.deleteCell(-1); // 移除最後一個 cell (刪除)
+                row.deleteCell(-1); // 再次移除最後一個 cell (修改)
+            });
 
-            const introducerInput = document.createElement('input');
-            introducerInput.type = 'hidden';
-            introducerInput.name = 'Introducer';
-            introducerInput.value = introducerName;
-            form.appendChild(introducerInput);
+            // 使用 SheetJS 的 utils 將 HTML table 轉換為 worksheet
+            const ws = XLSX.utils.table_to_sheet(tableClone);
 
-            const isCompanyInput = document.createElement('input');
-            isCompanyInput.type = 'hidden';
-            isCompanyInput.name = 'isCompany';
-            isCompanyInput.value = isCompany;
-            form.appendChild(isCompanyInput);
+            // 計算最適欄寬
+            const colWidths = [];
+            // 從 worksheet 的 '!ref' 屬性解析出儲存格範圍
+            const range = XLSX.utils.decode_range(ws['!ref']);
+            for (let C = range.s.c; C <= range.e.c; ++C) {
+                let maxWidth = 0;
+                for (let R = range.s.r; R <= range.e.r; ++R) {
+                    const cellAddress = { c: C, r: R };
+                    const cellRef = XLSX.utils.encode_cell(cellAddress);
+                    const cell = ws[cellRef];
+                    if (cell && cell.v) {
+                        // 將儲存格內容轉為字串並計算長度
+                        const cellValue = cell.v.toString();
+                        // 考量中文字元寬度約為英數字元的兩倍
+                        const charWidth = cellValue.replace(/[\u4e00-\u9fa5]/g, 'aa').length;
+                        if (charWidth > maxWidth) {
+                            maxWidth = charWidth;
+                        }
+                    }
+                }
+                // 設定最小寬度並增加一些邊距
+                colWidths[C] = { wch: Math.max(10, maxWidth + 4) };
+            }
+            // 將計算出的欄寬設定套用到 worksheet
+            ws['!cols'] = colWidths;
 
-            document.body.appendChild(form);
-            form.submit();
-            document.body.removeChild(form);
+            // 建立新的 workbook，並將 worksheet 加入
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, '介紹人清單');
+
+            // 產生並下載 XLSX 檔案
+            XLSX.writeFile(wb, '介紹人佣金清單.xlsx');
         }
     </script>
 
