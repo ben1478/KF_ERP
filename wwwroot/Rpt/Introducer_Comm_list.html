@@ -239,7 +239,6 @@
             const tableClone = table.cloneNode(true);
 
             // 從複製的表格中移除最後兩個包含操作圖示的欄位
-            // CORRECTED: The correct method is deleteCell(), not removeCell().
             Array.from(tableClone.rows).forEach(row => {
                 row.deleteCell(-1); // 移除最後一個 cell (刪除)
                 row.deleteCell(-1); // 再次移除最後一個 cell (修改)
@@ -248,10 +247,24 @@
             // 使用 SheetJS 的 utils 將 HTML table 轉換為 worksheet
             const ws = XLSX.utils.table_to_sheet(tableClone);
 
+            // 強制指定4個欄位為文字型態
+            // 欄位索引：0:序號, 1:介紹人, 2:生日, 3:身分證/統編, 4:收款帳號, 5:收款總行, 6:收款分行
+            const textCols = [3, 4, 5, 6];
+            const range = XLSX.utils.decode_range(ws['!ref']);
+            for (let R = range.s.r + 1; R <= range.e.r; ++R) { // 跳過標題列
+                textCols.forEach(C => {
+                    const cellAddress = { c: C, r: R };
+                    const cellRef = XLSX.utils.encode_cell(cellAddress);
+                    const cell = ws[cellRef];
+                    if (cell) {
+                        cell.t = 's'; // 設定為文字型態
+                        cell.z = '@'; // Excel格式為文字
+                    }
+                });
+            }
+
             // 計算最適欄寬
             const colWidths = [];
-            // 從 worksheet 的 '!ref' 屬性解析出儲存格範圍
-            const range = XLSX.utils.decode_range(ws['!ref']);
             for (let C = range.s.c; C <= range.e.c; ++C) {
                 let maxWidth = 0;
                 for (let R = range.s.r; R <= range.e.r; ++R) {
@@ -259,19 +272,15 @@
                     const cellRef = XLSX.utils.encode_cell(cellAddress);
                     const cell = ws[cellRef];
                     if (cell && cell.v) {
-                        // 將儲存格內容轉為字串並計算長度
                         const cellValue = cell.v.toString();
-                        // 考量中文字元寬度約為英數字元的兩倍
                         const charWidth = cellValue.replace(/[\u4e00-\u9fa5]/g, 'aa').length;
                         if (charWidth > maxWidth) {
                             maxWidth = charWidth;
                         }
                     }
                 }
-                // 設定最小寬度並增加一些邊距
                 colWidths[C] = { wch: Math.max(10, maxWidth + 4) };
             }
-            // 將計算出的欄寬設定套用到 worksheet
             ws['!cols'] = colWidths;
 
             // 建立新的 workbook，並將 worksheet 加入

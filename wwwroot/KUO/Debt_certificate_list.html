@@ -99,30 +99,41 @@
 
 
     function fetchData() {
-        
-        let cs_name = document.getElementById('cs_name').value || '';
-        const url = `${BASE_URL}/AE_ACC/Debt_Certificate_LQuery?cs_name=${cs_name}`;
+    let cs_name = document.getElementById('cs_name').value || '';
+    const url = `${BASE_URL}/AE_ACC/Debt_Certificate_LQuery?cs_name=${cs_name}`;
 
-        fetch(url, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json'
+    fetch(url, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+        .then(response => {
+            // 修正：API 回傳 400 仍有 JSON 內容，需正確解析
+            return response.json().then(data => ({
+                status: response.status,
+                ok: response.ok,
+                body: data
+            }));
+        })
+        .then(({ status, ok, body }) => {
+            if (body.resultCode == "000") {
+                data = JSON.parse(body.objResult);
+                showPage(currentPage);
+                createPagination();
+            } else {
+                // 只顯示 API 回傳訊息，不再顯示 "API 請求失敗"
+                alert(body.resultMsg || '查無資料');
+                data = [];
+                showPage(currentPage);
+                createPagination();
             }
         })
-            .then(response => response.json())
-            .then(responseData => {
-                if (responseData.resultCode == "000") {
-                    data = JSON.parse(responseData.objResult);
-                    showPage(currentPage);
-                    createPagination();
-                } else {
-                    alert(response.resultMsg);
-                }
-            })
-            .catch(error => {
-                alert('API 請求失敗:', error);
-            });
-    }
+        .catch(error => {
+            // 只有網路或程式錯誤才顯示
+            alert('API 請求失敗: ' + error);
+        });
+}
 
     function showPage(page) {
         document.getElementById('CountRows').innerHTML = `筆數:${data.length}`;
