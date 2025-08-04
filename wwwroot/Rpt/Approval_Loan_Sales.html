@@ -1894,7 +1894,7 @@
                     ];
                 // 3. 處理並加入資料列
                 const dataForExport = reportCache.data.map((row, index) => {
-                    const IsmisalignedSUM = (row.misaligned_date && row.ismisaligned === 'ThisMon') ? 'Y' : 'N';
+                    const IsmisalignedSUM = (row.misaligned_date && row.Ismisaligned === 'ThisMon') ? 'Y' : 'N';
                     const commissionData = generateCommissionCells(row, displayAMT, IsmisalignedSUM, '', index);
                     const actualCommCell = generateActualCommissionCell(row, displayAMT, IsmisalignedSUM, commissionData.serviceFee.numericValue);
                     const commRemarkDisplay = (displayAMT === 'Y') ? row.Comm_Remark : 'NA';
@@ -2067,7 +2067,7 @@
                         case 'serviceFee':
                         case 'actualComm':
                             // 對於需要計算的欄位，重新呼叫計算函式
-                            const IsmisalignedSUM = (row.misaligned_date && row.ismisaligned === 'ThisMon') ? 'Y' : 'N';
+                            const IsmisalignedSUM = (row.misaligned_date && row.Ismisaligned === 'ThisMon') ? 'Y' : 'N';
                             const commissionData = generateCommissionCells(row, displayAMT, IsmisalignedSUM, '', index);
                             if (column.key === 'estComm') return commissionData.estimatedCommission.displayText;
                             if (column.key === 'serviceFee') return commissionData.serviceFee.displayText;
