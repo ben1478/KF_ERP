@@ -55,19 +55,19 @@
         </tbody>
     </table>
 
-    <table width="1300" border="0" cellspacing="0" cellpadding="0">
+    <table width="1400" border="0" cellspacing="0" cellpadding="0">
         <tbody>
             <tr>
                 <td valign="top">　</td>
                 <td align="center" valign="top">
-                    <table id="MainTable" width="1300" border="0" cellpadding="4" cellspacing="1" bgcolor="#666666" style="font-size:14px;">
+                    <table id="MainTable" width="1370" border="0" cellpadding="4" cellspacing="1" bgcolor="#666666" style="font-size:13px;">
                         <thead>
                             <tr align="center" bgcolor="#CCCCFF" class="c12-k">
                                 <td width="50">序號</td>
                                 <td id="ID104_row" width="60">ID_104</td>
-                                <td width="80">公司別</td>
+                                <td width="100">公司別</td>
                                 <td width="120">職稱</td>
-                                <td width="80">角色</td>
+                                <td width="100">角色</td>
                                 <td width="60">員編</td>
                                 <td width="100">姓名</td>
                                 <td width="60">代理人</td>
@@ -85,7 +85,7 @@
                         <tbody></tbody>
                         <tfoot>
                             <tr align="center" height="15" bgcolor="#CCCCFF">
-                                <td class="c12-k" colspan="16">
+                                <td class="c12-k" id="ID104_row_tf">
                                     <font color="#000080">
                                         <label id="CountRows"></label>
                                     </font>
@@ -117,12 +117,15 @@
     loadRolmDropdown();
     fetchData();
 
+    const tdElement = document.getElementById("ID104_row_tf");
     if (WebUser === 'AA999') {
         document.getElementById('ID104_wrapper').style.display = '';
         document.getElementById('ID104_row').style.display = '';
+        tdElement.colSpan = 17;
     } else {
         document.getElementById('ID104_wrapper').style.display = 'none';
         document.getElementById('ID104_row').style.display = 'none';
+        tdElement.colSpan = 16;
     }
 
     function fetchData() {
@@ -208,13 +211,22 @@
                             window.open(`../HR/EditPsw.html?U_num=${encryptParameter(item.U_num)}&User=${encryptParameter(WebUser)}`, '_blank', 'scrollbars=yes,resizable=yes,top=100,width=500,height=300');
                         }
                     ));
-                    row.appendChild(createButtonCell(
+                    const editButtonCell = createButtonCell(
                         "../images/edit.png",
                         "年假異動",
                         function () {
-                            window.open(`../HR/Hday.html?U_num=${encryptParameter(item.U_num)}&User=${encryptParameter(WebUser)}`, '_blank', 'scrollbars=yes,resizable=yes,top=50,width=1200,height=500');
+                            window.open(
+                                `../HR/Hday.html?U_num=${encryptParameter(item.U_num)}&User=${encryptParameter(WebUser)}`,
+                                '_blank',
+                                'scrollbars=yes,resizable=yes,top=50,width=1200,height=500'
+                            );
                         }
-                    ));
+                    );
+                    if (String(item.has_hday).toUpperCase() === 'N') {
+                        editButtonCell.style.backgroundColor = '#ffe5e5';
+                    }
+                    row.appendChild(editButtonCell);
+
                     row.appendChild(createButtonCell(
                         "../images/edit.png",
                         "人事異動",
@@ -223,14 +235,16 @@
                         }
                     ));
                 } else {
+                    const skipKeys = ['ID_104', 'has_hday'];
                     if (WebUser === 'AA999' && key === 'ID_104') {
-                        if (item[key] === null || item[key] === '') {
+                        if (!item[key]) {
                             cell.innerHTML = `<a href="#" onclick="GetSignIn_104('${item.U_num}')">取得ID_104</a>`;
                         } else {
                             cell.textContent = item[key];
                         }
                         row.appendChild(cell);
-                    } else if (key !== 'ID_104') {
+                    } else if (!skipKeys.includes(key)) {
+                        // 若不是排除欄位才顯示
                         cell.textContent = item[key];
                         row.appendChild(cell);
                     }

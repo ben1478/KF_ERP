@@ -474,7 +474,7 @@ function dateTW() {
 
         // 年份變動紀錄
         var currentYear = dateNative.getFullYear(); // 當前年份
-        var startYear = currentYear - 60;           // 當前年份 - 10
+        var startYear = currentYear - 60;           // 當前年份 - 60
         var endYear = currentYear + 10;             // 當前年份 + 10
         console.log(`dateNative=${dateNative};dateTW=${dateTW}`);
 
@@ -604,7 +604,7 @@ function dateTW() {
             // override settings
             $.extend(twSettings, options);
 
-            //twSettings.yearRange = startYear + ':' + endYear;
+            twSettings.yearRange = startYear + ':' + endYear;
 
             // init
             $(this).datepicker(twSettings);

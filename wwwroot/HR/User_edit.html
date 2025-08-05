@@ -210,21 +210,34 @@
             <tr class="c12-k" bgcolor="#FFFFFF">
                 <td align="right" bgcolor="#CCCCFF">可查看公司</td>
                 <td align="left">
-                    <input type="checkbox" name="U_Check_BC" value="BC0100"  style="background-color: #00FF00;"> 台北
-                    <input type="checkbox" name="U_Check_BC" value="BC0200"  style="background-color: #00FF00;"> 新北
-                    <input type="checkbox" name="U_Check_BC" value="BC0600"  style="background-color: #00FF00;"> 桃園
-                    <input type="checkbox" name="U_Check_BC" value="BC0300"  style="background-color: #00FF00;"> 台中
-                    <input type="checkbox" name="U_Check_BC" value="BC0500"  style="background-color: #00FF00;"> 台南
-                    <input type="checkbox" name="U_Check_BC" value="BC0400"  style="background-color: #00FF00;"> 高雄
-                    <input type="checkbox" name="U_Check_BC" value="BC0900"  style="background-color: #00FF00;"> 數位行銷部
+                    <input type="checkbox" name="U_Check_BC" value="BC0100" style="background-color: #00FF00;"> 台北
+                    <input type="checkbox" name="U_Check_BC" value="BC0200" style="background-color: #00FF00;"> 新北
+                    <input type="checkbox" name="U_Check_BC" value="BC0600" style="background-color: #00FF00;"> 桃園
+                    <input type="checkbox" name="U_Check_BC" value="BC0300" style="background-color: #00FF00;"> 台中
+                    <input type="checkbox" name="U_Check_BC" value="BC0500" style="background-color: #00FF00;"> 台南
+                    <input type="checkbox" name="U_Check_BC" value="BC0400" style="background-color: #00FF00;"> 高雄
+                    <input type="checkbox" name="U_Check_BC" value="BC0900" style="background-color: #00FF00;"> 數位行銷部
                     <input type="checkbox" name="U_Check_BC" value="BC0700" style="background-color: #00FF00;"> 湧立
-                    <input type="checkbox" name="U_Check_BC" value="BC0800"  style="background-color: #00FF00;"> 台北管理部
+                    <input type="checkbox" name="U_Check_BC" value="BC0800" style="background-color: #00FF00;"> 台北管理部
                 </td>
             </tr>
             <tr class="c12-k" bgcolor="#FFFFFF">
                 <td align="right" bgcolor="#CCCCFF">居住地址</td>
                 <td align="left">
                     <input type="text" name="U_address_live" size="40" maxlength="50" class="box" value="">
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td align="right" bgcolor="#CCCCFF">留停(育嬰)</td>
+                <td align="left">
+                    <input type="checkbox" id="is_susp" name="is_susp" value="Y" style="background='#00FF00'">
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td align="right" bgcolor="#CCCCFF">留停(育嬰)生效日</td>
+                <td align="left">
+                    民國
+                    <input type="text" value="" name="str_U_susp_date" class="datepickerTW" placeholder="年 /月 /日" style="width:80px;">
                 </td>
             </tr>
             <tr class="c12-k" bgcolor="#FFFFFF">
@@ -340,6 +353,13 @@
                         document.querySelector('input[name="str_U_leave_date"]').value = '';
                     }
                     setCheckBoxes(user.U_Check_BC);
+                    document.querySelector('input[name="is_susp"]').checked = (user.is_susp === 'Y');
+                    document.querySelector('input[name="str_U_susp_date"]').value = convertToROCDate(user.U_susp_date);
+                    if (user.U_susp_date) {
+                        document.querySelector('input[name="str_U_susp_date"]').value = convertToROCDate(user.U_susp_date);
+                    } else {
+                        document.querySelector('input[name="str_U_susp_date"]').value = '';
+                    }
                 } else {
                     console.error('API 回傳資料格式錯誤');
                 }
@@ -422,7 +442,9 @@
             U_Check_BC: Array.from(document.querySelectorAll('input[name="U_Check_BC"]:checked'))
                 .map(checkbox => "#" + checkbox.value)
                 .join(''),
-            User: WebUser
+            User: WebUser,
+            is_susp: document.querySelector('input[name="is_susp"]:checked')?.value || '',
+            str_U_susp_date: document.querySelector('input[name="str_U_susp_date"]').value
         };
         const url = `${BASE_URL}/AE_HR/User_M_SUpd`;
 
