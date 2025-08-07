@@ -33,7 +33,7 @@
         </div>
         <div style="margin-bottom: 10px;margin-left: 390px;">
             
-            <span id="Breach_date_e"></span>
+            <span id="date_begin_settle"></span>
         </div>
         <div style="margin-bottom: 10px;margin-left: 350px;">
             <span><b>清償金額: <span style="border-bottom: 1px solid black;" id="TotalSettAmt"></span></b></span>
@@ -72,7 +72,7 @@
 </html>
 <script>
     document.getElementById("cs_name").innerHTML = '<b>客戶姓名: ' + localStorage.getItem('cs_name') + '</b>';
-    document.getElementById("Breach_date_e").innerHTML = '<b>清償基準日: ' + localStorage.getItem('Breach_date_e') + '</b>';
+    document.getElementById("date_begin_settle").innerHTML = '<b>清償基準日: ' + localStorage.getItem('date_begin_settle') + '</b>';
     document.getElementById("TotalSettAmt").innerText = localStorage.getItem('TotalSettAmt') + '元';
     document.getElementById("RP_AMT").innerHTML = '<b>結清本金: ' + localStorage.getItem('RP_AMT') + '元</b>'; 
     document.getElementById("BreakAmt_text").innerHTML = '<b>' + localStorage.getItem('BreakAmt_text') + ':</b>';

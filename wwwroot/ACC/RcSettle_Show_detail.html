@@ -246,10 +246,18 @@
         dateFormat: 'yy-mm-dd',
         onSelect: function (dateText, inst) {
             if (inst.input.attr('id') === 'Breach_date_s') {
+                const dateStart = convertROCtoWesternDate(document.getElementById("Breach_date_s").value);
+                document.querySelectorAll('[name="date_s_display"]').forEach(function (element) {
+                    element.innerText = dateStart;
+                });
                 calculateDays();
-
             } else if (inst.input.attr('id') === 'Breach_date_e') {
+                const dateEnd = convertROCtoWesternDate(document.getElementById("Breach_date_e").value);
+                document.querySelectorAll('[name="date_e_display"]').forEach(function (element) {
+                    element.innerText = dateEnd;
+                });
                 calculateDays();
+            } else if (inst.input.attr('id') === 'date_begin_settle') {
                 updateDelayAMT();
             }
         }
@@ -304,7 +312,7 @@
     }
 
     function updateDelayAMT() {
-        const endDateConverted = convertROCtoWesternDate(document.getElementById("Breach_date_e").value);
+        const endDateConverted = convertROCtoWesternDate(document.getElementById("date_begin_settle").value);
 
         const url = `${BASE_URL}/AE_ACC/GetDelayAMT?RCM_id=${RCM_Number}&RC_date_E=${endDateConverted}`;
 
@@ -356,6 +364,7 @@
     function printShow() {
         localStorage.setItem('HS_id', HS_id);
         localStorage.setItem('cs_name', $('#cs_name').val());
+        localStorage.setItem('date_begin_settle', document.getElementById("date_begin_settle").value.replaceAll("-", "/"));
         localStorage.setItem('Breach_date_e', document.getElementById("Breach_date_e").value.replaceAll("-", "/"));
         localStorage.setItem('RP_AMT', RP_AMT.toLocaleString()); 
         localStorage.setItem('BreakAmt_text', BreakAmt_text);
