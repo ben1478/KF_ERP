@@ -1,0 +1,152 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script src="../Base.js"></script>
+    <title>作業平台</title>
+</head>
+<body>
+    <table width="500" border="0" cellspacing="1" cellpadding="2" bgcolor="#999999">
+        <tbody>
+            <tr class="c12-k" bgcolor="#CCCCFF" height="30">
+                <td colspan="2" align="center">
+                    <span class="c14k" style="display: block; text-align: center;">角色資料新增</span>
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF" style="display:none;">
+                <td align="right" bgcolor="#CCCCFF">角色代號</td>
+                <td>
+                    <span id="R_num"></span>
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td align="right" bgcolor="#CCCCFF">角色名稱</td>
+                <td align="left">
+                    <input type="text" name="R_name" size="12" maxlength="20" class="box" value="">
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF" style="display:none;">
+                <td align="right" bgcolor="#CCCCFF">角色人員明細</td>
+                <td>
+                    <span id="RoleUser"></span>
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF" style="display:none;">
+                <td align="right" bgcolor="#CCCCFF">啟用狀態</td>
+                <td align="left">
+                    <input type="radio" name="del_tag" value="0">啟用
+                    <input type="radio" name="del_tag" value="1">停用
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#CCCCFF" height="30" data-ignore="true">
+                <td colspan="2" align="center" id="saveButtonCell">
+                    <input type="button" value="儲存" name="save" onclick="saveData();" />
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</body>
+</html>
+<script>
+    let Params = new URLSearchParams(window.location.search);
+    let WebUser = decryptParameter(Params.get('User'));
+    let WebBC = decryptParameter(Params.get('U_BC'));
+    let Read = decryptParameter(Params.get('Read'));
+    let R_num = decryptParameter(Params.get('R_num'));
+
+    if (Read !== 'A') {
+        document.querySelectorAll('[style*="display:none"]').forEach(function (el) {
+            el.style.display = '';
+        });
+        fetchData();
+    };
+
+    function saveData() {
+        if (Read === 'A') {
+            const formData = {
+                User: WebUser,
+                R_name: document.querySelector('input[name="R_name"]').value
+            };
+
+            const url = `${BASE_URL}/AE_RO/Role_M_Ins`;
+
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(formData)
+            })
+                .then(response => response.json())
+                .then(responseData => {
+                    if (responseData.resultCode === '000') {
+                        alert('新增成功');
+                        if (window.opener) {
+                            window.opener.location.reload();
+                        }
+                        window.close();
+                    }
+                }).catch(error => {
+                    alert('請求失敗，請稍後再試。');
+                });
+        } else {
+            const formData = {
+                User: WebUser,
+                R_name: document.querySelector('input[name="R_name"]').value,
+                del_tag: $('input[name="del_tag"]:checked').val(),
+                R_num: R_num
+            };
+
+            const url = `${BASE_URL}/AE_RO/Role_M_Upd`;
+
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(formData)
+            })
+                .then(response => response.json())
+                .then(responseData => {
+                    if (responseData.resultCode === '000') {
+                        alert('修改成功');
+                        if (window.opener) {
+                            window.opener.location.reload();
+                        }
+                        window.close();
+                    }
+                }).catch(error => {
+                    alert('請求失敗，請稍後再試。');
+                });
+        }
+    }
+
+    function fetchData() {
+        const url = `${BASE_URL}/AE_RO/Role_M_SQuery?R_num=${R_num}`;
+        fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+            .then(response => response.json())
+            .then(responseData => {
+                if (responseData.resultCode === '000') {
+                    const dataArray = JSON.parse(responseData.objResult);
+                    const data = dataArray[0];
+                    document.getElementById("R_num").innerText = data.R_num;
+                    $("input[name='R_name']").val(data.R_name);
+                    document.getElementById("RoleUser").innerText = data.U_names;
+                    document.querySelectorAll('input[name="del_tag"]').forEach(radio => {
+                        radio.checked = (radio.value === data.del_tag);
+                    });
+                }
+            }).catch(error => {
+                alert('請求失敗，請稍後再試。');
+            });
+    }
+</script>

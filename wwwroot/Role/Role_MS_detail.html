@@ -1,0 +1,246 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script src="../Base.js"></script>
+    <title>作業平台</title>
+</head>
+<body>
+    <table width="1100" border="0" cellspacing="0" cellpadding="0">
+        <tr>
+            <td valign="top"> </td>
+            <td align="left" valign="top">
+                <div style="margin-bottom: 10px;">
+                    <span>角色權限設定</span>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;角色編號：<span id="R_num"></span>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;角色名稱：<span id="R_name"></span>
+                </div>
+
+                <table id="MainTable" width="700" border="0" cellpadding="4" cellspacing="1" bgcolor="#666666">
+                    <thead>
+                        <tr align="center" height="30" bgcolor="#CCCCFF" class="c12-k">
+                            <td>Menu_id</td>
+                            <td>選單代碼</td>
+                            <td>選單名稱</td>
+                            <td>查詢</td>
+                            <td>新增</td>
+                            <td>修改</td>
+                            <td>刪除</td>
+                            <td>進階查詢</td>
+                            <td>全選</td>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                    <tr class="c12-k" bgcolor="#CCCCFF" height="30" data-ignore="true">
+                        <td colspan="9" align="center" id="saveButtonCell">
+                            <input type="button" value="儲存" name="save" onclick="saveData();" />
+                        </td>
+                    </tr>
+                </table>
+                <div id="pagination"></div>
+            </td>
+        </tr>
+    </table>
+
+</body>
+</html>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+<script>
+    let Params = new URLSearchParams(window.location.search);
+    let WebUser = decryptParameter(Params.get('User'));
+    let WebBC = decryptParameter(Params.get('U_BC'));
+    let R_num = decryptParameter(Params.get('R_num'));
+    let R_name =decryptChinese(Params.get('R_name'));
+
+    let data = [];
+
+    document.getElementById("R_num").innerText = R_num;
+    document.getElementById("R_name").innerText = R_name;
+
+    fetchData();
+
+    function fetchData() {
+        const url = `${BASE_URL}/AE_RO/MenuSet_SQuery?roleNum=${R_num}`;
+
+        fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+            .then(response => response.json())
+            .then(responseData => {
+                if (responseData.resultCode === '000') {
+                    data = JSON.parse(responseData.objResult);
+                    showTable(data);
+                }
+            }).catch(error => {
+                alert('請求失敗，請稍後再試。');
+            });
+    }
+
+    function showTable(data) {
+        const tbody = document.querySelector('#MainTable tbody');
+        tbody.innerHTML = '';
+
+        const columnOrder = ['menu_id', 'top_id', 'menu_name', 'per_read', 'per_add', 'per_edit', 'per_del', 'per_query', 'per_all'];
+        const permissionKeys = ['per_read', 'per_add', 'per_edit', 'per_del', 'per_query'];
+
+        data.forEach(item => {
+            const row = document.createElement('tr');
+            row.setAttribute('align', 'center');
+            row.className = 'c12-k';
+            row.style.backgroundColor = '#FFFFFF';
+            row.onmouseover = function () { this.style.background = '#FCFCC0'; };
+            row.onmouseout = function () { this.style.background = '#FFFFFF'; };
+
+            row.setAttribute('data-map-id', item.Map_id || '');
+
+            // 建立 checkbox 參照表（讓彼此可以互動）
+            const checkboxRefs = {};
+
+            // 檢查是否全部權限都為 1，若是，設定 per_all 為 1
+            const hasAllPermissions = permissionKeys.every(key => item[key] === '1');
+            if (hasAllPermissions) {
+                item.per_all = '1';
+            }
+
+            columnOrder.forEach(key => {
+                const cell = document.createElement('td');
+
+                if (key !== 'menu_id') {
+                    if (item.sub_id !== '0') {
+                        cell.style.color = 'red';
+                        cell.style.textAlign = 'center';  
+                    } else {
+                        cell.style.color = 'blue';
+                        if (key === 'menu_name') {
+                            cell.style.textAlign = 'left'; 
+                        } else {
+                            cell.style.textAlign = 'center';
+                        }
+                    }
+                }
+
+                // 權限欄位：使用 checkbox
+                if (permissionKeys.includes(key) || key === 'per_all') {
+                    const checkbox = document.createElement('input');
+                    checkbox.type = 'checkbox';
+                    checkbox.checked = item[key] === '1';
+
+                    // 存入參照
+                    checkboxRefs[key] = checkbox;
+
+                    // 五個欄位監聽變化 → 控制 per_all
+                    if (permissionKeys.includes(key)) {
+                        checkbox.addEventListener('change', () => {
+                            const allChecked = permissionKeys.every(p => checkboxRefs[p].checked);
+                            checkboxRefs['per_all'].checked = allChecked;
+                        });
+                    }
+
+                    // per_all 改變 → 同步五個欄位
+                    if (key === 'per_all') {
+                        checkbox.addEventListener('change', () => {
+                            const isChecked = checkbox.checked;
+                            permissionKeys.forEach(p => {
+                                checkboxRefs[p].checked = isChecked;
+                            });
+                        });
+                    }
+
+                    cell.appendChild(checkbox);
+                } else {
+
+                    //top_id 跟 sub_id呈現的不同
+                    if (key === 'top_id') {
+                        cell.textContent = item.sub_id === '0'
+                            ? (item[key] != null ? item[key] : '')
+                            : (item.sub_id != null ? item.sub_id : '');
+                    } else {
+                        cell.textContent = item[key] != null ? item[key] : '';
+                    }
+                }
+                row.appendChild(cell);
+            });
+            tbody.appendChild(row);
+        });
+    }
+
+    function decryptChinese(encryptedParam) {
+        const key = CryptoJS.enc.Utf8.parse("1234567812345678");
+        const iv = CryptoJS.enc.Utf8.parse("1234567812345678");
+        const decrypted = CryptoJS.AES.decrypt(decodeURIComponent(encryptedParam), key, {
+            iv: iv,
+            mode: CryptoJS.mode.CBC,
+            padding: CryptoJS.pad.Pkcs7
+        });
+        return decrypted.toString(CryptoJS.enc.Utf8);
+    }
+
+    function collectTableData() {
+        const tbody = document.querySelector('#MainTable tbody');
+        const rows = tbody.querySelectorAll('tr');
+
+        const columnOrder = ['menu_id', 'top_id', 'menu_name', 'per_read', 'per_add', 'per_edit', 'per_del', 'per_query', 'per_all'];
+        const permissionKeys = ['per_read', 'per_add', 'per_edit', 'per_del', 'per_query'];
+
+        const result = [];
+
+        rows.forEach(row => {
+            const data = {
+                User: WebUser,
+                R_num: R_num,
+                map_id: row.dataset.mapId || 0
+            };
+
+            const cells = row.querySelectorAll('td');
+
+            cells.forEach((cell, index) => {
+                const key = columnOrder[index];
+
+                if (key === 'per_all') {
+                    return;
+                }
+
+                if (permissionKeys.includes(key)) {
+                    const checkbox = cell.querySelector('input[type="checkbox"]');
+                    data[key] = checkbox && checkbox.checked ? '1' : '0';
+                } else {
+                    data[key] = cell.textContent.trim();
+                }
+            });
+
+            result.push(data);
+        });
+
+        return result;
+    }
+
+    function saveData() {
+        const tableData = collectTableData();
+
+        const url = `${BASE_URL}/AE_RO/MenuSet_Upd`;
+
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(tableData)
+        })
+            .then(response => response.json())
+            .then(responseData => {
+                if (responseData.resultCode === '000') {
+                    alert('儲存成功');
+                    window.location.reload();
+                }
+            }).catch(error => {
+                alert('儲存失敗，請稍後再試。');
+            });
+    }
+</script>

@@ -113,7 +113,7 @@
         for (let i = 0; i < 12; i++) {
             const optionDate = new Date(now.getFullYear(), now.getMonth() + i);
             const year = optionDate.getFullYear();
-            const month = (optionDate.getMonth() + 1).toString().padStart(2, '0');
+            const month = (optionDate.getMonth()).toString().padStart(2, '0');
             const value = `${year}-${month}`;
 
             const option = document.createElement('option');

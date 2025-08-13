@@ -148,7 +148,7 @@
                                     <input type="button" name="add" value="客訴資料" onclick="openComplaint_LQuery();">
                                 </td>
                                 <td width="13%" align="center">
-                                    <input type="button" name="add" value="角色管理" onclick="">
+                                    <input type="button" name="add" value="角色管理" onclick="openRole();">
                                 </td>
                                 <td width="13%" align="center"></td>
                             </tr>
@@ -359,5 +359,9 @@
 
     function openUserM() {
         window.open(`/HR/User_list.html?User=${WebUser}&U_BC=${WebBC}`, 'list', 'scrollbars=yes,resizable=yes,width=1300,height=500,left=250,top=100')
+    }
+
+    function openRole() {
+        window.open(`/Role/Role_M_list.html?User=${WebUser}&U_BC=${WebBC}`, 'list', 'scrollbars=yes,resizable=yes,width=1300,height=500,left=250,top=100')
     }
 </script>
