@@ -1,0 +1,35 @@
+﻿<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+    <meta charset="UTF-8">
+    <title>KindEditor Demo</title>
+
+    <!-- 引入 KindEditor 的樣式與腳本 -->
+    <link rel="stylesheet" href="/tool_js/Editor/themes/default/default.css" />
+    <script charset="utf-8" src="/tool_js/Editor/kindeditor-all-min.js"></script>
+
+    <script>
+        KindEditor.ready(function (K) {
+            K.create('#bulletin_content', {
+                uploadJson: '/upload',   // 改成我們等下用 Node.js 建的路由
+                allowFileManager: false,
+                langType: 'zh-CN',
+                afterCreate: function () { this.sync(); },
+                afterBlur: function () { this.sync(); }
+            });
+        });
+    </script>
+</head>
+<body>
+
+    <h2>發布公告</h2>
+
+    <!-- 表單 -->
+    <form method="post" action="/submit_bulletin.asp">
+        <textarea id="bulletin_content" name="bulletin_content" style="width:700px;height:300px;"></textarea>
+        <br>
+        <input type="submit" value="提交公告">
+    </form>
+
+</body>
+</html>

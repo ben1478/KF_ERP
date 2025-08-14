@@ -156,7 +156,9 @@
                                 <td width="13%" align="center">
                                     <input type="button" name="add" value="呆帳清單" onclick="openRcd_Bad_LQuery();">
                                 </td>
-                                <td width="13%" align="center"></td>
+                                <td width="13%" align="center">
+                                    <input type="button" name="add" value="系統佈告欄管理" onclick="openBulletin();">
+                                </td>
                                 <td width="13%" align="center"></td>
                             </tr>
                             <tr>
@@ -364,4 +366,9 @@
     function openRole() {
         window.open(`/Role/Role_M_list.html?User=${WebUser}&U_BC=${WebBC}`, 'list', 'scrollbars=yes,resizable=yes,width=1300,height=500,left=250,top=100')
     }
+    
+    function openBulletin() {
+        window.open(`/Bulletin/Bulletin_M_List.html?User=${WebUser}&U_BC=${WebBC}`, 'list', 'scrollbars=yes,resizable=yes,width=1300,height=500,left=250,top=100')
+    }
+    
 </script>
