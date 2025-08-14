@@ -22,6 +22,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Content Remove="wwwroot\images\button_1.jpg" />
+    <Content Remove="wwwroot\images\button_1_converted.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <_ContentIncludedByDefault Remove="wwwroot\Role\Role_M_detail.html" />
     <_ContentIncludedByDefault Remove="wwwroot\Tar\Person_Target_detail.html" />
   </ItemGroup>
 
