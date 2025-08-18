@@ -165,7 +165,9 @@
                                 <td width="13%" align="center">
                                     <input type="button" name="add" value="資產數據分析" onclick="openRC_Excess_LQuery();">
                                 </td>
-                                <td width="13%" align="center"></td>
+                                <td width="13%" align="center">
+                                    <input type="button" name="add" value="特殊權限設定" onclick="openSpecSet();">
+                                </td>
                                 <td width="13%" align="center"></td>
                             </tr>
                             <tr>
@@ -370,5 +372,8 @@
     function openBulletin() {
         window.open(`/Bulletin/Bulletin_M_List.html?User=${WebUser}&U_BC=${WebBC}`, 'list', 'scrollbars=yes,resizable=yes,width=1300,height=500,left=250,top=100')
     }
-    
+
+    function openSpecSet() {
+        window.open(`/Role/Spec_M_List.html?User=${WebUser}&U_BC=${WebBC}`, 'list', 'scrollbars=yes,resizable=yes,width=1300,height=500,left=250,top=100')
+    }
 </script>

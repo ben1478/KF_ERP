@@ -76,14 +76,14 @@
             .then(responseData => {
                 if (responseData.resultCode === '000') {
                     data = JSON.parse(responseData.objResult);
-                    showTable(data);
+                    showTable();
                 }
             }).catch(error => {
                 alert('請求失敗，請稍後再試。');
             });
     }
 
-    function showTable(data) {
+    function showTable() {
         const tbody = document.querySelector('#MainTable tbody');
         tbody.innerHTML = '';
 

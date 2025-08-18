@@ -1,0 +1,129 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script src="../Base.js"></script>
+    <title>作業平台</title>
+</head>
+<body>
+    &nbsp;&nbsp; &nbsp;&nbsp;&nbsp;<span class="c14k"><strong>特定權限設定</strong></span><br />
+    <table width="1300" border="0" cellspacing="0" cellpadding="0">
+        <tbody>
+            <tr>
+                <td valign="top"> </td>
+                <td align="center" valign="top">
+                    <table id="MainTable" width="1280" border="0" cellpadding="4" cellspacing="1" bgcolor="#666666" style="font-size:13px;">
+                        <thead>
+                            <tr align="center" height="30" bgcolor="#CCCCFF" class="c12-k">
+                                <td width="30">權限代碼</td>
+                                <td width="100">權限類別</td>
+                                <td width="220">權限名稱</td>
+                                <td width="400">權限說明</td>
+                                <td width="30">權限設定</td>
+                                <td width="500">已開放人員</td>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                        <tfoot>
+                            <tr align="center" height="15" bgcolor="#CCCCFF">
+                                <td class="c12-k" colspan="6">
+                                    <font color="#000080">
+                                        <label id="CountRows"></label>
+                                    </font>
+                                </td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                    <div id="pagination"></div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</body>
+</html>
+<script>
+    const Params = getQueryParams();
+    let WebUser = Params.WebUser;
+    let WebBC = Params.WebBC;
+    let data = [];
+
+    fetchData();
+
+    function fetchData() {
+        const url = `${BASE_URL}/AE_RO/Spec_Set_LQuery`;
+
+        fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include'
+        })
+            .then(response => response.json())
+            .then(responseData => {
+                if (responseData.resultCode == "000") {
+                    data = JSON.parse(responseData.objResult);
+                    showTable();
+                } else {
+                    alert(response.resultMsg);
+                }
+            })
+            .catch(error => {
+                alert('API 請求失敗:', error);
+            });
+    }
+
+    function showTable() {
+        const tbody = document.querySelector('#MainTable tbody');
+        tbody.innerHTML = '';
+
+        const columnOrder = ['sp_id', 'show_sp_kind', 'sp_name', 'sp_note', 'upd', 'show_U_name'];
+
+        data.forEach(item => {
+            const row = document.createElement('tr');
+            row.setAttribute('align', 'center');
+            row.className = 'c12-k';
+            row.style.backgroundColor = '#FFFFFF';
+            row.onmouseover = function () { this.style.background = '#FCFCC0'; };
+            row.onmouseout = function () { this.style.background = '#FFFFFF'; };
+
+            columnOrder.forEach(key => {
+                const cell = document.createElement('td');
+
+                if (key === 'upd') {
+                    row.appendChild(createButtonCell(
+                        "../images/edit.png",
+                        "修改",
+                        function () {
+                            window.open(`Spec_M_detail.html?User=${encryptParameter(WebUser)}&U_BC=${encryptParameter(WebBC)}&sp_id=${encryptParameter(item.sp_id)}`, '_blank', 'scrollbars=yes,resizable=yes,top=100,width=600,height=500');
+                        }
+                    ));
+                } else {
+                    if (key === 'show_U_name') {
+                        cell.style.textAlign = 'left';
+
+                        const names = item[key] ? item[key].split(' || ') : [];
+                        const formatted = formatNames(names, 9);
+                        cell.innerHTML = formatted;
+                    } else {
+                        cell.textContent = item[key] != null ? item[key] : '';
+                    }
+                    row.appendChild(cell);
+                }
+            });
+            tbody.appendChild(row);
+        });
+    }
+
+    function formatNames(names, perLine = 6) {
+        const lines = [];
+        for (let i = 0; i < names.length; i += perLine) {
+            lines.push(names.slice(i, i + perLine).join(' || '));
+        }
+        return lines.join('<br>');
+    }
+</script>

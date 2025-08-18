@@ -1,0 +1,166 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script src="../Base.js"></script>
+    <title>作業平台</title>
+</head>
+<body>
+    <table id="MainTable" width="400" border="0" cellpadding="4" cellspacing="1" bgcolor="#666666">
+        <thead>
+            <tr class="c12-k" bgcolor="#BDDDEA" align="center">
+                <td colspan="2">
+                    <span id="Sp_name"></span>
+                </td>
+            </tr>
+            <tr align="center" bgcolor="#CCCCFF" class="c12-k">
+                <td width="250">使用者</td>
+                <td width="150">開放</td>
+            </tr>
+        </thead>
+        <tbody></tbody>
+        <tr class="c12-k" bgcolor="#CCCCFF" height="30" data-ignore="true">
+            <td colspan="2" align="center" id="saveButtonCell">
+                <input type="button" value="儲存" name="save" onclick="saveData();" />
+            </td>
+        </tr>
+    </table>
+</body>
+</html>
+<script>
+    let Params = new URLSearchParams(window.location.search);
+    let WebUser = decryptParameter(Params.get('User'));
+    let WebBC = decryptParameter(Params.get('U_BC'));
+    let sp_id = decryptParameter(Params.get('sp_id'));
+
+    fetchData();
+
+    function fetchData() {
+        const url = `${BASE_URL}/AE_RO/Spec_Set_SQuery?spID=${sp_id}`;
+
+        fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+            .then(response => response.json())
+            .then(responseData => {
+                if (responseData.resultCode === '000') {
+                    data = JSON.parse(responseData.objResult);
+                    document.getElementById("Sp_name").innerText = data[0].Spec_name;
+                    showTable();
+                }
+            }).catch(error => {
+                alert('請求失敗，請稍後再試。');
+            });
+    }
+
+    function showTable() {
+        const tbody = document.querySelector('#MainTable tbody');
+        tbody.innerHTML = '';
+
+        const columnOrder = ['show_name', 'sp_type'];
+
+        data.forEach((item, index) => {
+            if (index !== 0 && index % 20 === 0) {
+                const headerRow = document.createElement('tr');
+                headerRow.setAttribute('align', 'center');
+                headerRow.setAttribute('bgcolor', '#CCCCFF');
+                headerRow.className = 'c12-k';
+
+                const th1 = document.createElement('td');
+                th1.setAttribute('width', '250');
+                th1.textContent = '使用者';
+
+                const th2 = document.createElement('td');
+                th2.setAttribute('width', '150');
+                th2.textContent = '開放';
+
+                headerRow.appendChild(th1);
+                headerRow.appendChild(th2);
+                tbody.appendChild(headerRow);
+            }
+
+            const row = document.createElement('tr');
+            row.setAttribute('align', 'center');
+            row.className = 'c12-k';
+            row.style.backgroundColor = '#FFFFFF';
+            row.onmouseover = function () { this.style.background = '#FCFCC0'; };
+            row.onmouseout = function () { this.style.background = '#FFFFFF'; };
+
+            columnOrder.forEach(key => {
+                const cell = document.createElement('td');
+
+                if (key === 'sp_type') {
+                    const checkbox = document.createElement('input');
+                    checkbox.type = 'checkbox';
+                    checkbox.checked = item[key] === '1';
+                    cell.appendChild(checkbox);
+                } else {
+                    cell.textContent = item[key] != null ? item[key] : '';
+                }
+
+                row.appendChild(cell);
+            });
+
+            tbody.appendChild(row);
+        });
+    }
+
+    function saveData() {
+        const tableData = collectTableData();
+
+        const url = `${BASE_URL}/AE_RO/Spec_Set_Upd`;
+
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(tableData)
+        })
+            .then(response => response.json())
+            .then(responseData => {
+                if (responseData.resultCode === '000') {
+                    alert('儲存成功');
+                    window.location.reload();
+                }
+            }).catch(error => {
+                alert('儲存失敗，請稍後再試。');
+            });
+    }
+
+    function collectTableData() {
+        const tbody = document.querySelector('#MainTable tbody');
+        const rows = tbody.querySelectorAll('tr');
+        const columnOrder = ['U_num', 'sp_type'];
+
+        const result = [];
+
+        rows.forEach(row => {
+            const rowData = {
+                User: WebUser,
+                Sp_id: sp_id
+            };
+            const cells = row.querySelectorAll('td');
+
+            cells.forEach((cell, index) => {
+                const key = columnOrder[index];
+
+                if (key === 'sp_type') {
+                    const checkbox = cell.querySelector('input[type="checkbox"]');
+                    rowData[key] = checkbox && checkbox.checked ? '1' : '0';
+                } else {
+                    rowData[key] = cell.textContent.trim().split('-')[0];
+                }
+            });
+            result.push(rowData);
+        });
+        return result;
+    }
+</script>
