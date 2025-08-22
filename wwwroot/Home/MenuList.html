@@ -174,14 +174,18 @@
                                 <td width="13%" align="center">
                                     <input type="button" name="add" value="債權憑證管理" onclick="openDebt_Certificate_DetQuery();">
                                 </td>
-                                <td width="13%" align="center"></td>
+                                <td width="13%" align="center">
+                                    <input type="button" name="add" value="員工分組成員設定" onclick="openUserGroup();">
+                                </td>
                                 <td width="13%" align="center"></td>
                             </tr>
                             <tr>
                                 <td width="13%" align="center">
                                     <input type="button" name="add" value="應收帳款-逾放比" onclick="openRC_Over_Rel_LQuery();">
                                 </td>
-                                <td width="13%" align="center"></td>
+                                <td width="13%" align="center">
+                                    <input type="button" name="add" value="呆帳催繳紀錄清單" onclick="openStagnationDebt();">
+                                </td>
                                 <td width="13%" align="center"></td>
                             </tr>
                             <tr>
@@ -375,5 +379,13 @@
 
     function openSpecSet() {
         window.open(`/Role/Spec_M_List.html?User=${WebUser}&U_BC=${WebBC}`, 'list', 'scrollbars=yes,resizable=yes,width=1300,height=500,left=250,top=100')
+    }
+
+    function openUserGroup() {
+        window.open(`/UGP/User_GP_List.html?User=${WebUser}&U_BC=${WebBC}`, 'list', 'scrollbars=yes,resizable=yes,width=1300,height=500,left=250,top=100')
+    }
+
+    function openStagnationDebt() {
+        window.open(`/SD/SD_M_List.html?User=${WebUser}&U_BC=${WebBC}`, 'list', 'scrollbars=yes,resizable=yes,width=1300,height=500,left=250,top=100')
     }
 </script>

@@ -1,0 +1,189 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script src="../Base.js"></script>
+    <title>作業平台</title>
+</head>
+<body>
+    <table width="800" border="0" cellspacing="1" cellpadding="3" bgcolor="#000000">
+        <tbody>
+            <tr class="14-k" bgcolor="#CCCCFF" height="35" align="center">
+                <td colspan="5">呆帳催繳資料</td>
+            </tr>
+            <tr class="12" bgcolor="#CCCCFF" height="25" align="center">
+                <td>客戶姓名</td>
+                <td>身分ID</td>
+                <td>應繳納總金額</td>
+                <td>已繳納總金額</td>
+                <td>呆帳總金額</td>
+            </tr>
+            <tr class="12-k" bgcolor="#FFFFFF" height="25" align="center">
+                <td><span id="SD_Name"></span></td>
+                <td><span id="SD_CID"></span></td>
+                <td><span id="str_total_due_amount"></span></td>
+                <td><span id="str_total_paid_amount"></span></td>
+                <td><span id="str_total_bad_debt"></span></td>
+            </tr>
+            <tr class="12" bgcolor="#CCCCFF" height="25" align="center">
+                <td colspan="5">備註</td>
+            </tr>
+            <tr class="12-k" bgcolor="#FFFFFF" height="25" align="center">
+                <td colspan="5"><span id="remarks"></span></td>
+            </tr>
+        </tbody>
+    </table>
+    <br />
+    <input type="button" value="新增催繳明細" onclick="openSDDetail();"/>
+    <br />
+    <br />
+    <table id="MainTable" width="800" border="0" cellpadding="4" cellspacing="1" bgcolor="#666666">
+        <thead>
+            <tr align="center" height="30" bgcolor="#CCCCFF" class="c12-k">
+                <td>序號</td>
+                <td>催繳日期</td>
+                <td>繳納金額</td>
+                <td>催繳紀錄</td>
+                <td>修改</td>
+                <td>刪除</td>
+            </tr>
+        </thead>
+        <tbody></tbody>
+        <tfoot>
+            <tr align="center" height="15" bgcolor="#CCCCFF">
+                <td class="c12-k" colspan="6">
+                    <font color="#000080">
+                        <label id="CountRows"></label>
+                    </font>
+                </td>
+            </tr>
+        </tfoot>
+    </table>
+</body>
+</html>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+<script>
+    let Params = new URLSearchParams(window.location.search);
+    let WebUser = decryptParameter(Params.get('User'));
+    let SdmID = decryptParameter(Params.get('sdm_id'));
+
+    fetchData();
+
+    function fetchData() {
+        const url = `${BASE_URL}/AE_SD/SD_Info_LQuery?sdm_id=${SdmID}`;
+
+        fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+            .then(response => response.json())
+            .then(responseData => {
+                if (responseData.resultCode === '000') {
+                    const data = JSON.parse(responseData.objResult);
+                    document.getElementById('SD_Name').textContent = data.SD_Name;
+                    document.getElementById('SD_CID').textContent = data.SD_CID;
+                    document.getElementById('str_total_due_amount').textContent = data.str_total_due_amount;
+                    document.getElementById('str_total_paid_amount').textContent = data.str_total_paid_amount;
+                    document.getElementById('str_total_bad_debt').textContent = data.str_total_bad_debt;
+                    document.getElementById('remarks').textContent = data.remarks ?? '';
+                    showTable(data.SDList);
+                }
+            }).catch(error => {
+                alert('請求失敗，請稍後再試。');
+            });
+    }
+
+    function showTable(SDList) {
+        const tbody = document.querySelector('#MainTable tbody');
+        tbody.innerHTML = '';
+
+        const columnOrder = ['collection_date_roc', 'str_payment_amount', 'collection_not', 'Upd', 'del'];
+
+        SDList.forEach((item, index) => {
+            const row = document.createElement('tr');
+            row.setAttribute('align', 'center');
+            row.className = 'c12-k';
+            row.style.backgroundColor = '#FFFFFF';
+            row.onmouseover = function () { this.style.background = '#FCFCC0'; };
+            row.onmouseout = function () { this.style.background = '#FFFFFF'; };
+
+            const serialCell = document.createElement('td');
+            serialCell.textContent = index + 1;
+            row.appendChild(serialCell);
+
+            columnOrder.forEach(key => {
+                const cell = document.createElement('td');
+                switch (key) {
+                    case 'Upd':
+                        row.appendChild(createButtonCell(
+                            "../images/edit.png",
+                            "修改",
+                            function () {
+                                window.open(`SD_D_Detail.html?User=${encryptParameter(WebUser)}&Read=${encryptParameter('N')}&sdm_id=${encryptParameter(SdmID)}&C_name=${encryptChiese(document.getElementById('SD_Name').textContent)}&sdd_id=${encryptParameter(item.sdd_id)}`, '_blank', 'scrollbars=yes,resizable=yes,top=100,width=500,height=400');
+                            }
+                        ));
+                        break;
+                    case 'del':
+                        row.appendChild(createButtonCell(
+                            "../images/delete.png",
+                            "刪除",
+                            function () {
+                                const confirmDelete = confirm("確定要刪除這筆資料嗎？");
+
+                                if (confirmDelete) {
+                                    const url = `${BASE_URL}/AE_SD/SD_D_Del?User=${encodeURIComponent(WebUser)}&sdd_id=${encodeURIComponent(item.sdd_id)}`;
+
+                                    fetch(url, {
+                                        method: 'GET',
+                                        headers: {
+                                            'Content-Type': 'application/json'
+                                        }
+                                    })
+                                        .then(response => response.json())
+                                        .then(result => {
+                                            if (result.resultCode === '000') {
+                                                alert("刪除成功！");
+                                                fetchData();
+                                            } else {
+                                                alert("刪除失敗：" + result.resultMsg);
+                                            }
+                                        })
+                                        .catch(error => {
+                                            alert("刪除請求失敗，請稍後再試。");
+                                        });
+                                }
+                            }
+                        ));
+                        break;
+                    default:
+                        cell.textContent = item[key] != null ? item[key] : '';
+                        row.appendChild(cell);
+                        break;
+                }
+            });
+
+            tbody.appendChild(row);
+        });
+    }
+
+    function openSDDetail() {
+        window.open(`SD_D_Detail.html?User=${encryptParameter(WebUser)}&Read=${encryptParameter('A')}&sdm_id=${encryptParameter(SdmID)}&C_name=${encryptChiese(document.getElementById('SD_Name').textContent)}&sdd_id=${encryptParameter(0)}`, '_blank', 'scrollbars=yes,resizable=yes,top=100,width=500,height=400');
+    }
+
+    function encryptChiese(param) {
+        const key = CryptoJS.enc.Utf8.parse("1234567812345678");
+        const iv = CryptoJS.enc.Utf8.parse("1234567812345678");
+        const encrypted = CryptoJS.AES.encrypt(param, key, {
+            iv: iv,
+            mode: CryptoJS.mode.CBC,
+            padding: CryptoJS.pad.Pkcs7
+        });
+        return encodeURIComponent(encrypted.toString());
+    }
+</script>

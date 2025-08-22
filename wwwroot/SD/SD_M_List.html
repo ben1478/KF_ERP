@@ -1,0 +1,168 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script src="../Base.js"></script>
+    <title>作業平台</title>
+</head>
+<body>
+    &nbsp;&nbsp; &nbsp;&nbsp;&nbsp;<span class="c14k"><strong>呆帳清單紀錄</strong></span><br />
+    &nbsp;&nbsp; &nbsp;&nbsp;&nbsp;<input type="button" name="add" value="新增呆帳" onclick="addStagnationDebt(); "><br />
+    <table width="1100" border="0" cellspacing="0" cellpadding="0">
+        <tbody>
+            <tr>
+                <td valign="top"> </td>
+                <td align="center" valign="top">
+                    <table id="MainTable" width="1050" border="0" cellpadding="4" cellspacing="1" bgcolor="#666666">
+                        <thead>
+                            <tr align="center" height="30" bgcolor="#CCCCFF" class="c12-k">
+                                <td>序號</td>
+                                <td>異動</td>
+                                <td>客戶姓名</td>
+                                <td>身分ID</td>
+                                <td>呆帳總金額</td>
+                                <td>備註</td>
+                                <td>近期催繳日期</td>
+                                <td>明細</td>
+                                <td>刪除</td>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                        <tfoot>
+                            <tr align="center" height="15" bgcolor="#CCCCFF">
+                                <td class="c12-k" colspan="9">
+                                    <font color="#000080">
+                                        <label id="CountRows"></label>
+                                    </font>
+                                </td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</body>
+</html>
+<script>
+    const Params = getQueryParams();
+    let WebUser = Params.WebUser;
+    let WebBC = Params.WebBC;
+
+    fetchData();
+
+    function addStagnationDebt() {
+        window.open(`SD_M_Detail.html?User=${encryptParameter(WebUser)}&U_BC=${encryptParameter(WebBC)}&Read=${encryptParameter('A')}&sdm_id=${encryptParameter(0)}`, '_blank', 'scrollbars=yes,resizable=yes,top=100,width=500,height=400');
+    }
+
+    function fetchData() {
+        const url = `${BASE_URL}/AE_SD/SD_M_LQuery`;
+
+        fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include'
+        })
+            .then(response => response.json())
+            .then(responseData => {
+                if (responseData.resultCode == "000") {
+                    data = JSON.parse(responseData.objResult);
+                    showTable();
+                } else {
+                    alert(response.resultMsg);
+                }
+            })
+            .catch(error => {
+                alert('API 請求失敗:', error);
+            });
+    }
+
+    function showTable() {
+        const tbody = document.querySelector('#MainTable tbody');
+        tbody.innerHTML = '';
+
+        const columnOrder = ['MUpd', 'CS_name', 'CS_PID', 'str_total_bad_debt', 'remarks','collection_date_roc','Upd','del'];
+
+        
+
+        data.forEach((item, index) => {
+            const row = document.createElement('tr');
+            row.setAttribute('align', 'center');
+            row.className = 'c12-k';
+            row.style.backgroundColor = '#FFFFFF';
+            row.onmouseover = function () { this.style.background = '#FCFCC0'; };
+            row.onmouseout = function () { this.style.background = '#FFFFFF'; };
+
+            const serialCell = document.createElement('td');
+            serialCell.textContent = index + 1;
+            row.appendChild(serialCell);
+
+            columnOrder.forEach(key => {
+                const cell = document.createElement('td');
+                switch (key) {
+                    case 'MUpd':
+                        row.appendChild(createButtonCell(
+                            "../images/edit.png",
+                            "修改",
+                            function () {
+                                window.open(`SD_M_Detail.html?User=${encryptParameter(WebUser)}&U_BC=${encryptParameter(WebBC)}&Read=${encryptParameter('N')}&sdm_id=${encryptParameter(item.sdm_id)}`, '_blank', 'scrollbars=yes,resizable=yes,top=100,width=500,height=400');
+                            }
+                        ));
+                        break;
+                    case 'Upd':
+                        row.appendChild(createButtonCell(
+                            "../images/edit.png",
+                            "修改",
+                            function () {
+                                window.open(`SD_D_Info.html?User=${encryptParameter(WebUser)}&U_BC=${encryptParameter(WebBC)}&sdm_id=${encryptParameter(item.sdm_id)}`, '_blank', 'scrollbars=yes,resizable=yes,top=100,width=850,height=500');
+                            }
+                        ));
+                        break;
+                    case 'del':
+                        row.appendChild(createButtonCell(
+                            "../images/delete.png",
+                            "刪除",
+                            function () {
+                                const confirmDelete = confirm("確定要刪除這筆資料嗎？");
+
+                                if (confirmDelete) {
+                                    const url = `${BASE_URL}/AE_SD/SD_M_Del?User=${encodeURIComponent(WebUser)}&sdm_id=${encodeURIComponent(item.sdm_id)}`;
+
+                                    fetch(url, {
+                                        method: 'GET',
+                                        headers: {
+                                            'Content-Type': 'application/json'
+                                        }
+                                    })
+                                        .then(response => response.json())
+                                        .then(result => {
+                                            if (result.resultCode === '000') {
+                                                alert("刪除成功！");
+                                                fetchData();
+                                            } else {
+                                                alert("刪除失敗：" + result.resultMsg);
+                                            }
+                                        })
+                                        .catch(error => {
+                                            alert("刪除請求失敗，請稍後再試。");
+                                        });
+                                }
+                            }
+                        ));
+                        break;
+                    default:
+                        cell.textContent = item[key] != null ? item[key] : '';
+                        row.appendChild(cell);
+                        break;
+                }
+            });
+            tbody.appendChild(row);
+        });
+    }
+</script>

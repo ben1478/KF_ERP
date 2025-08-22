@@ -1,0 +1,144 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script src="../Base.js"></script>
+    <title>作業平台</title>
+</head>
+<body>
+    <table width="450" border="0" cellspacing="1" cellpadding="2" bgcolor="#999999">
+        <tbody>
+            <tr class="c12-k" bgcolor="#CCCCFF" height="30">
+                <td colspan="2" align="center">
+                    <span class="c14k" style="display: block; text-align: center;">催繳資料</span>
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td align="right" bgcolor="#CCCCFF">客戶姓名</td>
+                <td align="left">
+                    <span id="SD_Name"></span>
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td align="right" bgcolor="#CCCCFF">催繳日期</td>
+                <td align="left">
+                    <input type="text" value="" name="collection_date_roc" class="datepickerTW" placeholder="年 /月 /日" style="width:80px;">
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td align="right" bgcolor="#CCCCFF">繳納金額</td>
+                <td align="left">
+                    <input type="text" name="payment_amount" size="12" maxlength="20" class="box" value="" />
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td align="right" bgcolor="#CCCCFF">催繳紀錄</td>
+                <td align="left">
+                    <textarea name="collection_not" cols="28" rows="6"></textarea>
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#CCCCFF" height="30">
+                <td colspan="2" align="center">
+                    <input type="button" value="儲存" onclick="saveData();" />
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</body>
+</html>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+<script>
+    let Params = new URLSearchParams(window.location.search);
+    let WebUser = decryptParameter(Params.get('User'));
+    let Read = decryptParameter(Params.get('Read'));
+    let SdmID = decryptParameter(Params.get('sdm_id'));
+    let Cname = decryptChinese(Params.get('C_name'));
+    let SddID = decryptParameter(Params.get('sdd_id'));
+
+    dateTW();
+
+    document.getElementById('SD_Name').textContent = Cname;
+
+    if (Read !== 'A') {
+        fetchData();
+    }
+
+    function saveData() {
+        const paymentValue = document.querySelector('input[name="payment_amount"]').value.trim();
+
+        const SData = {
+            tbInfo: {
+                add_num: WebUser,
+                edit_num: WebUser
+            },
+            sdm_id: SdmID,
+            sdd_id: SddID,
+            payment_amount: paymentValue === '' ? null : parseFloat(paymentValue),
+            collection_date_roc: document.querySelector('input[name="collection_date_roc"]').value,
+            collection_not: document.querySelector('textarea[name="collection_not"]').value
+        };
+
+        const url = `${BASE_URL}/AE_SD/${Read === 'A' ? 'SD_D_Ins' : 'SD_D_Upd'}`;
+
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include',
+            body: JSON.stringify(SData)
+        })
+            .then(response => response.json())
+            .then(response => {
+                if (response.resultCode == "000") {
+                    alert('儲存成功');
+                    window.opener.location.reload();
+                    window.close();
+                } else {
+                    alert('儲存失敗');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('請求失敗');
+            });
+    }
+
+    function decryptChinese(encryptedParam) {
+        const key = CryptoJS.enc.Utf8.parse("1234567812345678");
+        const iv = CryptoJS.enc.Utf8.parse("1234567812345678");
+        const decrypted = CryptoJS.AES.decrypt(decodeURIComponent(encryptedParam), key, {
+            iv: iv,
+            mode: CryptoJS.mode.CBC,
+            padding: CryptoJS.pad.Pkcs7
+        });
+        return decrypted.toString(CryptoJS.enc.Utf8);
+    }
+
+    function fetchData() {
+        const url = `${BASE_URL}/AE_SD/SD_D_SQuery?sdd_id=${SddID}`;
+
+        fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+            .then(response => response.json())
+            .then(responseData => {
+                if (responseData.resultCode === '000') {
+                    data = JSON.parse(responseData.objResult);
+                    const model = data[0];
+                    document.querySelector('input[name="collection_date_roc"]').value = model.collection_date_roc;
+                    document.querySelector('input[name="payment_amount"]').value = model.payment_amount;
+                    document.querySelector('textarea[name="collection_not"]').value = model.collection_not;
+                }
+            }).catch(error => {
+                alert('請求失敗，請稍後再試。');
+            });
+    }
+</script>

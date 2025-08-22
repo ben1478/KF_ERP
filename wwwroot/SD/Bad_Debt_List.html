@@ -1,0 +1,113 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script src="../Base.js"></script>
+    <title>作業平台</title>
+</head>
+<body>
+    <table width="550" border="0" cellspacing="0" cellpadding="0">
+        <tbody>
+            <tr>
+                <td valign="top"> </td>
+                <td align="center" valign="top">
+                    <table id="MainTable" width="500" border="0" cellpadding="4" cellspacing="1" bgcolor="#666666">
+                        <thead>
+                            <tr align="center" height="30" bgcolor="#CCCCFF" class="c12-k">
+                                <td width="30">選取</td>
+                                <td width="100">客戶姓名</td>
+                                <td width="150">身分ID</td>
+                                <td width="100">總金額</td>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr align="center" class="c12-k" bgcolor="#FFFFFF" onmouseover="this.style.background='#FFFF66';" onmouseout="this.style.background='#FFFFFF'; " style="background: rgb(255, 255, 255);">
+                            </tr>
+
+                            <tr align="center" class="c12-k" bgcolor="#FFFFFF" onmouseover="this.style.background='#FFFF66';" onmouseout="this.style.background='#FFFFFF'; " style="background: rgb(255, 255, 255);">
+                            </tr>
+
+                            <tr align="center" height="30" bgcolor="#CCCCFF">
+                                <td class="c12-k" colspan="16">
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</body>
+</html>
+<script>
+    let currentPage = 1;
+    let data = []; 
+
+    fetchData();
+
+    function fetchData() {
+        const url = `${BASE_URL}/AE_SD/Fina_BDebt_LQuery`;
+
+        fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include'
+        })
+            .then(response => response.json())
+            .then(responseData => {
+                if (responseData.resultCode == "000") {
+                    data = JSON.parse(responseData.objResult);
+                    showPage(currentPage);
+                }
+            })
+            .catch(error => {
+                alert('API 請求失敗:', error);
+            });
+    }
+
+    function showPage(page) {
+        const tbody = document.querySelector('#MainTable tbody');
+        tbody.innerHTML = ''; 
+
+        const columnOrder = ['RCM_id', 'CS_name', 'CS_PID', 'amount_total'];
+
+        data.forEach(item => {
+            const row = document.createElement('tr');
+            row.setAttribute('align', 'center');
+            row.className = 'c12-k';
+            row.style.backgroundColor = '#FFFFFF';
+            row.onmouseover = function () { this.style.background = '#FCFCC0'; };
+            row.onmouseout = function () { this.style.background = '#FFFFFF'; };
+
+            columnOrder.forEach(key => {
+                const cell = document.createElement('td');
+                if (key === 'RCM_id') {
+                    cell.innerHTML = `<input type="button" value="選取" onclick="getDebt(${item[key]});">`;
+                    row.appendChild(cell);
+                } else {
+                    cell.textContent = item[key] != null ? item[key] : '';
+                    row.appendChild(cell);
+                }
+            });
+
+            tbody.appendChild(row);
+        });
+    }
+
+    function getDebt(rcmId) {
+        const selectedData = data.find(item => item.RCM_id === rcmId);
+
+        if (selectedData && window.opener) {
+            window.opener.receiveDebtData(selectedData);
+            window.close();
+        } else {
+            alert("找不到資料或原視窗不存在！");
+        }
+    }
+</script>

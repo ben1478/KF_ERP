@@ -1,0 +1,148 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script src="../Base.js"></script>
+    <title>作業平台</title>
+</head>
+<body>
+    <table width="450" border="0" cellspacing="1" cellpadding="2" bgcolor="#999999">
+        <tbody>
+            <tr class="c12-k" bgcolor="#CCCCFF" height="30">
+                <td colspan="2" align="center">
+                    <span class="c14k" style="display: block; text-align: center;">呆帳資料</span>
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td align="right" bgcolor="#CCCCFF">客戶姓名</td>
+                <td align="left">
+                    <span id="SD_Name"></span>
+                    <input id="BadDebtBut" type="button" value="選取" onclick="getBadDebtList();"/>
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td align="right" bgcolor="#CCCCFF">應繳納總金額</td>
+                <td align="left">
+                    <input type="text" name="total_due_amount" size="12" maxlength="20" class="box" value="" />
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td align="right" bgcolor="#CCCCFF">已繳納總金額</td>
+                <td align="left">
+                    <input type="text" name="total_paid_amount" size="12" maxlength="20" class="box" value="" />
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td align="right" bgcolor="#CCCCFF">呆帳總金額</td>
+                <td align="left">
+                    <input type="text" name="total_bad_debt" size="12" maxlength="20" class="box" value="" />
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td align="right" bgcolor="#CCCCFF">備註</td>
+                <td align="left">
+                    <textarea name="remarks" cols="28" rows="6"></textarea>
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#CCCCFF" height="30">
+                <td colspan="2" align="center">
+                    <input type="button" value="儲存" onclick="saveData();" />
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</body>
+</html>
+<script>
+    let Params = new URLSearchParams(window.location.search);
+    let WebUser = decryptParameter(Params.get('User'));
+    let Read = decryptParameter(Params.get('Read'));
+    let SdmID = decryptParameter(Params.get('sdm_id'));
+    let RCMID = 0;
+
+    if (Read !== 'A') {
+        fetchData();
+
+        const badDebtButton = document.getElementById("BadDebtBut");
+        if (badDebtButton) {
+            badDebtButton.style.display = "none";
+        }
+    }
+    function getBadDebtList() {
+        window.open(`Bad_Debt_List.html?User=${encryptParameter(WebUser)}`,'_blank','scrollbars=yes,resizable=yes,width=600,height=200,left=100,top=25');
+    }
+
+    function receiveDebtData(data) {
+        document.getElementById('SD_Name').textContent = data.CS_name;
+        RCMID = data.RCM_id;
+    }
+
+    function saveData() {
+        const SData = {
+            tbInfo: {
+                add_num: WebUser,
+                edit_num: WebUser
+            },
+            rcm_id: RCMID,
+            sdm_id: SdmID,
+            total_due_amount: document.querySelector('input[name="total_due_amount"]').value,
+            total_paid_amount: document.querySelector('input[name="total_paid_amount"]').value,
+            total_bad_debt: document.querySelector('input[name="total_bad_debt"]').value,
+            remarks: document.querySelector('textarea[name="remarks"]').value
+        };
+
+        const url = `${BASE_URL}/AE_SD/${Read === 'A' ? 'SD_M_Ins' : 'SD_M_Upd'}`;
+
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include',
+            body: JSON.stringify(SData)
+        })
+            .then(response => response.json())
+            .then(response => {
+                if (response.resultCode == "000") {
+                    alert('儲存成功');
+                    window.opener.location.reload();
+                    window.close();
+                } else {
+                    alert('儲存失敗');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('請求失敗');
+            });
+    }
+
+    function fetchData() {
+        const url = `${BASE_URL}/AE_SD/SD_M_SQuery?sdm_id=${SdmID}`;
+
+        fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+            .then(response => response.json())
+            .then(responseData => {
+                if (responseData.resultCode === '000') {
+                    data = JSON.parse(responseData.objResult);
+                    const model = data[0];
+                    document.getElementById('SD_Name').textContent = model.CS_name;
+                    document.querySelector('input[name="total_due_amount"]').value = model.total_due_amount;
+                    document.querySelector('input[name="total_paid_amount"]').value = model.total_paid_amount;
+                    document.querySelector('input[name="total_bad_debt"]').value = model.total_bad_debt;
+                    document.querySelector('textarea[name="remarks"]').value = model.remarks;
+                }
+            }).catch(error => {
+                alert('請求失敗，請稍後再試。');
+            });
+    }
+</script>
