@@ -1,0 +1,138 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script src="../Base.js"></script>
+    <title>作業平台</title>
+</head>
+<body>
+    <table id="MainTable" width="400" border="0" cellpadding="4" cellspacing="1" bgcolor="#666666">
+        <thead>
+            <tr class="c12-k" bgcolor="#BDDDEA" align="center">
+                <td colspan="2">
+                    <span>員工分組成員設定-設定組長</span>
+                </td>
+            </tr>
+        </thead>
+        <tbody>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td width="100" align="right">組別：</td>
+                <td width="280">
+                    <input type="text" name="group_M_title" value="" maxlength="50">
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td width="100" align="right">排序：</td>
+                <td width="280">
+                    <input type="number" name="group_sort" value="99999">
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td width="100" align="right">任職期間：</td>
+                <td width="280">
+                    <input type="text" value="" name="str_group_start_day" class="datepickerTW" placeholder="年 /月 /日" style="width:80px;">
+                    ~
+                    <input type="text" value="" name="str_group_end_day" class="datepickerTW" placeholder="年 /月 /日" style="width:80px;">
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td width="100" align="right">組長：</td>
+                <td width="280">
+                    <input type="text" name="group_M_code" id="group_M_code" size="10" maxlength="10" class="box" value="" readonly="">
+                    <input type="text" name="group_M_name" id="group_M_name" size="10" maxlength="10" class="box" value="" readonly="">
+                    <input type="button" value="..." name="_select_user_one" onclick="openUserOne('userGrM')">
+                </td>
+            </tr>
+        </tbody>
+        <tr class="c12-k" bgcolor="#CCCCFF" height="30" data-ignore="true">
+            <td colspan="2" align="center" id="saveButtonCell">
+                <input type="button" value="確定" name="save" onclick="saveData();" />
+            </td>
+        </tr>
+    </table>
+</body>
+</html>
+<script>
+    let Params = new URLSearchParams(window.location.search);
+    let WebUser = decryptParameter(Params.get('User'));
+    let Read = decryptParameter(Params.get('Read'));
+    let groupID = 0;
+    let data = [];
+
+    dateTW();
+    if (Read !== 'A') {
+        groupID = decryptParameter(Params.get('group_id'));
+        fetchData();
+    }
+
+    function saveData() {
+        const UserGPData = {
+            group_id: groupID,
+            group_M_title : document.querySelector('input[name="group_M_title"]').value,
+            group_sort: document.querySelector('input[name="group_sort"]').value,
+            str_group_start_day : document.querySelector('input[name="str_group_start_day"]').value,
+            str_group_end_day : document.querySelector('input[name="str_group_end_day"]').value,
+            group_M_code : document.querySelector('input[name="group_M_code"]').value,
+            group_M_name : document.querySelector('input[name="group_M_name"]').value,
+            tbInfo: {
+                add_num: WebUser,
+                edit_num: WebUser
+            }
+        };
+
+        const url = `${BASE_URL}/AE_UGP/${Read === 'A' ? 'User_G_Ins' : 'User_G_Upd'}`;
+        
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include',
+            body: JSON.stringify(UserGPData)
+        })
+            .then(response => response.json())
+            .then(response => {
+                if (response.resultCode == "000") {
+                    alert('儲存成功');
+                    window.opener.location.reload();
+                    window.close();
+                } else {
+                    alert('儲存失敗');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('請求失敗');
+            });
+    }
+
+    function fetchData() {
+        const url = `${BASE_URL}/AE_UGP/User_UG_M_SQuery?group_id=${groupID}`;
+
+        fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+            .then(response => response.json())
+            .then(responseData => {
+                if (responseData.resultCode === '000') {
+                    data = JSON.parse(responseData.objResult);
+                    const model = data[0];
+                    document.querySelector('input[name="group_M_title"]').value = model.group_M_title;
+                    document.querySelector('input[name="group_sort"]').value = model.group_sort;
+                    document.querySelector('input[name="str_group_start_day"]').value = model.group_start_day_minguo;
+                    document.querySelector('input[name="str_group_end_day"]').value = model.group_end_day_minguo;
+                    document.querySelector('input[name="group_M_code"]').value = model.group_M_code;
+                    document.querySelector('input[name="group_M_name"]').value = model.group_M_name;
+                }
+            }).catch(error => {
+                alert('請求失敗，請稍後再試。');
+            });
+    }
+</script>

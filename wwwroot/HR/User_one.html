@@ -184,6 +184,10 @@
                         window.opener.document.querySelector('#U_num').value = agentNum;
                         window.opener.document.querySelector('#U_name').value = agentName;
                         break;
+                    case 'userGrM':
+                        window.opener.document.querySelector('#group_M_code').value = agentNum;
+                        window.opener.document.querySelector('#group_M_name').value = agentName;
+                        break;
                     default:
                         console.log('Unknown type:', type);
                         break;

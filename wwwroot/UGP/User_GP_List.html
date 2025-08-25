@@ -1,0 +1,154 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script src="../Base.js"></script>
+    <title>作業平台</title>
+</head>
+<body>
+    &nbsp;&nbsp; &nbsp;&nbsp;&nbsp;<span class="c14k"><strong>員工分組成員設定</strong></span><br />
+    <table width="1100" border="0" cellspacing="0" cellpadding="0">
+        <tbody>
+            <tr>
+                <td width="450">
+                    <span class="c14k"><strong style="color:blue">員工分組成員設定</strong></span>
+                </td>
+                <td height="24" align="right">
+                    <input type="button" name="add" value="新增分組-組長" onclick="addUserGroup(); ">
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table id="MainTable" width="1380" border="0" cellpadding="4" cellspacing="1" bgcolor="#666666" style="font-size:13px;">
+        <thead>
+            <tr align="center" height="30" bgcolor="#CCCCFF" class="c12-k">
+                <td width="40">序號</td>
+                <td width="40">組別</td>
+                <td width="80">組長</td>
+                <td width="200">任職期間</td>
+                <td width="40">組長設定</td>
+                <td width="900">成員</td>
+                <td width="40">成員設定</td>
+                <td width="40">刪除</td>
+            </tr>
+        </thead>
+        <tbody></tbody>
+        <tfoot>
+            <tr align="center" height="15" bgcolor="#CCCCFF">
+                <td class="c12-k" colspan="8">
+                    <font color="#000080">
+                        <label id="CountRows"></label>
+                    </font>
+                </td>
+            </tr>
+        </tfoot>
+    </table>
+</body>
+</html>
+<script>
+    const Params = getQueryParams();
+    let WebUser = Params.WebUser;
+    let WebBC = Params.WebBC;
+    let data = [];
+
+    fetchData();
+
+    function fetchData() {
+        const url = `${BASE_URL}/AE_UGP/User_G_LQuery`;
+
+        fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include'
+        })
+            .then(response => response.json())
+            .then(responseData => {
+                if (responseData.resultCode == "000") {
+                    data = JSON.parse(responseData.objResult);
+                    showTable();
+                } else {
+                    alert(response.resultMsg);
+                }
+            })
+            .catch(error => {
+                alert('API 請求失敗:', error);
+            });
+    }
+
+    function showTable() {
+        const tbody = document.querySelector('#MainTable tbody');
+        tbody.innerHTML = '';
+
+        const columnOrder = ['group_M_title', 'group_M_name', 'DateRange', 'MUpd', 'show_U_name', 'Upd', 'del'];
+
+        data.forEach((item ,index)=> {
+            const row = document.createElement('tr');
+            row.setAttribute('align', 'center');
+            row.className = 'c12-k';
+            row.style.backgroundColor = '#FFFFFF';
+            row.onmouseover = function () { this.style.background = '#FCFCC0'; };
+            row.onmouseout = function () { this.style.background = '#FFFFFF'; };
+
+            const serialCell = document.createElement('td');
+            serialCell.textContent = index + 1;  // 序號
+            row.appendChild(serialCell);
+
+            columnOrder.forEach(key => {
+                const cell = document.createElement('td');
+                switch (key) {
+                    case "MUpd":
+                        row.appendChild(createButtonCell(
+                            "../images/edit.png",
+                            "修改",
+                            function () {
+                                window.open(`../UGP/User_GP_M_detail.html?User=${encryptParameter(WebUser)}&Read=${encryptParameter('N')}&group_id=${encryptParameter(item.group_id)}`, '_blank', 'scrollbars=yes,resizable=yes,top=100,width=500,height=300');
+                            }
+                        ));
+                        break;
+                    case "DateRange":
+                        cell.textContent = item.group_start_day_minguo + '~' + item.group_end_day_minguo;
+                        row.appendChild(cell);
+                        break;
+                    case "show_U_name":
+                        cell.style.textAlign = 'left';
+                        cell.textContent = item[key] != null ? item[key] : '';
+                        row.appendChild(cell);
+                        break;
+                    case "Upd":
+                        row.appendChild(createButtonCell(
+                            "../images/edit.png",
+                            "修改",
+                            function () {
+                                window.open(`../UGP/User_GP_D_detail.html?U_num=${encryptParameter(item.U_num)}&User=${encryptParameter(WebUser)}`, '_blank', 'scrollbars=yes,resizable=yes,top=100,width=800,height=500');
+                            }
+                        ));
+                        break;
+                    case "del":
+                        row.appendChild(createButtonCell(
+                            "../images/delete.png",
+                            "修改",
+                            function () {
+                                window.open(`../HR/User_edit.html?U_num=${encryptParameter(item.U_num)}&User=${encryptParameter(WebUser)}`, '_blank', 'scrollbars=yes,resizable=yes,top=100,width=800,height=500');
+                            }
+                        ));
+                        break;
+                    default:
+                        cell.textContent = item[key] != null ? item[key] : '';
+                        row.appendChild(cell);
+                        break;
+                }
+            });
+            tbody.appendChild(row);
+        });
+    }
+
+    function addUserGroup() {
+        window.open(`../UGP/User_GP_M_detail.html?User=${encryptParameter(WebUser)}&Read=${encryptParameter('A')}`, '_blank', 'scrollbars=yes,resizable=yes,top=100,width=500,height=300');
+    }
+</script>
