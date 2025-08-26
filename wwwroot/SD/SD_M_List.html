@@ -24,9 +24,12 @@
                                 <td>異動</td>
                                 <td>客戶姓名</td>
                                 <td>身分ID</td>
+                                <td>貸款總金額</td>
+                                <td>本金餘額</td>
                                 <td>呆帳總金額</td>
                                 <td>備註</td>
                                 <td>近期催繳日期</td>
+                                <td>是否結清</td>
                                 <td>明細</td>
                                 <td>刪除</td>
                             </tr>
@@ -34,7 +37,7 @@
                         <tbody></tbody>
                         <tfoot>
                             <tr align="center" height="15" bgcolor="#CCCCFF">
-                                <td class="c12-k" colspan="9">
+                                <td class="c12-k" colspan="12">
                                     <font color="#000080">
                                         <label id="CountRows"></label>
                                     </font>
@@ -87,7 +90,7 @@
         const tbody = document.querySelector('#MainTable tbody');
         tbody.innerHTML = '';
 
-        const columnOrder = ['MUpd', 'CS_name', 'CS_PID', 'str_total_bad_debt', 'remarks','collection_date_roc','Upd','del'];
+        const columnOrder = ['MUpd', 'CS_name', 'CS_PID', 'str_amount_total', 'str_RemainingPrincipal', 'str_total_bad_debt', 'remarks', 'collection_date_roc', 'str_close','Upd','del'];
 
         
 

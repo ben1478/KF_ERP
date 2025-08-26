@@ -62,7 +62,7 @@
     let WebUser = decryptParameter(Params.get('User'));
     let Read = decryptParameter(Params.get('Read'));
     let SdmID = decryptParameter(Params.get('sdm_id'));
-    let RCMID = 0;
+    let RData = [];
 
     if (Read !== 'A') {
         fetchData();
@@ -78,7 +78,7 @@
 
     function receiveDebtData(data) {
         document.getElementById('SD_Name').textContent = data.CS_name;
-        RCMID = data.RCM_id;
+        RData.push(data);
     }
 
     function saveData() {
@@ -87,14 +87,16 @@
                 add_num: WebUser,
                 edit_num: WebUser
             },
-            rcm_id: RCMID,
+            RCM_id: RData[0].RCM_id,
             sdm_id: SdmID,
+            amount_total: RData[0].amount_total,
+            RemainingPrincipal: RData[0].RemainingPrincipal,
             total_due_amount: document.querySelector('input[name="total_due_amount"]').value,
             total_paid_amount: document.querySelector('input[name="total_paid_amount"]').value,
             total_bad_debt: document.querySelector('input[name="total_bad_debt"]').value,
             remarks: document.querySelector('textarea[name="remarks"]').value
         };
-
+     
         const url = `${BASE_URL}/AE_SD/${Read === 'A' ? 'SD_M_Ins' : 'SD_M_Upd'}`;
 
         fetch(url, {
@@ -124,6 +126,7 @@
     function fetchData() {
         const url = `${BASE_URL}/AE_SD/SD_M_SQuery?sdm_id=${SdmID}`;
 
+       
         fetch(url, {
             method: 'GET',
             headers: {
@@ -133,8 +136,9 @@
             .then(response => response.json())
             .then(responseData => {
                 if (responseData.resultCode === '000') {
-                    data = JSON.parse(responseData.objResult);
-                    const model = data[0];
+                    resultData = JSON.parse(responseData.objResult);
+                    const model = resultData[0];
+                    RData.push(resultData);
                     document.getElementById('SD_Name').textContent = model.CS_name;
                     document.querySelector('input[name="total_due_amount"]').value = model.total_due_amount;
                     document.querySelector('input[name="total_paid_amount"]').value = model.total_paid_amount;
