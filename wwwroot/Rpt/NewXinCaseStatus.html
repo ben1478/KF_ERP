@@ -210,7 +210,8 @@
 				console.log(`API 請求失敗: error=${error}`);
                 alert('API 請求失敗:', error);
             });
-    }
+	}
+
 	function showPage(page) {
 		document.getElementById('CountRows').innerHTML = `筆數:${data.length}`;
         const tbody = document.querySelector('#MainTable tbody');
@@ -261,7 +262,8 @@
             
             tbody.appendChild(row);
         }
-    }
+	}
+
 	function getCurrentDateTime() {
       var currentDate = new Date();
 
@@ -273,7 +275,8 @@
 
       var formattedDateTime = year + month + day + hours + minutes;
       return formattedDateTime;
-    }
+	}
+
 	function exportToExcel() {
 
         var formData = new FormData();
@@ -387,4 +390,9 @@
 			});
 	}
 
+    $('.datepickerTW').datepickerTW({
+        changeYear: true,
+        changeMonth: true,
+        dateFormat: 'yy-mm-dd'
+    });
 </script>	

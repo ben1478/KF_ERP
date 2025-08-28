@@ -60,6 +60,11 @@
     let SddID = decryptParameter(Params.get('sdd_id'));
 
     dateTW();
+    $('.datepickerTW').datepickerTW({
+        changeYear: true,
+        changeMonth: true,
+        dateFormat: 'yy-mm-dd'
+    });
 
     document.getElementById('SD_Name').textContent = Cname;
 
@@ -141,4 +146,6 @@
                 alert('請求失敗，請稍後再試。');
             });
     }
+
+    
 </script>

@@ -157,8 +157,6 @@
 
     }
 
-    
-
     function saveData() {
 
         if (!jsCheck()) {
@@ -254,5 +252,9 @@
 	    return true;
     }
 
-
+    $('.datepickerTW').datepickerTW({
+        changeYear: true,
+        changeMonth: true,
+        dateFormat: 'yy-mm-dd'
+    });
 </script>

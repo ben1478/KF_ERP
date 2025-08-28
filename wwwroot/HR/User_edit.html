@@ -275,8 +275,15 @@
         { selectId: "School_Level", itemCode: "School_Level" },
         { selectId: "U_PFT", itemCode: "professional_title" }
     ].forEach(loadItemDropdown);
-    dateTW();
+   
     setTimeout(fetchData, 600);
+
+    dateTW();
+    $('.datepickerTW').datepickerTW({
+        changeYear: true,
+        changeMonth: true,
+        dateFormat: 'yy-mm-dd'
+    });
 
     function fetchData() {
         const url = `${BASE_URL}/AE_HR/User_M_SQuery?U_num=${encodeURIComponent(U_num)}`;

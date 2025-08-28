@@ -122,8 +122,6 @@
     dateTW();
     fetchData();
     
-
-    
     function fetchData() {
         
         if (Id !== 'add') {
@@ -278,7 +276,11 @@
 
     }
 
-
+    $('.datepickerTW').datepickerTW({
+        changeYear: true,
+        changeMonth: true,
+        dateFormat: 'yy-mm-dd'
+    });
 
 
 </script>

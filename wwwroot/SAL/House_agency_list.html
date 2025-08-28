@@ -292,6 +292,12 @@
         button.className = `btn-link ${className}`; // 使用 class 以便於 CSS 美化
         return button;
     }
+
+    $('.datepickerTW').datepickerTW({
+        changeYear: true,
+        changeMonth: true,
+        dateFormat: 'yy-mm-dd'
+    });
 </script>
 <style>
     /* 讓按鈕看起來像超連結 */
