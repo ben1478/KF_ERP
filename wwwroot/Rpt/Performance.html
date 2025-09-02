@@ -69,6 +69,7 @@
 										<option value="2">地區職稱</option>
 									</select>
 									<input type="checkbox" name="ACT" id="ACT">折數後業績
+									<input type="checkbox" name="CaseCount" id="CaseCount">案件數量
 									<input type="submit" name="submit" value="查詢" onclick="fetchData();">
 									<input type="button" value="匯出Excel" name="btnExcel" onclick="exportToExcel()">
 								</td>
@@ -287,109 +288,107 @@
 			const serialCell = document.createElement('td');
             serialCell.textContent = startIndex + pageData.indexOf(item) + 1;
             row.appendChild(serialCell);
-            
+            let isCount = document.getElementById('CaseCount').checked
 			for (let key of columnOrder) {
                 const cell = document.createElement('td');
                 switch (key) {
-					case 'U_name':
-						cell.innerHTML = item[key] || '';
-						row.appendChild(cell);
-						break;
-					case 'U_leave_date':
-						if(Enable==='' && item[key] !== null)
-						{
-							row.setAttribute('class', 'c12-k DIS');
-						}
-						else
-						{
-							row.setAttribute('class', 'c12-k');
-						}
-						break;
-					case 'Jan':
-						cell.textContent = `${item[key] || 0} 萬`;
-						cell.id = `${item['U_num']}${item['yyyy']}-01`;
+                    case 'U_name':
+                        cell.innerHTML = item[key] || '';
                         row.appendChild(cell);
-						Jan = Jan + parseInt(item[key].replace(/,/g, ''));
-						break;
-					case 'Feb':
-						cell.textContent = `${item[key] || 0} 萬`;
-						cell.id = `${item['U_num']}${item['yyyy']}-02`;
-						row.appendChild(cell);
-						Feb += parseInt(item[key].replace(/,/g, ''));
-						break;
-					case 'Mar':
-						cell.textContent = `${item[key] || 0} 萬`;
-						cell.id = `${item['U_num']}${item['yyyy']}-03`;
+                        break;
+                    case 'U_leave_date':
+                        if (Enable === '' && item[key] !== null) {
+                            row.setAttribute('class', 'c12-k DIS');
+                        }
+                        else {
+                            row.setAttribute('class', 'c12-k');
+                        }
+                        break;
+                    case 'Jan':
+                        cell.textContent = `${item[key] || 0} 萬${(isCount) ? " / " + item[key + "_C"] + "件" : ""}`;
+                        cell.id = `${item['U_num']}${item['yyyy']}-01`;
                         row.appendChild(cell);
-						Mar += parseInt(item[key].replace(/,/g, ''));
-						break;
-					case 'Apr':
-						cell.textContent = `${item[key] || 0} 萬`;
-						cell.id = `${item['U_num']}${item['yyyy']}-04`;
-						row.appendChild(cell);
-						Apr += parseInt(item[key].replace(/,/g, ''));
-						break;
-					case 'May':
-						cell.textContent = `${item[key] || 0} 萬`;
-						cell.id = `${item['U_num']}${item['yyyy']}-05`;
+                        Jan = Jan + parseInt(item[key].replace(/,/g, ''));
+                        break;
+                    case 'Feb':
+                        cell.textContent = `${item[key] || 0} 萬${(isCount) ? " / " + item[key + "_C"] + "件" : ""}`;
+                        cell.id = `${item['U_num']}${item['yyyy']}-02`;
                         row.appendChild(cell);
-						May += parseInt(item[key].replace(/,/g, ''));
-						break;
-					case 'Jun':
-						cell.textContent = `${item[key] || 0} 萬`;
-						cell.id = `${item['U_num']}${item['yyyy']}-06`;
-						row.appendChild(cell);
-						Jun += parseInt(item[key].replace(/,/g, ''));
-						break;
-					case 'Jul':
-						cell.textContent = `${item[key] || 0} 萬`;
-						cell.id = `${item['U_num']}${item['yyyy']}-07`;
+                        Feb += parseInt(item[key].replace(/,/g, ''));
+                        break;
+                    case 'Mar':
+                        cell.textContent = `${item[key] || 0} 萬${(isCount) ? " / " + item[key + "_C"] + "件" : ""}`;
+                        cell.id = `${item['U_num']}${item['yyyy']}-03`;
                         row.appendChild(cell);
-						Jul += parseInt(item[key].replace(/,/g, ''));
-						break;
-					case 'Aug':
-						cell.textContent = `${item[key] || 0} 萬`;
-						cell.id = `${item['U_num']}${item['yyyy']}-08`;
-						row.appendChild(cell);
-						Aug += parseInt(item[key].replace(/,/g, ''));
-						break;
-					case 'Sep':
-						cell.textContent = `${item[key] || 0} 萬`;
-						cell.id = `${item['U_num']}${item['yyyy']}-09`;
+                        Mar += parseInt(item[key].replace(/,/g, ''));
+                        break;
+                    case 'Apr':
+                        cell.textContent = `${item[key] || 0} 萬${(isCount) ? " / " + item[key + "_C"] + "件" : ""}`;
+                        cell.id = `${item['U_num']}${item['yyyy']}-04`;
                         row.appendChild(cell);
-						Sep += parseInt(item[key].replace(/,/g, ''));
-						break;
-					case 'Oct':
-						cell.textContent = `${item[key] || 0} 萬`;
-						cell.id = `${item['U_num']}${item['yyyy']}-10`;
-						row.appendChild(cell);
-						Oct += parseInt(item[key].replace(/,/g, ''));
-						break;
-					case 'Nov':
-						cell.textContent = `${item[key] || 0} 萬`;
+                        Apr += parseInt(item[key].replace(/,/g, ''));
+                        break;
+                    case 'May':
+                        cell.textContent = `${item[key] || 0} 萬${(isCount) ? " / " + item[key + "_C"] + "件" : ""}`;
+                        cell.id = `${item['U_num']}${item['yyyy']}-05`;
                         row.appendChild(cell);
-						Nov += parseInt(item[key].replace(/,/g, ''));
-						cell.id = `${item['U_num']}${item['yyyy']}-11`;
-						break;
-					case 'Dec':
-						cell.textContent = `${item[key] || 0} 萬`;
-						cell.id = `${item['U_num']}${item['yyyy']}-12`;
-						row.appendChild(cell);
-						Dec += parseInt(item[key].replace(/,/g, ''));
-						break;
-					case 'Totle':
-						cell.textContent = `${item[key] || 0} 萬`;
-						row.appendChild(cell);
-						Totle += parseInt(item[key]);
-						break;
-					case 'MonAVG':
-						cell.textContent = `${item[key] || 0} 萬`;
+                        May += parseInt(item[key].replace(/,/g, ''));
+                        break;
+                    case 'Jun':
+                        cell.textContent = `${item[key] || 0} 萬${(isCount) ? " / " + item[key + "_C"] + "件" : ""}`;
+                        cell.id = `${item['U_num']}${item['yyyy']}-06`;
                         row.appendChild(cell);
-						break;
-					case 'cal_yearAvg':
-						cell.textContent = `${item[key] || 0} 萬`;
-						row.appendChild(cell);
-						break;
+                        Jun += parseInt(item[key].replace(/,/g, ''));
+                        break;
+                    case 'Jul':
+                        cell.textContent = `${item[key] || 0} 萬${(isCount) ? " / " + item[key + "_C"] + "件" : ""}`;
+                        cell.id = `${item['U_num']}${item['yyyy']}-07`;
+                        row.appendChild(cell);
+                        Jul += parseInt(item[key].replace(/,/g, ''));
+                        break;
+                    case 'Aug':
+                        cell.textContent = `${item[key] || 0} 萬${(isCount) ? " / " + item[key + "_C"] + "件" : ""}`;
+                        cell.id = `${item['U_num']}${item['yyyy']}-08`;
+                        row.appendChild(cell);
+                        Aug += parseInt(item[key].replace(/,/g, ''));
+                        break;
+                    case 'Sep':
+                        cell.textContent = `${item[key] || 0} 萬${(isCount) ? " / " + item[key + "_C"] + "件" : ""}`;
+                        cell.id = `${item['U_num']}${item['yyyy']}-09`;
+                        row.appendChild(cell);
+                        Sep += parseInt(item[key].replace(/,/g, ''));
+                        break;
+                    case 'Oct':
+                        cell.textContent = `${item[key] || 0} 萬${(isCount) ? " / " + item[key + "_C"] + "件" : ""}`;
+                        cell.id = `${item['U_num']}${item['yyyy']}-10`;
+                        row.appendChild(cell);
+                        Oct += parseInt(item[key].replace(/,/g, ''));
+                        break;
+                    case 'Nov':
+                        cell.textContent = `${item[key] || 0} 萬${(isCount) ? " / " + item[key + "_C"] + "件" : ""}`;
+                        row.appendChild(cell);
+                        Nov += parseInt(item[key].replace(/,/g, ''));
+                        cell.id = `${item['U_num']}${item['yyyy']}-11`;
+                        break;
+                    case 'Dec':
+                        cell.textContent = `${item[key] || 0} 萬${(isCount) ? " / " + item[key + "_C"] + "件" : ""}`;
+                        cell.id = `${item['U_num']}${item['yyyy']}-12`;
+                        row.appendChild(cell);
+                        Dec += parseInt(item[key].replace(/,/g, ''));
+                        break;
+                    case 'Totle':
+                        cell.textContent = `${item[key] || 0} 萬`;
+                        row.appendChild(cell);
+                        Totle += parseInt(item[key]);
+                        break;
+                    case 'MonAVG':
+                        cell.textContent = `${item[key] || 0} 萬`;
+                        row.appendChild(cell);
+                        break;
+                    case 'cal_yearAvg':
+                        cell.textContent = `${item[key] || 0} 萬`;
+                        row.appendChild(cell);
+                        break;
                     default:
                         cell.textContent = item[key] || '';
                         row.appendChild(cell);
@@ -544,8 +543,47 @@
 
       var formattedDateTime = year + month + day + hours + minutes;
       return formattedDateTime;
+	}
+
+
+
+    function exportToExcel() {
+
+        var table = document.getElementById('MainTable');
+
+        // 複製表格，並移除後面兩行
+        var clonedTable = table.cloneNode(true);
+
+        $(clonedTable).find('td:contains(" 萬")').text(function (_, oldText) {
+            // 將包含"萬"的文本替換為空字串
+            return oldText.replace(/萬/g, '');
+        });
+
+        var rowCount = clonedTable.rows.length;
+
+        $('#MainTable').after(clonedTable);
+
+        // 將複製的表格的 ID 設為 'tbExcel'
+        $(clonedTable).attr('id', 'tbExcel');
+
+        // 隱藏新增的表格
+        $(clonedTable).hide();
+        var fileNa = getCurrentDateTime();
+        $("#tbExcel").table2excel({
+            // exclude CSS class
+            exclude: ".ExHead ",
+            name: "Worksheet Name",
+            filename: "全區業績表業績-" + fileNa, //do not include extension
+            fileext: ".xls" // file extension
+
+
+        });
+
+        // 刪除並移除新增的表格
+        $("#tbExcel").remove();
+
     }
-	function exportToExcel() {
+	/*function exportToExcel() {
 
 		const Req = {
             u_bc_title:document.querySelector('#u_bc_title').value,
@@ -581,7 +619,8 @@
                 alert('Error generating file');
             }
         });
-    }
+    }*/
+
 	function load6BCDropdown() {
 		const url = `${BASE_URL}/AE_RPT/Get6UB`;
 		fetch(url)
