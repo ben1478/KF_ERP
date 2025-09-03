@@ -1,5 +1,5 @@
 ﻿<!DOCTYPE html>
-<html>
+<html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,109 +8,168 @@
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
     <script src="../Base.js"></script>
     <title>作業平台</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 15px;
+        }
+
+        td, th {
+            padding: 8px;
+            border: 1px solid #ccc;
+        }
+
+        .form-table td:first-child {
+            width: auto; /* 左欄自動依內容大小 */
+            white-space: nowrap; /* 避免換行 */
+            background: #CCCCFF;
+            text-align: right;
+            padding: 6px;
+        }
+
+        .form-table td:last-child {
+            width: 100%; /* 右欄佔滿剩餘空間 */
+            text-align: left;
+            padding: 6px;
+        }
+
+        /* 手機版：把 table 變成直式卡片 */
+        @media (max-width: 768px) {
+            #detailsList thead {
+                display: table-header-group; /* 表頭依然存在 */
+            }
+
+            #detailsList tr {
+                display: block;
+                border: 1px solid #ccc;
+                margin-bottom: 10px;
+                background: #fff;
+            }
+
+            #detailsList td {
+                display: flex;
+                justify-content: space-between;
+                padding: 6px;
+                border: none;
+                border-bottom: 1px solid #eee;
+            }
+
+                #detailsList td:last-child {
+                    border-bottom: none;
+                }
+
+                /* 如果你覺得 td::before + th 重複，可以關掉 */
+                #detailsList td::before {
+                    display: none;
+                }
+        }
+    </style>
 </head>
 <body>
-    <table width="1040" border="0" cellspacing="1" cellpadding="2" bgcolor="#999999">
+    <table class="form-table">
         <tbody>
-            <tr class="c12-k" bgcolor="#CCCCFF" height="30">
-                <td colspan="2" align="center">
-                    <span class="c14k" style="display: block; text-align: center;">請款(預支單)</span>
-                    <span style="color:red" name="BackID"></span>
+            <tr>
+                <td colspan="2" style="background:#CCCCFF; text-align:center;">
+                    <div style="display:inline-block;">
+                        <span>請款(預支單)</span>
+                        <span style="color:red" name="BackID"></span>
+                    </div>
                 </td>
             </tr>
-            <tr class="c12-k" bgcolor="#FFFFFF">
-                <td width="150" align="right" bgcolor="#CCCCFF">申請部門</td>
-                <td width="440" align="left">
-                    <select name="VP_BC" id="VP_BC" class=""></select>
+            <tr>
+                <td>申請部門</td>
+                <td>
+                    <select name="VP_BC" id="VP_BC"></select>
                     <input type="checkbox" name="VP_type" value="PO" id="VP_type_PO" />有請採購單
                     <input type="checkbox" name="VP_type" value="PP" id="VP_type_PP" />預支款
                     <input type="checkbox" name="VP_type" value="PS" id="VP_type_PS" />沖銷預支款
                 </td>
             </tr>
-            <tr class="c12-k" bgcolor="#FFFFFF">
-                <td align="right" bgcolor="#CCCCFF">給付方式</td>
-                <td align="left">
+            <tr>
+                <td>給付方式</td>
+                <td>
                     <input type="radio" name="VP_Pay_Type" value="MT" />匯款
                     <input type="radio" name="VP_Pay_Type" value="GC" />領現
                 </td>
             </tr>
-            <tr class="c12-k" bgcolor="#FFFFFF">
-                <td align="right" bgcolor="#CCCCFF">總金額</td>
-                <td align="left">
-                    <span name="VP_Total_Money"></span>
+            <tr>
+                <td>總金額</td>
+                <td><span name="VP_Total_Money"></span></td>
+            </tr>
+            <tr>
+                <td>銀行資料</td>
+                <td>
+                    代碼: <input type="text" name="bank_code" size="10">
+                    名稱: <input type="text" name="bank_name" size="10">
+                    分行: <input type="text" name="branch_name" size="10">
                 </td>
             </tr>
-            <tr class="c12-k" bgcolor="#FFFFFF">
-                <td align="right" bgcolor="#CCCCFF">銀行資料</td>
-                <td align="left">
-                    代碼:
-                    <input type="text" name="bank_code" size="10" maxlength="10" class="box" value="">
-                    名稱:
-                    <input type="text" name="bank_name" size="10" maxlength="10" class="box" value="">
-                    分行:
-                    <input type="text" name="branch_name" size="10" maxlength="10" class="box" value="">
-                </td>
+            <tr>
+                <td>銀行帳號</td>
+                <td><input type="text" name="bank_account" size="12"></td>
             </tr>
-            <tr class="c12-k" bgcolor="#FFFFFF">
-                <td align="right" bgcolor="#CCCCFF">銀行帳號</td>
-                <td align="left">
-                    <input type="text" name="bank_account" size="12" maxlength="20" class="box" value="">
-                </td>
-            </tr>
-            <tr class="c12-k" bgcolor="#FFFFFF">
-                <td align="right" bgcolor="#CCCCFF" style="color:red">收款名稱</td>
-                <td align="left">
-                    <input type="text" required name="payee_name" id="payee_name" size="18" maxlength="18" class="box" value="" onkeyup="getCompanySuggestions();" onblur="setTimeout(function(){ validateInput(); }, 200);">
+            <tr>
+                <td style="color:red">收款名稱</td>
+                <td>
+                    <input type="text" required name="payee_name" id="payee_name" size="18"
+                           onkeyup="getCompanySuggestions();"
+                           onblur="setTimeout(function(){ validateInput(); }, 200);">
                     <div id="suggestions"></div>
                 </td>
             </tr>
-            <tr class="c12-k" bgcolor="#FFFFFF">
-                <td align="right" bgcolor="#CCCCFF">總摘要</td>
-                <td align="left">
-                    <input type="text" name="VP_Summary" size="15" maxlength="15" class="box" value="" style="background-color: #f0f0f0" readonly>
-                </td>
+            <tr>
+                <td>總摘要</td>
+                <td><input type="text" name="VP_Summary" readonly></td>
             </tr>
-            <tr class="c12-k" bgcolor="#FFFFFF">
-                <td align="right" bgcolor="#CCCCFF" style="color:red">傳票日期</td>
-                <td align="left">
-                    <input type="text" name="VP_MFG_Date" size="15" maxlength="15" class="box" value="" style="background-color: #f0f0f0" readonly>
-                </td>
+            <tr>
+                <td style="color:red">傳票日期</td>
+                <td><input type="text" name="VP_MFG_Date" readonly></td>
             </tr>
-            <tr class="c12-k" bgcolor="#FFFFFF">
-                <td align="right" bgcolor="#CCCCFF">貸方摘要</td>
-                <td align="left">
-                    <input type="text" name="VP_Nsummary" size="15" maxlength="15" class="box" value="" style="background-color: #f0f0f0" readonly>
-                </td>
+            <tr>
+                <td>貸方摘要</td>
+                <td><input type="text" name="VP_Nsummary" readonly></td>
             </tr>
-            <tr class="c12-k" bgcolor="#CCCCFF" height="30">
-                <td colspan="2" align="center">
-                    <input type="button" value="新增明細" id="btnNew" onclick="OpenNew();" />
+            <tr>
+                <td colspan="2" style="background:#CCCCFF; text-align:center;">
+                    <div style="display:inline-block;">
+                        <input type="button" value="新增明細" id="btnNew" onclick="OpenNew();">
+                    </div>
                 </td>
             </tr>
         </tbody>
     </table>
-    <table id="detailsList" border="0" cellpadding="4" cellspacing="1" bgcolor="#666666" width="1040">
+
+    <table id="detailsList">
         <thead>
-            <tr align="center" bgcolor="#CCCCFF" class="c12-k" id="tableRow">
-                <td width="20">NO</td>
-                <td width="50">單號</td>
-                <td width="40">部門</td>
-                <td width="150">費用摘要</td>
-                <td width="50">金額</td>
-                <td width="50">是否應稅</td>
-                <td width="40"></td>
+            <tr>
+                <th>NO</th>
+                <th>單號</th>
+                <th>部門</th>
+                <th>費用摘要</th>
+                <th>金額</th>
+                <th>是否應稅</th>
+                <th></th>
             </tr>
         </thead>
         <tbody>
         </tbody>
-        <tr class="c12-k" bgcolor="#CCCCFF" height="30" data-ignore="true">
-            <td colspan="7" align="center" id="saveButtonCell">
-                <input type="button" value="儲存" name="save" onclick="saveData();" />
-            </td>
-        </tr>
+        <tfoot>
+            <tr>
+                <td colspan="7" align="center">
+                    <input type="button" value="儲存" name="save" onclick="saveData();">
+                </td>
+            </tr>
+        </tfoot>
     </table>
 </body>
 </html>
+
 <script>
     let Params = new URLSearchParams(window.location.search);
     let VP_ID = decryptParameter(Params.get('VP_ID'));
@@ -121,7 +180,7 @@
     let indexNumber = 0;
     let ChkRole;
     let WbcOptions = [];
-    
+
     ChkUserRole();
     loadWBCName();
     getBackReason(VP_ID);
@@ -172,7 +231,7 @@
         //VD_BC
         const vBCCell = document.createElement('td');
         const selectElement = document.createElement('select');
-        selectElement.name = `VD_BC_${indexNumber}`; 
+        selectElement.name = `VD_BC_${indexNumber}`;
         selectElement.style.width = '110px';
         WbcOptions.forEach(option => {
             const optionElement = document.createElement('option');
@@ -204,11 +263,11 @@
         const vatCell = document.createElement('td');
         const yesInput = document.createElement('input');
         yesInput.type = 'radio';
-        yesInput.name = `VD_VAT_${indexNumber}`; 
+        yesInput.name = `VD_VAT_${indexNumber}`;
         yesInput.value = 'Y';
         const noInput = document.createElement('input');
         noInput.type = 'radio';
-        noInput.name = `VD_VAT_${indexNumber}`; 
+        noInput.name = `VD_VAT_${indexNumber}`;
         noInput.value = 'N';
         const yesLabel = document.createElement('label');
         yesLabel.textContent = '是';
@@ -243,7 +302,7 @@
         deleteButton.textContent = '刪除';
         deleteButton.onclick = function () {
             tbody.removeChild(row);
-            SumVPAmt(); 
+            SumVPAmt();
         };
         deleteCell.appendChild(deleteButton);
         row.appendChild(deleteCell);
@@ -262,7 +321,7 @@
                 'Detail',
                 'scrollbars=yes,resizable=yes,width=650,height=350,left=500,top=25');
         }
-        if($(this).prop('checked') && type === 'PS' ){
+        if ($(this).prop('checked') && type === 'PS') {
             document.getElementById("btnNew").setAttribute('readonly', true);
             document.getElementById("btnNew").setAttribute('disabled', true);
         }
@@ -282,7 +341,7 @@
             if (!input.value.trim()) {
                 alert("必填請輸入");
                 isValid = false;
-                break;  
+                break;
             }
         }
 
@@ -314,7 +373,7 @@
             const formCaption = captionInput ? captionInput.value : '';
             const formMoney = moneyInput ? moneyInput.value : '';
             const vatValue = vatInput && vatInput.value ? vatInput.value : 'Y';
-            
+
 
             const accCode = accCodeIDInput ? accCodeIDInput.value : '';
             const acc = accIDInput ? accIDInput.value : '';
@@ -332,7 +391,7 @@
                 detailsList.push({
                     VD_ID: VD_ID,
                     FormID: formID,
-                    VD_BC:VD_BC,
+                    VD_BC: VD_BC,
                     FormCaption: formCaption,
                     FormMoney: formMoney,
                     VD_VAT: vatValue,
@@ -482,7 +541,7 @@
                         receiveData(data.Ins_List);
 
                         setReadOnlyMode(vpType);
-                      
+
                     }
                 }).catch(error => {
                     alert('請求失敗，請稍後再試。');
@@ -491,7 +550,7 @@
     }
 
     function receiveData(selectedGroups) {
-        
+
         const tbody = document.querySelector('#detailsList tbody');
         tbody.innerHTML = '';
 
@@ -567,12 +626,12 @@
                 const vatCell = document.createElement('td');
                 const yesInput = document.createElement('input');
                 yesInput.type = 'radio';
-                yesInput.name = `VD_VAT_${group.VD_ID || indexNumber}`; 
+                yesInput.name = `VD_VAT_${group.VD_ID || indexNumber}`;
                 yesInput.value = 'Y';
                 yesInput.checked = group.VD_VAT === 'Y';
                 const noInput = document.createElement('input');
                 noInput.type = 'radio';
-                noInput.name = `VD_VAT_${group.VD_ID || indexNumber}`;  
+                noInput.name = `VD_VAT_${group.VD_ID || indexNumber}`;
                 noInput.value = 'N';
                 noInput.checked = group.VD_VAT === 'N';
                 yesInput.setAttribute('required', '');
@@ -610,14 +669,14 @@
                 const vatCell = document.createElement('td');
                 const yesInput = document.createElement('input');
                 yesInput.type = 'radio';
-                yesInput.name = `VD_VAT_${group.VD_ID || indexNumber}`; 
+                yesInput.name = `VD_VAT_${group.VD_ID || indexNumber}`;
                 yesInput.value = 'Y';
                 yesInput.checked = group.VD_VAT === 'Y';
                 const noInput = document.createElement('input');
                 noInput.type = 'radio';
-                noInput.name = `VD_VAT_${group.VD_ID || indexNumber}`; 
+                noInput.name = `VD_VAT_${group.VD_ID || indexNumber}`;
                 noInput.value = 'N';
-                noInput.checked = group.VD_VAT === 'N'; 
+                noInput.checked = group.VD_VAT === 'N';
                 const yesLabel = document.createElement('label');
                 yesLabel.textContent = '是';
                 yesLabel.appendChild(yesInput);
@@ -647,7 +706,7 @@
             deleteButton.textContent = '刪除';
             deleteButton.onclick = function () {
                 tbody.removeChild(row);
-                SumVPAmt(); 
+                SumVPAmt();
                 DeleteVD(group.VD_ID || '');
             };
             deleteCell.appendChild(deleteButton);
@@ -658,7 +717,7 @@
     }
 
     function setReadOnlyMode(vpType) {
-        if (Read === 'Y' || (Read === 'S' && ChkRole==='N')) {
+        if (Read === 'Y' || (Read === 'S' && ChkRole === 'N')) {
 
             const inputs = document.querySelectorAll('input');
             inputs.forEach(input => {
@@ -729,7 +788,7 @@
     function getCompanySuggestions() {
         const input = document.getElementById('payee_name').value;
         const suggestionsDiv = document.getElementById('suggestions');
-      
+
         if (input.length === 0) {
             suggestionsDiv.style.display = 'none';
             return;
@@ -804,7 +863,7 @@
     function receiveDataFromChild(selectedGroups) {
         const firstFormID = selectedGroups[0].FormID;
         const isPP = firstFormID.startsWith('PP');
-        
+
         if (isPP) {
             const url = `${BASE_URL}/AE_VP/InvPrepay_M_SQuery?VP_ID=${firstFormID}`;
             fetch(url, {
@@ -833,7 +892,7 @@
                         $("input[name='VP_Nsummary']").val(data.VP_Nsummary);
 
                         data.Ins_List.forEach(item => {
-                            item.FormID = firstFormID; 
+                            item.FormID = firstFormID;
                         });
 
                         receiveData(data.Ins_List);
@@ -857,7 +916,7 @@
 
         amtInputs.forEach(input => {
             let value = parseFloat(input.value);
-            if (!isNaN(value)) {  
+            if (!isNaN(value)) {
                 total += value;
             }
         });
@@ -877,7 +936,7 @@
             })
                 .then(response => response.json())
                 .then(responseData => {
-                  
+
                     if (responseData.resultCode === '000') {
                         alert('明細已刪除');
                     } else {
@@ -897,7 +956,7 @@
             .then(responseData => {
                 if (responseData.resultCode === "000") {
                     const data = JSON.parse(responseData.objResult);
-                   
+
                     document.querySelector('span[name="BackID"]').textContent = `上次退單理由: ${data[0].AF_Back_Reason}  (${data[0].AF_Back_ID})`;
                 }
             }).catch(error => {

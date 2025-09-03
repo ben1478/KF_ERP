@@ -1,93 +1,209 @@
 ﻿<!DOCTYPE html>
-<html>
+<html lang="zh-Hant">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>簽核平台</title>
+
+    <!-- jQuery + jQuery UI -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
-    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css" />
     <script src="../Base.js"></script>
-    <title>作業平台</title>
-</head>
-<body>
-    <table width="1050" cellspacing="1" cellpadding="2" bgcolor="#666666" frameborder="0">
-        <tbody>
-            <tr align="center" bgcolor="#CCCCFF" height="30">
-                <td class="c12-k" colspan="2">
-                    <b><font size="3">簽核</font> </b>
-                </td>
-            </tr>
-            <tr class="c12-k" bgcolor="#FFFFFF">
-                <td align="right">簽核流程</td>
-                <td>
-                    <table border="0" cellspacing="1" bgcolor="6666ff" id="FlowTable">
-                        <tbody>
-                        </tbody>
-                    </table>
-                </td>
-            </tr>
-            <tr class="c12-k" bgcolor="#FFFFFF">
-                <td align="right">簽核結果</td>
-                <td colspan="1">
-                    <input name="FD_Step_SignType" type="radio" id="FD_Step_SignType" value="FSIGN001" checked="">簽核中
-                    <input name="FD_Step_SignType" type="radio" id="FD_Step_SignType" value="FSIGN002">同意
-                    <input name="FD_Step_SignType" type="radio" id="FD_Step_SignType" value="FSIGN003">不同意
-                </td>
-            </tr>
-            <tr class="c12-k" bgcolor="#FFFFFF">
-                <td align="right">簽核說明</td>
-                <td colspan="1">
-                    <textarea rows="2" cols="60" name="FD_Step_desc"></textarea>
-                </td>
-            </tr>
-            <tr class="c12-k" bgcolor="#FFFFFF">
-                <td align="right">是否需要會簽</td>
-                <td colspan="1">
-                    <input type="button" value="選擇會簽人員" onclick="countersignPeople();" id="btencounter"/> <span style="color:red">一旦選擇會簽人員後 須等會簽完畢後才可審核</span>
-                </td>
-            </tr>
-            <tr align="center" bgcolor="#CCCCFF">
-                <td class="c12-k" colspan="2">
-                    <input type="button" class="btn" value="確定簽核" onclick="reviewData();" id="btnReview">
-                </td>
-            </tr>
-        </tbody>
-    </table>
-    <br />
-    <table width="1050" cellspacing="1" cellpadding="2" bgcolor="#666666" frameborder="0" id="counterTable" style="display:none;" >
-        <thead>
-            <tr align="center" bgcolor="#CCCCFF" height="30">
-                <td class="c12-k" colspan="2">
-                    <b><font size="3">會簽</font> </b>
-                </td>
-            </tr>
-        </thead>
-        <tbody>
 
-        </tbody>
-    </table>
-    <br />
-    <iframe id="myIframe" width="1050" height="900" frameborder="0"></iframe>
+    <!-- RWD CSS -->
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 10px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: auto;
+            background-color: #f9f9f9;
+            padding: 15px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        .section-title {
+            background-color: #CCCCFF;
+            padding: 10px;
+            text-align: center;
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+
+        .form-row {
+            display: flex;
+            flex-wrap: wrap;
+            margin: 10px 0;
+            background: #fff;
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+
+            .form-row label {
+                flex: 0 0 120px;
+                text-align: right;
+                margin-right: 10px;
+            }
+
+            .form-row .input-area {
+                flex: 1 1 auto;
+                min-width: 200px; /* 或依照你欄位內容調整 */
+            }
+
+        textarea, input[type="text"], input[type="radio"] {
+            width: 100%;
+            max-width: 100%;
+            padding: 5px;
+            box-sizing: border-box;
+        }
+
+        .radio-group input {
+            width: auto;
+            margin-right: 5px;
+        }
+
+        .center-btn {
+            text-align: center;
+            padding: 15px 0;
+        }
+
+        .btn {
+            padding: 8px 20px;
+            font-size: 1em;
+        }
+
+        iframe {
+            width: 100%;
+            height: 600px;
+            border: none;
+            margin-top: 20px;
+        }
+
+        @media (max-width: 600px) {
+            .form-row {
+                flex-direction: column;
+            }
+
+                .form-row label {
+                    text-align: left;
+                    margin-bottom: 5px;
+                }
+
+                .form-row .input-area {
+                    width: 100%;
+                    min-width: unset;
+                }
+        }
+
+        table#FlowTable {
+            width: 100%;
+            background-color: #6666ff;
+        }
+
+            table#FlowTable td {
+                padding: 5px;
+                text-align: center;
+            }
+
+        table#counterTable {
+            width: 100%;
+            margin-top: 15px;
+            background-color: #666;
+        }
+
+            table#counterTable td {
+                background-color: #fff;
+                padding: 10px;
+            }
+
+        iframe {
+            width: 100%;
+            height: 600px; 
+            border: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+
+        <div class="section-title">簽核</div>
+
+        <div class="form-row">
+            <label>簽核流程</label>
+            <div class="input-area">
+                <table id="FlowTable"><tbody></tbody></table>
+            </div>
+        </div>
+
+        <div class="form-row">
+            <label>簽核結果</label>
+            <div class="input-area radio-group">
+                <input type="radio" name="FD_Step_SignType" value="FSIGN001" checked>簽核中
+                <input type="radio" name="FD_Step_SignType" value="FSIGN002">同意
+                <input type="radio" name="FD_Step_SignType" value="FSIGN003">不同意
+            </div>
+        </div>
+
+        <div class="form-row">
+            <label>簽核說明</label>
+            <div class="input-area">
+                <textarea name="FD_Step_desc" rows="3"></textarea>
+            </div>
+        </div>
+
+        <div class="form-row">
+            <label>是否需要會簽</label>
+            <div class="input-area">
+                <input type="button" value="選擇會簽人員" onclick="countersignPeople();" id="btencounter" />
+                <div style="color:red; margin-top:5px;">一旦選擇會簽人員後 須等會簽完畢後才可審核</div>
+            </div>
+        </div>
+
+        <div class="center-btn">
+            <input type="button" class="btn" value="確定簽核" onclick="reviewData();" id="btnReview" />
+        </div>
+
+        <!-- 會簽區塊 -->
+        <table id="counterTable" style="display:none;">
+            <thead>
+                <tr align="center" bgcolor="#CCCCFF" height="30">
+                    <td class="c12-k" colspan="2"><b><font size="3">會簽</font></b></td>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+
+        <iframe id="myIframe" style="width:100%; min-height:600px; border:none;"></iframe>
+    </div>
 </body>
 </html>
 <script>
     let Params = new URLSearchParams(window.location.search);
-    let encodedPath = Params.get("path"); 
-    let encodedForm_ID = Params.get("Form_ID"); 
-    let encryptedUser = Params.get("User"); 
+    let encodedPath = Params.get("path");
+    let encodedForm_ID = Params.get("Form_ID");
+    let encryptedUser = Params.get("User");
     let path = decodeURIComponent(encodedPath);
+
+   
 
     let AF_ID;
     let FM_Step;
     let FM_Source_ID = decryptParameter(encodedForm_ID);
-    let data = [];  
+    let data = [];
 
     getIframeSource(path);
     fetchData();
 
     function getIframeSource(path) {
         var iframe = document.getElementById("myIframe");
-        iframe.src = BASE_WEB + path; 
+        console.log(iframe + path);
+        iframe.src = BASE_WEB + path;
+        
     }
 
     function fetchData() {
@@ -138,11 +254,11 @@
                                             <textarea rows="2" cols="60" name="C_FD_Step_desc" readonly>${item.FD_Step_desc}</textarea>
                                         </td>
                                     </tr>
-                                   
+
                                 `;
                             });
                         }
-                        
+
                         counterTable.innerHTML = tableHTML;
 
                         const countersignTable = document.querySelector('#counterTable');
