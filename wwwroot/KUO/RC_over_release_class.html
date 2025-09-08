@@ -105,11 +105,11 @@
                 const thead = document.createElement('thead');
                 const tbody = document.createElement('tbody');
                 thead.innerHTML = `
-                    <tr align="center" bgcolor="#FFFFFF" class="c12-k"><th colspan="9">${title}</th></tr>
+                    <tr align="center" bgcolor="#FFFFFF" class="c12-k"><th colspan="11">${title}</th></tr>
                     <tr align="center" bgcolor="#CCCCFF" class="c12-k">
                         <th>序</th><th>專案名稱</th><th>總件數</th><th>總金額</th>
                         <th>逾期案件</th><th>逾放金額</th><th>逾放比%</th>
-                        <th>結清件數</th><th>結清金額</th>
+                        <th>結清件數</th><th>結清金額</th><th>呆帳件數</th><th>呆帳比%</th>
                     </tr>`;
                 if (data.length === 0) {
                     tbody.innerHTML = `<tr><td colspan="9" class="no-data">此區間無資料</td></tr>`;
@@ -131,6 +131,8 @@
                             <td>${(parseFloat(item.OV_Rate) || 0).toFixed(2)}%</td>
                             <td>${(item.SCount || 0).toLocaleString()}</td>
                             <td>${(parseFloat(item.RemainingPrincipal) || 0).toLocaleString()}</td>
+                            <td>${(item.TOT_bad_Count || 0).toLocaleString()}</td>
+                            <td>${(parseFloat(item.OV_bad_Rate) || 0).toFixed(2)}%</td>
                         `;
                         tbody.appendChild(row);
                     });

@@ -74,6 +74,8 @@
                                 <td width="30">逾期件數</td>
                                 <td width="70">逾期金額</td>
                                 <td width="70">逾放比%</td>
+                                <td width="30">呆帳件數</td>
+                                <td width="40">呆帳比%</td>
                             </tr>
                         </thead>
                         <tbody>
@@ -86,15 +88,6 @@
                                 </td>
                             </tr>
                         </tbody>
-                        <!-- <tfoot>
-                            <tr align="center" height="15" bgcolor="#CCCCFF">
-                                <td class="c12-k" colspan="15">
-                                    <font color="#000080">
-                                        <label id="CountRows"></label>
-                                    </font>
-                                </td>
-                            </tr>
-                        </tfoot> -->
                     </table>
                     <div id="pagination"></div>
                 </td>
@@ -117,6 +110,8 @@
                                 <td width="30">逾放比%</td>
                                 <td width="30">結清件數</td>
                                 <td width="30">結清金額</td>
+                                <td width="30">呆帳件數</td>
+                                <td width="40">呆帳比%</td>
                             </tr>
                         </thead>
                         <tbody>
@@ -147,7 +142,7 @@
                     <table id="CaseTableD" border="0" width="800" cellpadding="4" cellspacing="1" bgcolor="#666666">
                         <thead>
                             <tr align="center" bgcolor="#FFFFFF" class="c12-k">
-                                <td colspan="9">50萬以下</td>
+                                <td colspan="11">50萬以下</td>
                             </tr>
                             <tr align="center" bgcolor="#CCCCFF" class="c12-k">
                                 <td width="30">序</td>
@@ -159,6 +154,8 @@
                                 <td width="30">逾放比%</td>
                                 <td width="30">結清件數</td>
                                 <td width="30">結清金額</td>
+                                <td width="30">呆帳件數</td>
+                                <td width="40">呆帳比%</td>
                             </tr>
                         </thead>
                         <tbody>
@@ -183,7 +180,7 @@
                     <table id="CaseTableU" border="0" width="800" cellpadding="4" cellspacing="1" bgcolor="#666666">
                         <thead>
                             <tr align="center" bgcolor="#FFFFFF" class="c12-k">
-                                <td colspan="9">50萬以上</td>
+                                <td colspan="11">50萬以上</td>
                             </tr>
                             <tr align="center" bgcolor="#CCCCFF" class="c12-k">
                                 <td width="30">序</td>
@@ -195,6 +192,8 @@
                                 <td width="30">逾放比%</td>
                                 <td width="30">結清件數</td>
                                 <td width="30">結清金額</td>
+                                <td width="30">呆帳件數</td>
+                                <td width="40">呆帳比%</td>
                             </tr>
                         </thead>
                         <tbody>
@@ -292,7 +291,7 @@
             row.setAttribute('onmouseover', "this.style.background='#FCFCC0';");
             row.setAttribute('onmouseout', "this.style.background='#FFFFFF';");
 
-            const columnOrder = ['BC_name', 'u_name', 'TOT_Count', 'amount_total', 'OV_Count', 'OV_total', 'OV_Rate'];
+            const columnOrder = ['BC_name', 'u_name', 'TOT_Count', 'amount_total', 'OV_Count', 'OV_total', 'OV_Rate', 'TOT_bad_Count', 'OV_bad_Rate'];
 
             const serialCell = document.createElement('td');
             serialCell.textContent = startIndex + pageData.indexOf(item) + 1;
@@ -318,6 +317,14 @@
                         row.appendChild(cell);
                         break;
                     case 'OV_Rate':
+                        cell.textContent = `${item[key]}%` || `0%`;
+                        row.appendChild(cell);
+                        break;
+                    case 'TOT_bad_Count':
+                        cell.textContent = item[key] || 0;
+                        row.appendChild(cell);
+                        break;
+                    case 'OV_bad_Rate':
                         cell.textContent = `${item[key]}%` || `0%`;
                         row.appendChild(cell);
                         break;
@@ -365,7 +372,7 @@
             row.setAttribute('onmouseover', "this.style.background='#FCFCC0';");
             row.setAttribute('onmouseout', "this.style.background='#FFFFFF';");
 
-            const columnOrder = ['BC_name', 'TOT_Count', 'amount_total', 'OV_Count', 'OV_total', 'OV_Rate','SCount','RemainingPrincipal'];
+            const columnOrder = ['BC_name', 'TOT_Count', 'amount_total', 'OV_Count', 'OV_total', 'OV_Rate', 'SCount', 'RemainingPrincipal', 'TOT_bad_Count','OV_bad_Rate'];
 
             const serialCell = document.createElement('td');
             serialCell.textContent = startIndex;
@@ -402,7 +409,14 @@
                         cell.textContent = rp.toLocaleString();
                         row.appendChild(cell);
                         break;
-
+                    case 'TOT_bad_Count':
+                        cell.textContent = item[key] || 0;
+                        row.appendChild(cell);
+                        break;
+                    case 'OV_bad_Rate':
+                        cell.textContent = `${item[key]}%` || `0%`;
+                        row.appendChild(cell);
+                        break;
                     default:
                         cell.textContent = item[key] || '';
                         row.appendChild(cell);
@@ -454,7 +468,7 @@
             row.setAttribute('onmouseover', "this.style.background='#FCFCC0';");
             row.setAttribute('onmouseout', "this.style.background='#FFFFFF';");
 
-            const columnOrder = ['amount_type', 'pro_name', 'TOT_Count', 'amount_total', 'OV_Count', 'OV_total', 'OV_Rate','SCount','RemainingPrincipal'];
+            const columnOrder = ['amount_type', 'pro_name', 'TOT_Count', 'amount_total', 'OV_Count', 'OV_total', 'OV_Rate', 'SCount', 'RemainingPrincipal', 'TOT_bad_Count', 'OV_bad_Rate'];
 
             const serialCell = document.createElement('td');
             amount_type = item['amount_type'];
@@ -493,6 +507,14 @@
                         break;
                     case 'amount_type':
                         amount_type = item[key];
+                        break;
+                    case 'TOT_bad_Count':
+                        cell.textContent = item[key] || 0;
+                        row.appendChild(cell);
+                        break;
+                    case 'OV_bad_Rate':
+                        cell.textContent = `${item[key]}%` || `0%`;
+                        row.appendChild(cell);
                         break;
                     default:
                         cell.textContent = item[key] || '';
