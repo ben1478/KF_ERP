@@ -75,6 +75,7 @@
                                 <td width="70">逾期金額</td>
                                 <td width="70">逾放比%</td>
                                 <td width="30">呆帳件數</td>
+                                <td width="30">呆帳金額</td>
                                 <td width="40">呆帳比%</td>
                             </tr>
                         </thead>
@@ -111,6 +112,7 @@
                                 <td width="30">結清件數</td>
                                 <td width="30">結清金額</td>
                                 <td width="30">呆帳件數</td>
+                                <td width="30">呆帳金額</td>
                                 <td width="40">呆帳比%</td>
                             </tr>
                         </thead>
@@ -142,7 +144,7 @@
                     <table id="CaseTableD" border="0" width="800" cellpadding="4" cellspacing="1" bgcolor="#666666">
                         <thead>
                             <tr align="center" bgcolor="#FFFFFF" class="c12-k">
-                                <td colspan="11">50萬以下</td>
+                                <td colspan="12">50萬以下</td>
                             </tr>
                             <tr align="center" bgcolor="#CCCCFF" class="c12-k">
                                 <td width="30">序</td>
@@ -155,6 +157,7 @@
                                 <td width="30">結清件數</td>
                                 <td width="30">結清金額</td>
                                 <td width="30">呆帳件數</td>
+                                <td width="30">呆帳金額</td>
                                 <td width="40">呆帳比%</td>
                             </tr>
                         </thead>
@@ -180,7 +183,7 @@
                     <table id="CaseTableU" border="0" width="800" cellpadding="4" cellspacing="1" bgcolor="#666666">
                         <thead>
                             <tr align="center" bgcolor="#FFFFFF" class="c12-k">
-                                <td colspan="11">50萬以上</td>
+                                <td colspan="12">50萬以上</td>
                             </tr>
                             <tr align="center" bgcolor="#CCCCFF" class="c12-k">
                                 <td width="30">序</td>
@@ -193,6 +196,7 @@
                                 <td width="30">結清件數</td>
                                 <td width="30">結清金額</td>
                                 <td width="30">呆帳件數</td>
+                                <td width="30">呆帳金額</td>
                                 <td width="40">呆帳比%</td>
                             </tr>
                         </thead>
@@ -291,7 +295,7 @@
             row.setAttribute('onmouseover', "this.style.background='#FCFCC0';");
             row.setAttribute('onmouseout', "this.style.background='#FFFFFF';");
 
-            const columnOrder = ['BC_name', 'u_name', 'TOT_Count', 'amount_total', 'OV_Count', 'OV_total', 'OV_Rate', 'TOT_bad_Count', 'OV_bad_Rate'];
+            const columnOrder = ['BC_name', 'u_name', 'TOT_Count', 'amount_total', 'OV_Count', 'OV_total', 'OV_Rate', 'TOT_bad_Count','TOT_bad_debt', 'OV_bad_Rate'];
 
             const serialCell = document.createElement('td');
             serialCell.textContent = startIndex + pageData.indexOf(item) + 1;
@@ -321,7 +325,13 @@
                         row.appendChild(cell);
                         break;
                     case 'TOT_bad_Count':
-                        cell.textContent = item[key] || 0;
+                        cell.setAttribute('class', 'Link');
+                        cell.setAttribute('onclick', `GetBadDebt('${item['plan_num']}')`);
+                        cell.textContent = item[key].toLocaleString();
+                        row.appendChild(cell);
+                        break;
+                    case 'TOT_bad_debt':
+                        cell.textContent = item[key].toLocaleString();
                         row.appendChild(cell);
                         break;
                     case 'OV_bad_Rate':
@@ -372,7 +382,7 @@
             row.setAttribute('onmouseover', "this.style.background='#FCFCC0';");
             row.setAttribute('onmouseout', "this.style.background='#FFFFFF';");
 
-            const columnOrder = ['BC_name', 'TOT_Count', 'amount_total', 'OV_Count', 'OV_total', 'OV_Rate', 'SCount', 'RemainingPrincipal', 'TOT_bad_Count','OV_bad_Rate'];
+            const columnOrder = ['BC_name', 'TOT_Count', 'amount_total', 'OV_Count', 'OV_total', 'OV_Rate', 'SCount', 'RemainingPrincipal', 'TOT_bad_Count','TOT_bad_debt','OV_bad_Rate'];
 
             const serialCell = document.createElement('td');
             serialCell.textContent = startIndex;
@@ -411,6 +421,10 @@
                         break;
                     case 'TOT_bad_Count':
                         cell.textContent = item[key] || 0;
+                        row.appendChild(cell);
+                        break;
+                    case 'TOT_bad_debt':
+                        cell.textContent = item[key].toLocaleString();
                         row.appendChild(cell);
                         break;
                     case 'OV_bad_Rate':
@@ -468,7 +482,7 @@
             row.setAttribute('onmouseover', "this.style.background='#FCFCC0';");
             row.setAttribute('onmouseout', "this.style.background='#FFFFFF';");
 
-            const columnOrder = ['amount_type', 'pro_name', 'TOT_Count', 'amount_total', 'OV_Count', 'OV_total', 'OV_Rate', 'SCount', 'RemainingPrincipal', 'TOT_bad_Count', 'OV_bad_Rate'];
+            const columnOrder = ['amount_type', 'pro_name', 'TOT_Count', 'amount_total', 'OV_Count', 'OV_total', 'OV_Rate', 'SCount', 'RemainingPrincipal', 'TOT_bad_Count','TOT_bad_debt', 'OV_bad_Rate'];
 
             const serialCell = document.createElement('td');
             amount_type = item['amount_type'];
@@ -510,6 +524,10 @@
                         break;
                     case 'TOT_bad_Count':
                         cell.textContent = item[key] || 0;
+                        row.appendChild(cell);
+                        break;
+                    case 'TOT_bad_debt':
+                        cell.textContent = item[key].toLocaleString();
                         row.appendChild(cell);
                         break;
                     case 'OV_bad_Rate':
@@ -651,4 +669,71 @@
             window.open(url, '_blank', windowFeatures);
         });       
     });
+
+    function GetBadDebt(planNum) {
+        const url = `${BASE_URL}/AE_SD/SD_Plnum_LQuery?planNum=${planNum}`;
+
+        fetch(url, {
+            method: 'Get',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            credentials: 'include'
+        })
+            .then(response => response.json())
+            .then(responseData => {
+                if (responseData.resultCode === "000") {
+                    const data = JSON.parse(responseData.objResult);
+                    OpenOVCount(data);
+                }
+            }).catch(error => {
+                console.error('載入選項時出錯:', error);
+            });
+    }
+
+    function OpenOVCount(data) {
+        var m_width = "450PX;";
+        var m_height = "200px;";
+        var Title = "呆帳資料";
+        var m_Html = `<div style="width:${m_width};height:${m_height}; overflow: auto; ">`;
+        m_Html += '<table style="width: 95%;margin:auto" border="1" id="Title" cellspacing="0" cellpadding="3" bgcolor=""> ';
+        m_Html += '<tr bgcolor="#CCCCFF" height="35" align="center"> ';
+        m_Html += '<td>' + Title + '</td> ';
+        m_Html += '</tr> ';
+        m_Html += '<tr><td> ';
+        m_Html += '</td></tr> ';
+        m_Html += '</table> ';
+        m_Html += '<table style="width: 95%;margin:auto" border="1" id="Title" cellspacing="0" cellpadding="3" bgcolor=""><thead><tr bgcolor="#CCCCFF" align="center"><td>客戶姓名</td><td>呆帳金額</td></tr></thead><tbody>';
+
+        console.log(`data.length= ${data.length}`)
+        let sumamount_total = 0;
+        data.forEach((item) => {
+            var LogHtml = `
+                <tr>
+                    <td>${item.CS_name}</td>
+                    <td>${item.amount_bad_total.toLocaleString()}</td>
+                </tr> `;
+
+            m_Html += LogHtml;
+            sumamount_total += item.amount_bad_total;
+        });
+
+        m_Html += `<tr><td style="text-align:right">呆帳總金額：</td><td colspan="4">${sumamount_total.toLocaleString()}</td></tr></tbody></table>`;
+        m_Html += '   </div>    ';
+        var OpenWidth = parseInt(m_width.toUpperCase().replace("PX", "")) + 50 + "px";
+        var m_themedCSS = {
+            width: OpenWidth,
+            top: '20%',
+            left: '30%',
+        };
+        $.blockUI({
+            onOverlayClick: $.unblockUI,
+            overlayCSS: { backgroundColor: "#FFF", opacity: 0.5, cursor: "default" },
+            theme: true,
+            title: Title,
+            themedCSS: m_themedCSS,
+            message: m_Html
+        });
+    }
+
 </script>

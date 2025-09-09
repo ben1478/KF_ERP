@@ -10,6 +10,13 @@ const BASE_WEB = 'http://localhost:7135';
 //const BASE_URL = 'http://192.168.1.243/KF_WebAPI';
 //const BASE_WEB = 'http://192.168.1.240:8081/KF_ERP';
 
+if(this.location.protocol=="https:")
+{
+	BASE_URL="https://edbf704b87eb.ngrok-free.app/KF_WebAPI";
+	BASE_WEB="https://775c2f755086.ngrok-free.app/";
+}
+
+
 function encryptParameter(value) {
     let base64 = btoa(value);
     return base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');

@@ -5,8 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
     <link href="../_include/main.css" rel="stylesheet" type="text/css">
-    <script src="../Base.js"></script>
+    <script src="../Base.js?tt=999"></script>
     <title>作業平台</title>
 
     <style type="text/css">
@@ -68,6 +70,125 @@
 </div>
 
     <script>
+	
+	
+	function exportToExcel() {
+     const tables = document.querySelectorAll('#popup-tables-container > div > table');
+    if (!tables.length) {
+        console.error('No tables found in .grid-section > div');
+        return;
+    }
+
+    const wb = XLSX.utils.book_new();
+    const data = [];
+    const styles = [];
+    const colWidths = [];
+    const merges = [];
+    let rowOffset = 0;
+
+    function convertColor(color) {
+        if (!color || color === 'rgba(0, 0, 0, 0)' || color === 'transparent') return null;
+        if (color.startsWith('rgb')) {
+            const rgb = color.match(/\d+/g)?.map(Number);
+            if (!rgb || rgb.length < 3) return null;
+            return { rgb: rgbToHex(rgb[0], rgb[1], rgb[2]) };
+        } else if (color.startsWith('#')) {
+            return { rgb: color.replace('#', '').toUpperCase() };
+        }
+        return null;
+    }
+
+    function rgbToHex(r, g, b) {
+        return ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1).toUpperCase();
+    }
+
+    function estimateColumnWidth(text) {
+        if (!text) return 10;
+        const baseWidth = 10;
+        const charWidth = 1.2;
+        return Math.max(baseWidth, (text.length + 2) * charWidth);
+    }
+
+    tables.forEach((table, tableIndex) => {
+        const rows = table.querySelectorAll('tr');
+        if (!rows.length) {
+            console.warn(`Table ${tableIndex + 1} has no rows, skipping`);
+            return;
+        }
+
+        rows.forEach((row, rowIndex) => {
+            const rowData = [];
+            const rowStyles = [];
+            const cells = row.querySelectorAll('th, td');
+            if (!cells.length) return;
+
+            let colIndex = 0;
+            cells.forEach((cell) => {
+                const text = cell.innerText.trim();
+                const colspan = parseInt(cell.getAttribute('colspan') || '1');
+                const isHeader = cell.tagName.toLowerCase() === 'th';
+                const bgColor = cell.getAttribute('bgcolor') || getComputedStyle(cell).backgroundColor;
+
+                for (let i = 0; i < colspan; i++) {
+                    rowData.push(i === 0 ? text : '');
+                    rowStyles.push({
+                        fill: convertColor(bgColor) ? { type: 'pattern', pattern: 'solid', fgColor: convertColor(bgColor) } : {},
+                        alignment: { horizontal: 'center', vertical: 'center' },
+                        font: isHeader ? { bold: true } : {}
+                    });
+
+                    if (rowOffset === 0 && rowIndex === 0) {
+                        colWidths[colIndex] = estimateColumnWidth(text);
+                    } else {
+                        colWidths[colIndex] = Math.max(colWidths[colIndex] || 0, estimateColumnWidth(text));
+                    }
+                    colIndex++;
+                }
+
+                if (colspan > 1) {
+                    merges.push({
+                        s: { r: rowIndex + rowOffset, c: colIndex - colspan },
+                        e: { r: rowIndex + rowOffset, c: colIndex - 1 }
+                    });
+                }
+            });
+
+            if (rowData.length) {
+                data.push(rowData);
+                styles.push(rowStyles);
+            }
+        });
+
+        rowOffset += rows.length + 1;
+        data.push(Array(colWidths.length).fill('')); // Add empty row between tables
+        styles.push(Array(colWidths.length).fill({}));
+    });
+
+    if (!data.length) {
+        console.error('No valid data to export');
+        return;
+    }
+
+    const ws = XLSX.utils.aoa_to_sheet(data);
+
+    for (let r = 0; r < data.length; r++) {
+        for (let c = 0; c < data[r].length; c++) {
+            const cellRef = XLSX.utils.encode_cell({ r, c });
+            if (!ws[cellRef]) ws[cellRef] = { v: data[r][c] };
+            ws[cellRef].s = styles[r][c];
+        }
+    }
+
+    ws['!cols'] = colWidths.map(w => ({ wch: w }));
+    ws['!merges'] = merges;
+
+    XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
+
+    const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+    const blob = new Blob([wbout], { type: 'application/octet-stream' });
+    saveAs(blob, '應收帳款-逾放比.xlsx');
+}
+	
         // --- 輔助函式與變數定義 ---
         function getQueryParams() {
             const params = {};
@@ -105,11 +226,11 @@
                 const thead = document.createElement('thead');
                 const tbody = document.createElement('tbody');
                 thead.innerHTML = `
-                    <tr align="center" bgcolor="#FFFFFF" class="c12-k"><th colspan="12">${title}</th></tr>
+                    <tr align="center" bgcolor="#FFFFFF" class="c12-k"><th colspan="13">${title}</th></tr>
                     <tr align="center" bgcolor="#CCCCFF" class="c12-k">
                         <th>序</th><th>專案名稱</th><th>總件數</th><th>總金額</th>
                         <th>逾期案件</th><th>逾放金額</th><th>逾放比%</th>
-                        <th>結清件數</th><th>結清金額</th><th>總逾放比%</th><th>呆帳件數</th><th>呆帳比%</th>
+                        <th>結清件數</th><th>結清金額</th><th>總逾放比%</th><th>呆帳件數</th><th>呆帳金額</th><th>呆帳比%</th>
                     </tr>`;
                 if (data.length === 0) {
                     tbody.innerHTML = `<tr><td colspan="9" class="no-data">此區間無資料</td></tr>`;
@@ -133,6 +254,7 @@
                             <td>${(parseFloat(item.RemainingPrincipal) || 0).toLocaleString()}</td>
                             <td>${(parseFloat(item.TOT_OV_Rate) || 0).toFixed(2)}%</td>
                             <td>${(item.TOT_bad_Count || 0).toLocaleString()}</td>
+                            <td>${(parseFloat(item.TOT_bad_debt) || 0).toLocaleString()}</td>
                             <td>${(parseFloat(item.OV_bad_Rate) || 0).toFixed(2)}%</td>
                         `;
                         tbody.appendChild(row);
@@ -198,6 +320,11 @@
                 queryButton.id = 'popup-query-button';
                 queryButton.textContent = '查詢';
                 controlBar.appendChild(queryButton);
+				const queryButton_Ex = document.createElement('button');
+                queryButton_Ex.id = 'Export_Excel';
+                queryButton_Ex.textContent = '匯出Excel';
+                controlBar.appendChild(queryButton_Ex);
+				
                 this.container.appendChild(controlBar);
 
                 const tablesContainer = document.createElement('div');
@@ -246,6 +373,12 @@
                     });
                 }
             });
+			
+			$('#report-wrapper').on('click', '#Export_Excel', async function() {
+                exportToExcel();
+            });
+			
+			
         });
     </script>
 </body>
