@@ -147,7 +147,7 @@
 
     <table id="detailsList">
         <thead>
-            <tr>
+            <tr id="tableRow">
                 <th>NO</th>
                 <th>單號</th>
                 <th>部門</th>
@@ -161,7 +161,7 @@
         </tbody>
         <tfoot>
             <tr>
-                <td colspan="7" align="center">
+                <td colspan="7" align="center" id="saveButtonCell">
                     <input type="button" value="儲存" name="save" onclick="saveData();">
                 </td>
             </tr>
@@ -751,22 +751,22 @@
                     ChkRole = responseData.objResult;
                     if (ChkRole === 'Y') {
                         var tableRow = document.getElementById("tableRow");
-                        var amountCell = tableRow.getElementsByTagName("td")[5];
+                        var amountCell = tableRow.getElementsByTagName("th")[5];
                         amountCell.style.color = "red";
 
-                        var td1 = document.createElement("td");
-                        td1.setAttribute("width", "40");
-                        td1.style.color = "red";
-                        td1.innerHTML = "會計科目";
-                        tableRow.insertBefore(td1, amountCell.nextSibling);
+                        var th1 = document.createElement("th");
+                        th1.setAttribute("width", "40");
+                        th1.style.color = "red";
+                        th1.innerHTML = "會計科目";
+                        tableRow.insertBefore(th1, amountCell.nextSibling);
 
-                        var td2 = document.createElement("td");
-                        td2.setAttribute("width", "40");
-                        td2.style.color = "red";
-                        td2.innerHTML = "會計項目";
-                        tableRow.insertBefore(td2, td1.nextSibling);
+                        var th2 = document.createElement("th");
+                        th2.setAttribute("width", "40");
+                        th2.style.color = "red";
+                        th2.innerHTML = "會計項目";
+                        tableRow.insertBefore(th2, th1.nextSibling);
 
-                        var newColspan = tableRow.getElementsByTagName("td").length + 2;
+                        var newColspan = tableRow.getElementsByTagName("th").length + 2;
                         saveButtonCell.setAttribute("colspan", newColspan);
 
                         document.querySelector('input[name="VP_Summary"]').removeAttribute('readonly');
@@ -781,6 +781,7 @@
                 }
             })
             .catch(error => {
+                console.error('ChkUserRole Error:', error);
                 alert('角色辨別失敗，請稍後再試。');
             })
     }
