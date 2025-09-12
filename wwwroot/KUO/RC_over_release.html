@@ -608,15 +608,14 @@
             });
     }
 
-    function OpenOVCount(data)
-    {
-        var m_width="450PX;";
-        var m_height="200px;";
-        var Title="明細資料";
+    function OpenOVCount(data) {
+        var m_width = "450PX;";
+        var m_height = "200px;";
+        var Title = "明細資料";
         var m_Html = `<div style="width:${m_width};height:${m_height}; overflow: auto; ">`;
         m_Html += ' <table style="width: 95%;margin:auto" border="1" id="Title" cellspacing="0" cellpadding="3" bgcolor=""> ';
         m_Html += ' <tr bgcolor="#CCCCFF" height="35" align="center"> ';
-        m_Html += '  <td >'+ Title +'</td> ';
+        m_Html += '  <td >' + Title + '</td> ';
         m_Html += '</tr> ';
         m_Html += '<tr><td> ';
         m_Html += '</td></tr> ';
@@ -625,36 +624,36 @@
 
         console.log(`data.length= ${data.length}`)
         let sumamount_total = 0;
-        data.forEach((item) =>{
+        data.forEach((item) => {
             //let trString  = item.court_sale === '1'? `<tr title=${item.RCM_note} style="background:#FFFF66">` : '<tr>';
 
             var LogHtml = `
                     <tr>
                         <td>${item.CS_name}</td>
                         <td>${item.amount_total.toLocaleString()}</td>
-                        <td>${item.month_total||''}</td>
-                        <td>${item.RC_count||''}</td>
+                        <td>${item.month_total || ''}</td>
+                        <td>${item.RC_count || ''}</td>
                         <td>${item.DelayDay}</td>
                         </tr> `;
 
-                        m_Html += LogHtml;
-                        sumamount_total += item.amount_total;
-                });
-            
+            m_Html += LogHtml;
+            sumamount_total += item.amount_total;
+        });
+
         m_Html += `<tr><td style="text-align:right">逾放總金額：</td><td colspan="4">${sumamount_total.toLocaleString()}</td></tr></tbody></table>`;
         m_Html += '   </div>    ';
-        var OpenWidth=parseInt(m_width.toUpperCase().replace("PX", ""))+50+"px";
+        var OpenWidth = parseInt(m_width.toUpperCase().replace("PX", "")) + 50 + "px";
         var m_themedCSS = {
-                width: OpenWidth,
-                top: '20%',
-                left: '30%',
-            };
-            $.blockUI({
+            width: OpenWidth,
+            top: '20%',
+            left: '30%',
+        };
+        $.blockUI({
             onOverlayClick: $.unblockUI,
             overlayCSS: { backgroundColor: "#FFF", opacity: 0.5, cursor: "default" },
             theme: true,
             title: Title,
-            themedCSS:  m_themedCSS,
+            themedCSS: m_themedCSS,
             message: m_Html
         });
     }
@@ -684,14 +683,14 @@
             .then(responseData => {
                 if (responseData.resultCode === "000") {
                     const data = JSON.parse(responseData.objResult);
-                    OpenOVCount(data);
+                    OpenBadCount(data);
                 }
             }).catch(error => {
                 console.error('載入選項時出錯:', error);
             });
     }
 
-    function OpenOVCount(data) {
+    function OpenBadCount(data) {
         var m_width = "450PX;";
         var m_height = "200px;";
         var Title = "呆帳資料";
