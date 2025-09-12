@@ -1,0 +1,333 @@
+﻿<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>作業平台</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css" />
+    <script src="../Base.js?v=20250910"></script>
+    <style>
+        body {
+            font-family: "Microsoft JhengHei", sans-serif;
+            background-color: #f4f4f8;
+            padding: 20px;
+            margin: 0;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            background-color: #fff;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        thead th {
+            background-color: #CCCCFF;
+            color: #333;
+            padding: 12px;
+            border: 1px solid #999;
+        }
+
+        tbody td {
+            padding: 12px;
+            text-align: center;
+            border: 1px solid #ddd;
+            background-color: #fff;
+        }
+
+        tbody tr:hover {
+            background-color: #f0f8ff;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            margin-right: 10px;
+            font-size: 16px;
+            border: none;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: 0.3s ease;
+        }
+
+        .btn-agree {
+            background-color: #4caf50;
+            color: white;
+        }
+
+        .btn-agree:hover {
+                background-color: #45a049;
+            }
+
+        .btn-decline {
+            background-color: #f44336;
+            color: white;
+        }
+
+        .btn-decline:hover {
+                background-color: #d32f2f;
+            }
+
+        .check-all-desktop,
+        .check-all-mobile {
+            display: none;
+        }
+
+        /* 桌機版顯示 table 裡的全部勾選 */
+        @media (min-width: 769px) {
+            .check-all-desktop {
+                display: inline;
+            }
+        }
+
+        /* 響應式設計：手機版轉卡片樣式 */
+        @media (max-width: 768px) {
+            .check-all-mobile {
+                display: block;
+            }
+
+            table, thead, tbody, th, td, tr {
+                display: block;
+            }
+
+            thead {
+                display: none;
+            }
+
+            tr {
+                margin-bottom: 15px;
+                background-color: #fff;
+                border: 1px solid #ccc;
+                padding: 10px;
+                border-radius: 8px;
+            }
+
+            td {
+                text-align: left;
+                padding-left: 35%; /* 原本是 50%，現在縮小 */
+                position: relative;
+            }
+
+                td::before {
+                    position: absolute;
+                    top: 12px;
+                    left: 10px; /* 可視需要再往左調小一點 */
+                    width: 30%; /* 原本是 45%，現在縮小 */
+                    padding-right: 5px; /* 原本是 10px，可縮小 */
+                    white-space: nowrap;
+                    font-weight: bold;
+                    color: #555;
+                }
+
+                td:nth-child(1)::before {
+                    content: "選擇";
+                }
+
+                td:nth-child(2)::before {
+                    content: "類型";
+                }
+
+                td:nth-child(3)::before {
+                    content: "摘要";
+                }
+
+                td:nth-child(4)::before {
+                    content: "金額";
+                }
+
+                td:nth-child(5)::before {
+                    content: "詳細";
+                }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>財務表單審核</h1>
+
+    <div class="check-all-mobile" style="margin-bottom: 10px;">
+        <label>
+            <input type="checkbox" id="checkAll-mobile" /> 全部勾選
+        </label>
+    </div>
+
+    <table id="MainTable">
+        <thead>
+            <tr>
+                <th>
+                    <label class="check-all-desktop">
+                        <input type="checkbox" id="checkAll-desktop" /> 全部
+                    </label>
+                </th>
+                <th>類型</th>
+                <th>摘要</th>
+                <th>金額</th>
+                <th>詳細</th>
+            </tr>
+        </thead>
+        <tbody id="dataTable">
+        </tbody>
+    </table>
+
+    <div>
+        <button class="btn btn-agree" onclick="saveData('FSIGN002');">同意</button>
+        <button class="btn btn-decline" onclick="saveData('FSIGN003');">不同意</button>
+    </div>
+</body>
+</html>
+<script>
+    let Params = new URLSearchParams(window.location.search);
+    let GUID = Params.get("GUID");
+
+    fetchData();
+
+    $(document).ready(function () {
+        function toggleAllCheckboxes(checked) {
+            $('#MainTable tbody input[type="checkbox"]').prop('checked', checked);
+        }
+
+        $('#checkAll-desktop, #checkAll-mobile').on('change', function () {
+            const isChecked = $(this).is(':checked');
+            $('#checkAll-desktop, #checkAll-mobile').prop('checked', isChecked);
+            toggleAllCheckboxes(isChecked);
+        });
+    });
+
+    function fetchData() {
+        const url = `${BASE_URL}/AE_AF/LF_AF_LQuery?GUID=${GUID}`;
+
+        fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                if (data.resultCode === "000") {
+                    const tableBody = document.getElementById("dataTable");
+                    tableBody.innerHTML = "";
+                    const items = JSON.parse(data.objResult);
+                    items.forEach(item => {
+                        const row = document.createElement("tr");
+                        row.dataset.fmStep = item.FM_Step;
+                        row.dataset.fmSourceId = item.FM_Source_ID;
+                        row.dataset.user = item.User;
+                        let afName = '';
+                        switch (item.AF_ID) {
+                            case 'PO':
+                                afName = '請採購';
+                                break;
+                            case 'PA':
+                                afName = '請款';
+                                break;
+                            case 'PP':
+                                afName = '預支';
+                                break;
+                            case 'PS':
+                                afName = '沖銷預支';
+                                break;
+                            default:
+                                afName = '-';
+                                break;
+                        }
+
+                        row.innerHTML = `
+                        <td><input type="checkbox" /></td>
+                        <td>${afName}</td>
+                        <td>${item.Summary}</td>
+                        <td>${item.Total_Amt}</td>
+                    `; 
+
+                        const encrypted_ID = encryptParameter(item.FM_Source_ID);
+                        const encryptedWebUser = encryptParameter(item.User);
+                        const encryptedWebBC = encryptParameter('KF');
+
+                        if (item.AF_ID === 'PO') {
+                            let encryptedReadX = encryptParameter('Y');
+                            var path = `/Proc/Proc_M_detail.html?PM_ID=${encrypted_ID}&Read=${encryptedReadX}&User=${encryptedWebUser}&U_BC=${encryptedWebBC}`;
+                            var encodedPath = encodeURIComponent(path);
+                         
+                            row.appendChild(createButtonCell(
+                                "../images/edit.png",
+                                "簽核",
+                                function () {
+                                    window.open(`${BASE_WEB}/AF/AF_Review_Detail.html?Form_ID=${encrypted_ID}&User=${encryptedWebUser}&path=${encodedPath}`, '_blank', 'scrollbars=yes,resizable=yes,top=100,width=1100,height=650');
+                                }
+                            ));
+                        } else {
+                            let encryptedReadX = encryptParameter('S');
+                            var path = `/VP/InvPre_M_detail.html?VP_ID=${encrypted_ID}&Read=${encryptedReadX}&User=${encryptedWebUser}&U_BC=${encryptedWebBC}`;
+                            var encodedPath = encodeURIComponent(path);
+                            
+                            row.appendChild(createButtonCell(
+                                "../images/edit.png",
+                                "簽核",
+                                function () {
+                                    window.open(`${BASE_WEB}/AF/AF_Review_Detail.html?Form_ID=${encrypted_ID}&User=${encryptedWebUser}&path=${encodedPath}`, '_blank', 'scrollbars=yes,resizable=yes,top=100,width=1100,height=650');
+                                }
+                            ));
+                        }
+
+                        tableBody.appendChild(row);
+                    });
+                } else {
+                    alert(data.resultMsg);
+                }
+            })
+            .catch(error => {
+                console.error('載入時出錯:', error);
+            });
+    }
+
+    function saveData(ConfirmType) {
+        const selectedCheckboxes = document.querySelectorAll('#dataTable input[type="checkbox"]:checked');
+        if (selectedCheckboxes.length === 0) {
+            alert("請先選擇至少一筆資料");
+            return;
+        }
+
+        const List = [];
+
+        selectedCheckboxes.forEach(cb => {
+            const row = cb.closest('tr');
+            const fmStep = row.dataset.fmStep;
+            const fmSourceId = row.dataset.fmSourceId;
+            const user = row.dataset.user;
+
+            const model = {
+                Confirm: ConfirmType,
+                FM_Step: fmStep,
+                Source_ID: fmSourceId,
+                User: user
+            };
+
+            List.push(model);
+        });
+
+        const url = `${BASE_URL}/AE_AF/LF_AF_Upd`;
+
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(List)
+        })
+            .then(response => response.json())
+            .then(response => {
+                if (response.resultCode === '000') {
+                    alert('審核成功');
+                    window.close();
+                 /*   window.opener.location.reload();*/
+                } else {
+                    alert(data.resultMsg);
+                }
+            })
+            .catch(error => {
+                alert('請求失敗，請稍後再試。');
+            });
+    }
+</script>

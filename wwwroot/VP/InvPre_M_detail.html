@@ -957,8 +957,8 @@
             .then(responseData => {
                 if (responseData.resultCode === "000") {
                     const data = JSON.parse(responseData.objResult);
-
-                    document.querySelector('span[name="BackID"]').textContent = `上次退單理由: ${data[0].AF_Back_Reason}  (${data[0].AF_Back_ID})`;
+                    const backReason = data[0].AF_Back_Reason ?? '無';
+                    document.querySelector('span[name="BackID"]').textContent = `上次退單理由: ${backReason}  (${data[0].AF_Back_ID})`;
                 }
             }).catch(error => {
                 console.error('載入選項時出錯:', error);
