@@ -1,0 +1,158 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script src="../Base.js"></script>
+    <title>作業平台</title>
+</head>
+<body>
+    &nbsp;&nbsp; &nbsp;&nbsp;&nbsp;<span class="c14k"><strong>未簽核財務表單</strong></span><br />
+    &nbsp;&nbsp; &nbsp;&nbsp;&nbsp;<input type="button" name="add" value="查詢" onclick="fetchData(); "><br />
+    <table width="1100" border="0" cellspacing="0" cellpadding="0">
+        <tbody>
+            <tr>
+                <td valign="top"> </td>
+                <td align="center" valign="top">
+                    <table id="MainTable" width="1050" border="0" cellpadding="4" cellspacing="1" bgcolor="#666666">
+                        <thead>
+                            <tr align="center" height="30" bgcolor="#CCCCFF" class="c12-k">
+                                <td>序號</td>
+                                <td>簽核人</td>
+                                <td>未簽核數量</td>
+                                <td>產生一次性外部連結</td>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                        <tfoot>
+                            <tr align="center" height="15" bgcolor="#CCCCFF">
+                                <td class="c12-k" colspan="4">
+                                    <font color="#000080">
+                                        <label id="CountRows"></label>
+                                    </font>
+                                </td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                    <div id="pagination"></div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</body>
+</html>
+<script>
+    const Params = getQueryParams();
+    let WebUser = Params.WebUser;
+    let WebBC = Params.WebBC;
+
+    const itemsPerPage = 20;
+    let currentPage = 1;
+    let data = []; 
+
+    fetchData();
+
+    function fetchData() {
+        const url = `${BASE_URL}/AE_AF/LF_Send_LQuery`;
+
+        fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include'
+        })
+            .then(response => response.json())
+            .then(responseData => {
+                if (responseData.resultCode == "000") {
+                    data = JSON.parse(responseData.objResult);
+                    showPage(currentPage);
+                } else {
+                    alert(response.resultMsg);
+                }
+            })
+            .catch(error => {
+                alert('API 請求失敗:', error);
+            });
+    }
+
+    function showPage(page) {
+        document.getElementById('CountRows').innerHTML = `筆數:${data.length}`;
+        const tbody = document.querySelector('#MainTable tbody');
+        tbody.innerHTML = '';
+
+        const startIndex = (page - 1) * itemsPerPage;
+        const endIndex = Math.min(startIndex + itemsPerPage, data.length);
+        const pageData = data.slice(startIndex, endIndex);
+
+        pageData.forEach((item, index) => {
+            const row = document.createElement('tr');
+            row.setAttribute('align', 'center');
+            row.setAttribute('class', 'c12-k');
+            row.setAttribute('bgcolor', '#FFFFFF');
+            row.setAttribute('onmouseover', "this.style.background='#FCFCC0';");
+            row.setAttribute('onmouseout', "this.style.background='#FFFFFF';");
+
+            const columnOrder = ['U_name', 'count', 'Out_Side']
+
+            const serialCell = document.createElement('td');
+            serialCell.textContent = startIndex + index + 1;
+            row.appendChild(serialCell);
+
+            columnOrder.forEach(key => {
+                const cell = document.createElement('td');
+                switch (key) {
+                    case 'U_name':
+                        cell.textContent = item[key] || '';
+                        row.appendChild(cell);
+                        break;
+                    case 'count':
+                        cell.textContent = item[key] || '';
+                        row.appendChild(cell);
+                        break;
+                    case 'Out_Side':
+                        let encryptedRead = encryptParameter('N');
+                        row.appendChild(createButtonCell(
+                            "../images/edit.png",
+                            "修改",
+                            function () {
+                                GetWebToken(item.FD_Step_num);
+                            }
+                        ));
+                        break;
+                }
+            });
+            tbody.appendChild(row);
+        });
+    }
+
+    function GetWebToken(stepNum) {
+        //產出一組對外網址加GUID
+        const url = `${BASE_URL}/AE/GetWebToken?chknum=${stepNum}&Type=SighAF&user=${WebUser}`;
+
+        fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include'
+        })
+            .then(response => response.json())
+            .then(responseData => {
+                if (responseData.resultCode == "000") {
+                    var strGuid = responseData.objResult;
+                    alert(strGuid);
+                    let websiteURL = getNgrokUrlSync();
+                    alert(websiteURL + '/KF_ERP/LF/LF_AF_List.html?GUID' + strGuid);
+                } else {
+                    alert(response.resultMsg);
+                }
+            })
+            .catch(error => {
+                alert('API 請求失敗:', error);
+            });
+    }
+</script>
