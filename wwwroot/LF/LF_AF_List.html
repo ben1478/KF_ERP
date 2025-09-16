@@ -184,34 +184,9 @@
 </html>
 <script>
     let Params = new URLSearchParams(window.location.search);
-    let GUID = Params.get("GUID");
+    let UserID = Params.get("userID");
 
-    /*先模擬有進入過登入頁後再轉回*/
-    (async function () {
-        const alreadyVisited = sessionStorage.getItem("hasVisitedRoot");
-
-        if (!alreadyVisited) {
-            // 還沒訪問過首頁，先標記「準備跳轉中」
-            sessionStorage.setItem("hasVisitedRoot", "PENDING");
-
-            // 將現在頁面的網址存起來，等等跳回來用
-            sessionStorage.setItem("targetPage", window.location.href);
-
-            // 跳轉去首頁（會觸發登入、初始化 Cookie 等）
-            window.location.href = window.location.origin + "/";
-            return;
-        }
-
-        if (alreadyVisited === "PENDING") {
-            // 從首頁回來，標記完成
-            sessionStorage.setItem("hasVisitedRoot", "true");
-        }
-
-        // 現在可以安全地繼續執行
-        fetchData();
-    })();
-
-  
+    fetchData();
 
     $(document).ready(function () {
         function toggleAllCheckboxes(checked) {
@@ -226,7 +201,7 @@
     });
 
     function fetchData() {
-        const url = `${BASE_URL}/AE_AF/LF_AF_LQuery?GUID=${GUID}`;
+        const url = `${BASE_URL}/AE_AF/LF_AF_LQuery?userID=${UserID}`;
 
         fetch(url)
             .then(response => response.json())

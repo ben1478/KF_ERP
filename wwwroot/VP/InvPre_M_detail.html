@@ -538,6 +538,10 @@
                         $("input[name='VP_Summary']").val(data.VP_Summary);
                         $("input[name='VP_MFG_Date']").val(data.VP_MFG_Date);
                         $("input[name='VP_Nsummary']").val(data.VP_Nsummary);
+
+                        $("select[name='VP_BC']").val(data.VP_BC);
+                        $("select[name='VP_BC']").prop("disabled", true);
+
                         receiveData(data.Ins_List);
 
                         setReadOnlyMode(vpType);
