@@ -86,6 +86,11 @@
             selectId: "U_BC",
             itemCode: "branch_company"
         });
+        $('.datepickerTW').datepickerTW({
+            changeYear: true,
+            changeMonth: true,
+            dateFormat: 'yy-mm-dd'
+        });
         const currentDate = new Date();
 
         const dateStart = new Date(currentDate);
@@ -312,10 +317,4 @@
             tbody.appendChild(row);
         });
     }
-
-    $('.datepickerTW').datepickerTW({
-        changeYear: true,
-        changeMonth: true,
-        dateFormat: 'yy-mm-dd'
-    });
 </script>
