@@ -144,7 +144,7 @@
                 if (responseData.resultCode == "000") {
                     var strGuid = responseData.objResult;
                     let websiteURL = getNgrokUrlSync();
-                    showLink(websiteURL + '/ProxyPage.asp?page=KF_ERP/LF/LF_AF_List.html?GUID=' + strGuid);
+                    showLink(websiteURL + '/ProxyPage.asp?page=KF_ERP/LF/LF_AF_List.html&GUID=' + strGuid);
                 } else {
                     alert(response.resultMsg);
                 }
