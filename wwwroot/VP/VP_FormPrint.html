@@ -97,7 +97,11 @@
             <td width="13%">申請人</td>
         </tr>
         <tr height="70">
-            <td></td>
+            <td>
+                <span id="sign5"></span>
+                <br />
+                <span id="signDate5"></span>
+            </td>
             <td>
                 <span id="sign4"></span>
                 <br />
@@ -246,7 +250,7 @@
                     document.getElementById("signDate").textContent = data.add_date;
 
                     const maxStep = Math.max(...flowsList.map(flow => parseInt(flow.FD_Step)));
-                    for (let i = 1; i <= maxStep && i <= 4; i++) {
+                    for (let i = 1; i <= maxStep && i <= 5; i++) {
                         const sign = flowsList.find(flow => flow.FD_Step === String(i));
 
                         if (sign) {

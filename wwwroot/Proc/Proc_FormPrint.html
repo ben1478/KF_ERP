@@ -169,7 +169,13 @@
             <td colspan="3">副總經理</td>
         </tr>
         <tr style="height: 130px;">
-            <td colspan="3"></td>
+            <td colspan="3">
+                <span id="sign7"></span>
+                <br />
+                <span id="signDate7"></span>
+                <br />
+                <span id="signDesc7"></span>
+            </td>
             <td colspan="3">
                 <span id="sign6"></span>
                 <br />
@@ -302,6 +308,11 @@
                     document.getElementById("sign6").textContent = signdata[1].U_name;
                     document.getElementById("signDate6").textContent = signdata[1].FD_Step_date;
                     document.getElementById("signDesc6").textContent = signdata[1].desc;
+
+                    const signPre = flowsList.filter(flow => flow.FD_Sign_Countersign === 'S' && flow.FD_Step === '6')
+                    document.getElementById("sign7").textContent = signPre[0].U_name;
+                    document.getElementById("signDate7").textContent = signPre[0].FD_Step_date;
+                    document.getElementById("signDesc7").textContent = signPre[0].FD_Step_desc;
 
                     const condata = flowsList.filter(flow => flow.FD_Sign_Countersign === 'C')
                     let currentIndex = 0
