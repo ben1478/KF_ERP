@@ -203,8 +203,8 @@
 
     function setFeeDisplay(rate, isFee) {
         show_Breach_rate = rate;
-        const type = isFee ? '手續費' : '違約金';
-        document.getElementById("Breach_rate_text").innerText = isFee ? '作業手續費利率' : '預計違約金利率';
+        const type = isFee ? '作業費' : '違約金';
+        document.getElementById("Breach_rate_text").innerText = isFee ? '作業費利率' : '預計違約金利率';
         document.getElementById("BreakAmt_text").innerText = `預計${type}：`;
         document.getElementById("BreakAmt_text_t").innerText = `實際${type}`;
         BreakAmt_text = type;
