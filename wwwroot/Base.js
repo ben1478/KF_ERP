@@ -558,7 +558,7 @@ function dateTW() {
                 let inputVal = $input.val();
                 const today = new Date();
                 const startYear = today.getFullYear() - 60;
-                const endYear = today.getFullYear() + 10;
+                const endYear = today.getFullYear() + 30;
 
                 const userOnSelect = userOptions?.onSelect;
 

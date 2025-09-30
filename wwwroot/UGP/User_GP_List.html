@@ -125,7 +125,11 @@
                             "../images/edit.png",
                             "修改",
                             function () {
-                                window.open(`../UGP/User_GP_D_detail.html?U_num=${encryptParameter(item.U_num)}&User=${encryptParameter(WebUser)}`, '_blank', 'scrollbars=yes,resizable=yes,top=100,width=800,height=500');
+                                window.open(
+                                    `../UGP/User_GP_D_Detail.html?User=${encryptParameter(WebUser)}&group_id=${encryptParameter(item.group_id)}&group_M_name=${encodeURIComponent(item.group_M_name)}&group_M_num=${encodeURIComponent(item.group_M_code)}&DateRange=${encodeURIComponent(item.group_start_day_minguo + '~' + item.group_end_day_minguo)}`,
+                                    '_blank',
+                                    'scrollbars=yes,resizable=yes,top=100,width=800,height=500'
+                                );
                             }
                         ));
                         break;
@@ -134,7 +138,10 @@
                             "../images/delete.png",
                             "修改",
                             function () {
-                                window.open(`../HR/User_edit.html?U_num=${encryptParameter(item.U_num)}&User=${encryptParameter(WebUser)}`, '_blank', 'scrollbars=yes,resizable=yes,top=100,width=800,height=500');
+                                const confirmDelete = window.confirm("確定要刪除嗎？");
+                                if (confirmDelete) {
+                                    UserGDel(item.group_id);
+                                }
                             }
                         ));
                         break;
@@ -150,5 +157,29 @@
 
     function addUserGroup() {
         window.open(`../UGP/User_GP_M_detail.html?User=${encryptParameter(WebUser)}&Read=${encryptParameter('A')}`, '_blank', 'scrollbars=yes,resizable=yes,top=100,width=500,height=300');
+    }
+
+    function UserGDel(group_id) {
+        const url = `${BASE_URL}/AE_UGP/User_G_Del?group_M_code=${group_id}&user=${WebUser}`;
+
+        fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include'
+        })
+            .then(response => response.json())
+            .then(responseData => {
+                if (responseData.resultCode == "000") {
+                    alert(responseData.resultMsg);
+                    location.reload();
+                } else {
+                    alert(responseData.resultMsg);
+                }
+            })
+            .catch(error => {
+                alert('API 請求失敗:', error);
+            });
     }
 </script>

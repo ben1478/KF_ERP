@@ -1,0 +1,312 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script src="../Base.js"></script>
+    <title>作業平台</title>
+</head>
+<body>
+    <table width="100%" border="0" cellspacing="0" cellpadding="0">
+        <tbody>
+            <tr>
+                <td width="20">　</td>
+                <td width="230" height="24"><span class="c14k"><strong>員工分組成員設定 - 成員列表</strong></span></td>
+                <td width="150">
+                </td>
+            </tr>
+            <tr>
+                <td>　</td>
+                <td colspan="2">
+                    <table border="0" width="100%" id="table1">
+                        <tbody>
+                            <tr class="c12-k">
+                                <td width="85%">
+                                    <font color="blue"><b> 組長</b></font> &gt;&gt;  - <span id="userM"></span> , <span id="dateSE"></span>
+                                </td>
+                                <td width="15%" align="center">
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table id="MainTable" width="650" border="0" cellpadding="4" cellspacing="1" bgcolor="#666666" style="font-size:14px;">
+        <thead>
+            <tr align="center" height="30" bgcolor="#CCCCFF" class="c12-k">
+                <td width="40">序號</td>
+                <td width="150">成員</td>
+                <td width="200">期間</td>
+                <td width="40">刪除</td>
+            </tr>
+        </thead>
+        <tbody></tbody>
+        <tfoot>
+            <tr align="center" height="15" bgcolor="#CCCCFF">
+                <td class="c12-k" colspan="8">
+                    <input type="button" value="確定修改" name="save" onclick="saveData();" />
+                </td>
+            </tr>
+        </tfoot>
+    </table>
+</body>
+</html>
+<script>
+    let Params = new URLSearchParams(window.location.search);
+    let groupMid = decryptParameter(Params.get('group_id'));
+    let WebUser = decryptParameter(Params.get('User'));
+    let groupMName = decodeURIComponent(Params.get('group_M_name'));
+    let strDateRange = decodeURIComponent(Params.get('DateRange'));
+    let groupMCode = decodeURIComponent(Params.get('group_M_num'));
+
+    let data = [];
+
+    fetchData();
+    dateTW();
+    
+
+    function fetchData() {
+        const url = `${BASE_URL}/AE_UGP/User_GP_D_LQuery?group_id=${groupMid}`;
+
+        fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include'
+        })
+            .then(response => response.json())
+            .then(responseData => {
+                if (responseData.resultCode == "000") {
+                    data = JSON.parse(responseData.objResult);
+                    showTable();
+                    $('.datepickerTW').datepickerTW({
+                        changeYear: true,
+                        changeMonth: true,
+                        dateFormat: 'yy-mm-dd'
+                    });
+                } else {
+                    alert(response.resultMsg);
+                }
+            })
+            .catch(error => {
+                alert('API 請求失敗:', error);
+            });
+    }
+
+    function showTable() {
+
+        document.getElementById("userM").textContent = groupMName;
+        document.getElementById("dateSE").textContent = strDateRange;
+
+        const tbody = document.querySelector('#MainTable tbody');
+        tbody.innerHTML = '';
+
+        for (let i = 0; i < data.length + 5; i++) {
+            const row = document.createElement('tr');
+            row.setAttribute('align', 'center');
+            row.className = 'c12-k';
+            row.style.backgroundColor = '#FFFFFF';
+            row.onmouseover = function () { this.style.background = '#FCFCC0'; };
+            row.onmouseout = function () { this.style.background = '#FFFFFF'; };
+
+            const userData = data[i] || {};  // 避免超出 data.length
+
+            const serialCell = document.createElement('td');
+            serialCell.textContent = i + 1;
+            if (userData.group_id) {
+                serialCell.setAttribute('data-group-id', userData.group_id);
+            }
+            row.appendChild(serialCell);
+         
+            const userCell = createUserCell(i, userData);
+            row.appendChild(userCell);
+
+            const dateCell = createDateCell(i, userData); 
+            row.appendChild(dateCell);
+
+            row.appendChild(createButtonCell(
+                "../images/delete.png",
+                "刪除",
+                function () {
+                    const confirmDelete = window.confirm("確定要刪除嗎？");
+                    if (confirmDelete) {
+                        UserDel(data[i].group_id);
+                    }
+                }
+            ));
+
+            tbody.appendChild(row);
+        }
+    }
+
+    function createUserCell(i, userData) {
+        const userCell = document.createElement('td');
+        userCell.setAttribute('align', 'center');
+
+        const inputNum = document.createElement('input');
+        inputNum.type = 'text';
+        inputNum.id = 'UG_Num_' + i;
+        inputNum.name = 'group_D_code';
+        inputNum.size = 6;
+        inputNum.className = 'box';
+        inputNum.readOnly = true;
+        inputNum.style.marginRight = '5px';
+        inputNum.value = userData.group_D_code || '';
+
+        const inputName = document.createElement('input');
+        inputName.type = 'text';
+        inputName.id = 'UG_Name_' + i;
+        inputName.name = 'group_D_name';
+        inputName.size = 8;
+        inputName.className = 'box';
+        inputName.readOnly = true;
+        inputName.style.marginRight = '5px';
+        inputName.value = userData.group_D_name || '';
+
+        const selectBtn = document.createElement('input');
+        selectBtn.type = 'button';
+        selectBtn.value = '...';
+        selectBtn.onclick = function () {
+            openUserOne('member', i);
+        };
+
+        userCell.appendChild(inputNum);
+        userCell.appendChild(inputName);
+        userCell.appendChild(selectBtn);
+
+        return userCell;
+    }
+
+    function createDateCell(i, userData) {
+        const dateCell = document.createElement('td');
+        dateCell.setAttribute('align', 'center');
+
+        const inputDateS = document.createElement('input');
+        inputDateS.type = 'text';
+        inputDateS.style.marginRight = '5px';
+        inputDateS.classList.add('datepickerTW');
+        inputDateS.size = 8;
+        inputDateS.value = userData.group_start_day || '';
+        inputDateS.name = 'group_start_day';
+
+        const tilde = document.createTextNode(' ~ ');
+
+        const inputDateE = document.createElement('input');
+        inputDateE.type = 'text';
+        inputDateE.style.marginLeft = '5px';
+        inputDateE.classList.add('datepickerTW');
+        inputDateE.size = 8;
+        inputDateE.value = userData.group_end_day || '';
+        inputDateE.name = 'group_end_day';
+
+        dateCell.appendChild(inputDateS);
+        dateCell.appendChild(tilde); 
+        dateCell.appendChild(inputDateE);
+
+        return dateCell;
+    }
+
+    function UserDel(group_Id) {
+        const url = `${BASE_URL}/AE_UGP/User_D_Del?group_id=${group_Id}&user=${WebUser}`;
+
+        fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include'
+        })
+            .then(response => response.json())
+            .then(responseData => {
+                if (responseData.resultCode == "000") {
+                    alert(responseData.resultMsg);
+                    location.reload();
+                } else {
+                    alert(responseData.resultMsg);
+                }
+            })
+            .catch(error => {
+                alert('API 請求失敗:', error);
+            });
+    }
+
+    function setUserInfo(index, userId, userName) {
+        document.getElementById('UG_Num_' + index).value = userId;
+        document.getElementById('UG_Name_' + index).value = userName;
+    }
+
+    function saveData() {
+        const tableData = collectTableData();
+
+        const url = `${BASE_URL}/AE_UGP/User_D_Upd`;
+
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(tableData)
+        })
+            .then(response => response.json())
+            .then(responseData => {
+                if (responseData.resultCode === '000') {
+                    alert(responseData.resultMsg);
+                } else {
+                    alert(responseData.resultMsg);
+                }
+                window.location.reload();
+            }).catch(error => {
+                alert('儲存失敗，請稍後再試。');
+            });
+    }
+
+    function collectTableData() {
+        const tbody = document.querySelector('#MainTable tbody');
+        const rows = tbody.querySelectorAll('tr');
+
+        const columnOrder = [
+            'group_M_code',
+            'group_M_name',
+            'group_D_code',
+            'group_D_name',
+            'group_start_day',
+            'group_end_day'
+        ];
+
+        const result = [];
+
+        rows.forEach(row => {
+            const data = {
+                group_M_id: groupMid,
+                User: WebUser,
+                group_M_code: groupMCode,
+                group_M_name: groupMName
+            };
+
+            // 抓第一個 <td>（serialCell）來取 data-group-id
+            const serialCell = row.querySelector('td');
+            if (serialCell && serialCell.hasAttribute('data-group-id')) {
+                data.group_id = serialCell.getAttribute('data-group-id');
+            }
+
+            // 抓所有 <input> 並依 name 對應欄位
+            const inputs = row.querySelectorAll('input');
+            inputs.forEach(input => {
+                const name = input.name;
+                if (columnOrder.includes(name)) {
+                    data[name] = input.value.trim();
+                }
+            });
+
+            result.push(data);
+        });
+
+        return result;
+    }
+</script>
