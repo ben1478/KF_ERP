@@ -47,6 +47,7 @@
     const type = getQueryParam('type');
     const u_bc_param = getQueryParam('U_BC');
     const lock_bc_param = getQueryParam('lock_bc');
+    const rowIndex = getQueryParam('rowIndex') || '';
 
     // 頁面初始化主函式
     function initialize() {
@@ -187,6 +188,9 @@
                     case 'userGrM':
                         window.opener.document.querySelector('#group_M_code').value = agentNum;
                         window.opener.document.querySelector('#group_M_name').value = agentName;
+                        break;
+                    case 'member':
+                        window.opener.setUserInfo(rowIndex, agentNum, agentName);
                         break;
                     default:
                         console.log('Unknown type:', type);

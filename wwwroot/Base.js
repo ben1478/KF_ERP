@@ -1,6 +1,6 @@
 ﻿/*本地端*/
-const BASE_URL = 'http://localhost:44374';
-const BASE_WEB = 'http://localhost:7135';
+let BASE_URL = 'http://localhost:44374';
+let BASE_WEB = 'http://localhost:7135';
 
 /*正式區*/
 //const BASE_URL = 'http://192.168.1.22/KF_WebAPI';
@@ -10,10 +10,33 @@ const BASE_WEB = 'http://localhost:7135';
 //const BASE_URL = 'http://192.168.1.243/KF_WebAPI';
 //const BASE_WEB = 'http://192.168.1.240:8081/KF_ERP';
 
-if(this.location.protocol=="https:")
+if(this.location.protocol=="https:")  
 {
-	BASE_URL="https://edbf704b87eb.ngrok-free.app/KF_WebAPI";
-	BASE_WEB="https://775c2f755086.ngrok-free.app/";
+	let websiteURL=getNgrokUrlSync();
+	if (websiteURL!="")
+	{
+		BASE_URL=websiteURL+'/KF_WebAPI';
+        BASE_WEB = websiteURL +'/';
+	}
+}
+
+function getNgrokUrlSync() {
+    var url = "";
+    
+    $.ajax({
+      url: '../websiteURL.txt',
+      type: 'GET',
+      dataType: 'text',
+      async: false, 
+      success: function (data) {
+        url = data.trim();
+      },
+      error: function (xhr, status, error) {
+        console.error("讀取失敗：", error);
+      }
+    });
+    
+    return url;
 }
 
 
@@ -191,21 +214,35 @@ function createButtonCell(imgSrc, imgAlt, onClickAction) {
  * @param {string} [u_bc=''] - (可選) 預設鎖定的分公司代碼
  * @param {string} [lock_bc='N'] - (可選) 是否鎖定分公司 ('Y' or 'N')
  */
-function openUserOne(type, u_bc = '', lock_bc = 'N') {
-    // 1. 建立基礎 URL
-    let url = `${BASE_WEB}/HR/User_one.html?type=${type}`;
+//function openUserOne(type, u_bc = '', lock_bc = 'N') {
+//    // 1. 建立基礎 URL
+//    let url = `${BASE_WEB}/HR/User_one.html?type=${type}`;
 
-    // 2. 如果有傳入分公司代碼，將其加入 URL
+//    // 2. 如果有傳入分公司代碼，將其加入 URL
+//    if (u_bc) {
+//        url += `&U_BC=${encodeURIComponent(u_bc)}`;
+//    }
+
+//    // 3. 如果需要鎖定，將鎖定旗標加入 URL
+//    if (lock_bc === 'Y') {
+//        url += `&lock_bc=Y`;
+//    }
+
+//    // 4. 開啟視窗
+//    window.open(url, 'User_one', 'scrollbars=yes,resizable=yes,width=700,height=500,left=250,top=100');
+//}
+
+function openUserOne(type, rowIndex = '', u_bc = '', lock_bc = 'N') {
+    let url = `${BASE_WEB}/HR/User_one.html?type=${type}&rowIndex=${rowIndex}`;
+
     if (u_bc) {
         url += `&U_BC=${encodeURIComponent(u_bc)}`;
     }
 
-    // 3. 如果需要鎖定，將鎖定旗標加入 URL
     if (lock_bc === 'Y') {
         url += `&lock_bc=Y`;
     }
 
-    // 4. 開啟視窗
     window.open(url, 'User_one', 'scrollbars=yes,resizable=yes,width=700,height=500,left=250,top=100');
 }
 
