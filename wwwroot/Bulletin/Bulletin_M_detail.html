@@ -2,34 +2,277 @@
 <html lang="zh-Hans">
 <head>
     <meta charset="UTF-8">
-    <title>KindEditor Demo</title>
-
-    <!-- 引入 KindEditor 的樣式與腳本 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script src="../Base.js"></script>
     <link rel="stylesheet" href="/tool_js/Editor/themes/default/default.css" />
     <script charset="utf-8" src="/tool_js/Editor/kindeditor-all-min.js"></script>
+    <title>作業平台</title>
+    <style>
+        #noteFile {
+            font-family: "Segoe UI", "微軟正黑體", sans-serif;
+            font-size: 14px;
+            color: #333;
+        }
 
-    <script>
-        KindEditor.ready(function (K) {
-            K.create('#bulletin_content', {
-                uploadJson: '/upload',   // 改成我們等下用 Node.js 建的路由
-                allowFileManager: false,
-                langType: 'zh-CN',
-                afterCreate: function () { this.sync(); },
-                afterBlur: function () { this.sync(); }
-            });
-        });
-    </script>
+        .file-item {
+            margin: 20px 0; /* ✅ 上下各留 20px 空白 */
+            line-height: 1.6;
+        }
+
+            .file-item a {
+                text-decoration: none;
+                color: #007bff;
+            }
+
+                .file-item a:hover {
+                    text-decoration: underline;
+                }
+
+        .file-date {
+            display: inline-block;
+            margin-left: 8px;
+            color: #666;
+            font-size: 12px;
+        }
+    </style>
+
 </head>
 <body>
-
-    <h2>發布公告</h2>
-
-    <!-- 表單 -->
-    <form method="post" action="/submit_bulletin.asp">
-        <textarea id="bulletin_content" name="bulletin_content" style="width:700px;height:300px;"></textarea>
-        <br>
-        <input type="submit" value="提交公告">
-    </form>
-
+    <table width="750" border="0" cellspacing="1" cellpadding="2" bgcolor="#999999">
+        <thead>
+            <tr class="c12-k" bgcolor="#BDDDEA">
+                <td colspan="2" align="center">
+                    <span class="c14k">新增/修改公告</span>
+                </td>
+            </tr>
+        </thead>
+        <tbody>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td swidth="150" align="right">公告日期：</td>
+                <td width="550">
+                    <input type="text" value="" name="notice_date" class="datepickerTW" placeholder="年 /月 /日" style="width:80px;">
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td width="150" align="right">公告狀態：</td>
+                <td width="550">
+                    <select name="notice_type">
+                        <option value="待公告">待公告</option>
+                        <option value="公告">公告</option>
+                    </select>
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td width="150" align="right">公告模式：</td>
+                <td width="550">
+                    <select name="notice_mode">
+                        <option value="一般">一般</option>
+                        <option value="重要">重要</option>
+                        <option value="置頂">置頂</option>
+                    </select>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td width="150" align="right" style="color:red">標題：</td>
+                <td width="550">
+                    <input required type="text" name="title" size="40" maxlength="50" class="box" value="">
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td width="150" align="right">公告內容：</td>
+                <td width="550">
+                    <textarea id="bulletin_content" name="bulletin_content" style="width:550px; height: 300px;"></textarea>
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td width="150" align="right">附加檔案：</td>
+                <td width="550">
+                    <div id="noteFile"></div>
+                </td>
+            </tr>
+        </tbody>
+        <tfoot>
+            <tr class="c12-k" bgcolor="#BDDDEA">
+                <td colspan="2" align="center">
+                    <input type="button" class="btn" value="儲存" onclick="saveData();">
+                </td>
+            </tr>
+        </tfoot>
+    </table>
 </body>
 </html>
+<script>
+    const params = new URLSearchParams(window.location.search);
+    const WebUser = decryptParameter(params.get('User'));
+    const Read = decryptParameter(params.get('Read'));
+
+    let KID = 0;
+    let date = [];
+
+    dateTW();
+
+    if (Read == 'A') {
+        document.getElementById('noteFile').textContent = '先新增公告後才附加檔案';
+    } else if (Read == 'R') {
+        KID = decryptParameter(params.get('id'));
+        fetchDate();
+        const saveBtn = document.querySelector('input[value="儲存"]');
+        if (saveBtn) {
+            saveBtn.disabled = true;
+            saveBtn.style.opacity = 0.5;// 灰掉的視覺效果
+        }
+    } else {
+        KID = decryptParameter(params.get('id'));
+        fetchDate();
+    }
+
+    KindEditor.ready(function (K) {
+        K.create('#bulletin_content', {
+            allowFileManager: false,
+            langType: 'zh-CN',
+            afterCreate: function () { this.sync(); },
+            afterBlur: function () { this.sync(); }
+        });
+    });
+
+    $('.datepickerTW').datepickerTW({
+        changeYear: true,
+        changeMonth: true,
+        dateFormat: 'yy-mm-dd'
+    });
+
+    function saveData() {
+        var inputs = document.querySelectorAll('input[required]');
+        for (var i = 0; i < inputs.length; i++) {
+            var input = inputs[i];
+            if (!input.value.trim()) {
+                alert("必填請輸入");
+                return;
+            }
+        }
+
+        const data = {
+            tbInfo: {
+                add_num: WebUser
+            },
+            id: KID,
+            notice_date: document.querySelector('[name="notice_date"]').value.trim(),
+            notice_type: document.querySelector('[name="notice_type"]').value,
+            notice_mode: document.querySelector('[name="notice_mode"]').value,
+            title: document.querySelector('[name="title"]').value.trim(),
+            bulletin_content: document.querySelector('[name="bulletin_content"]').value.trim()
+        };
+
+        let url = '';
+        if (Read == 'A') {
+            url = `${BASE_URL}/AE_Bull/Bulletin_M_Ins`;
+        } else {
+            url = `${BASE_URL}/AE_Bull/Bulletin_M_Upd`;
+        }
+        
+
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        })
+            .then(response => response.json())
+            .then(responseData => {
+                if (responseData.resultCode === '000') {
+                    alert(responseData.resultMsg);
+                    window.close();
+                    window.opener.location.reload();
+                } else {
+                    alert(responseData.resultMsg);
+                }
+            }).catch(error => {
+                alert('儲存失敗，請稍後再試。');
+            });
+    }
+
+    function fetchDate() {
+        const url = `${BASE_URL}/AE_Bull/Bulletin_M_SQuery?id=${KID}`;
+
+        fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include'
+        })
+            .then(response => response.json())
+            .then(responseData => {
+                if (responseData.resultCode == "000") {
+                    data = JSON.parse(responseData.objResult);
+                    showPage();
+                } else {
+                    alert(response.resultMsg);
+                }
+            })
+            .catch(error => {
+                alert('API 請求失敗:', error);
+            });
+    }
+
+    function showPage() {
+        document.querySelector('[name="notice_date"]').value = data[0].notice_date || '';
+        document.querySelector('[name="notice_type"]').value = data[0].notice_type || '';
+        document.querySelector('[name="notice_mode"]').value = data[0].notice_mode || '';
+        document.querySelector('[name="title"]').value = data[0].title || '';
+        document.querySelector('[name="bulletin_content"]').value = data[0].content || '';
+
+        if (typeof KindEditor !== 'undefined') {
+            const editor = KindEditor.instances && KindEditor.instances.length > 0 ? KindEditor.instances[0] : null;
+            if (editor) {
+                editor.html(data[0].content || '');
+            }
+        }
+
+        fetchFile(data[0].cknum);
+    }
+   
+    function fetchFile(cknum) {
+        const url = `${BASE_URL}/AE/ASP_File_Query?cknum=${encodeURIComponent(cknum)}`;
+
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({}),
+        })
+            .then(response => response.json())
+            .then(responseData => {
+                if (responseData.resultCode == "000") {
+                    const dataFile = JSON.parse(responseData.objResult);  
+                    
+                    const noteFileSpan = document.getElementById("noteFile");
+                    const filteredFiles = dataFile.filter(file => file.del_tag === "0");
+                    noteFileSpan.innerHTML = "";
+
+                    filteredFiles.forEach(file => {
+                        const fileItem = document.createElement("div");
+                        fileItem.className = "file-item";
+
+                        const a = document.createElement("a");
+                        a.href = `${BASE_URL}/AE/ASP_File_Download?upload_id=${file.upload_id}`;
+                        a.textContent = `${file.upload_name_show}`;
+                        a.target = "_blank";
+
+                        fileItem.appendChild(a);
+                        document.getElementById("noteFile").appendChild(fileItem);
+                    });
+
+                } else {
+                    console.error(responseData.objResult);
+                }
+            })
+            .catch(error => {
+                console.error(responseData.objResult);
+            });
+    }
+</script>

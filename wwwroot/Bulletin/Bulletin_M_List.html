@@ -75,6 +75,8 @@
     let currentPage = 1;
     let data = [];
 
+    fetchData();
+
     function fetchData() {
         let word = document.querySelector('input[name="search_keyword"]').value;
 
@@ -119,12 +121,63 @@
             row.setAttribute('onmouseover', "this.style.background='#FCFCC0';");
             row.setAttribute('onmouseout', "this.style.background='#FFFFFF';");
 
-            const columnOrder = ['formatted_notice_date', 'U_name', 'title', 'notice_mode', 'notice_type'];
+            const columnOrder = ['notice_date', 'U_name', 'title', 'notice_mode', 'notice_type', 'Upd', 'File', 'del'];
 
             columnOrder.forEach(key => {
                 const cell = document.createElement('td');
-                cell.textContent = item[key];
-                row.appendChild(cell);
+                switch (key) {
+                    case 'title':
+                        const link = document.createElement('a');
+                        link.innerText = item[key] || '';
+                        link.href = '#';
+                        link.onclick = function () {
+                            window.open(`../Bulletin/Bulletin_M_detail.html?User=${encryptParameter(WebUser)}&Read=${encryptParameter('R')}&id=${encryptParameter(item.id)}`
+                                , '_blank'
+                                , 'scrollbars=yes,resizable=yes,top=100,width=800,height=600');
+                        };
+                        cell.appendChild(link);
+                        row.appendChild(cell);
+                        break;
+                    case "Upd":
+                        row.appendChild(createButtonCell(
+                            "../images/edit.png",
+                            "修改",
+                            function () {
+                                window.open(`../Bulletin/Bulletin_M_detail.html?User=${encryptParameter(WebUser)}&Read=${encryptParameter('U')}&id=${encryptParameter(item.id)}`
+                                    , '_blank'
+                                    , 'scrollbars=yes,resizable=yes,top=100,width=800,height=600');
+                            }
+                        ));
+                        break;
+                    case 'File':
+                        const button = document.createElement('input');
+                        button.type = 'button';
+                        button.value = '附加檔案(' + item.cknum_count + ')';
+                        button.onclick = function () {
+                            window.open(`../File/File_UpLoad_List.html?cknum=${item.cknum}&user=${encryptParameter(WebUser)}`, '_blank', 'scrollbars=yes,resizable=yes,top=100,width=800,height=500');
+                        };
+                        cell.style.textAlign = 'center';
+                        cell.style.verticalAlign = 'middle';
+                        cell.appendChild(button);
+                        row.appendChild(cell);
+                        break;
+                    case "del":
+                        row.appendChild(createButtonCell(
+                            "../images/delete.png",
+                            "刪除",
+                            function () {
+                                const confirmDelete = window.confirm("確定要刪除嗎？");
+                                if (confirmDelete) {
+                                    bulleDel(item.id);
+                                }
+                            }
+                        ));
+                        break;
+                    default:
+                        cell.textContent = item[key];
+                        row.appendChild(cell);
+                        break;
+                }
             });
 
             tbody.appendChild(row);
@@ -132,6 +185,30 @@
     }
 
     function addBulletin() {
+        window.open(`../Bulletin/Bulletin_M_detail.html?User=${encryptParameter(WebUser)}&Read=${encryptParameter('A')}`, '_blank', 'scrollbars=yes,resizable=yes,top=100,width=800,height=600');
+    }
 
+    function bulleDel(id) {
+        const url = `${BASE_URL}/AE_Bull/Bull_M_Del?id=${id}&user=${WebUser}`;
+
+        fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include'
+        })
+            .then(response => response.json())
+            .then(responseData => {
+                if (responseData.resultCode == "000") {
+                    alert(responseData.resultMsg);
+                    location.reload();
+                } else {
+                    alert(responseData.resultMsg);
+                }
+            })
+            .catch(error => {
+                alert('API 請求失敗:', error);
+            });
     }
 </script>
