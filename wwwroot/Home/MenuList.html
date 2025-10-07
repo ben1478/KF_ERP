@@ -201,7 +201,9 @@
                                 <td width="13%" align="center">
                                     <input type="button" name="add" value="新鑫已撥款明細表" onclick="NewXinCaseStatus_LQuery();">
                                 </td>
-                                <td width="13%" align="center"></td>
+                                <td width="13%" align="center">
+                                    <input type="button" name="add" value="業績折扣標準設定" onclick="openFRList();">
+                                </td>
                                 <td width="13%" align="center"></td>
                             </tr>
                             <tr>
@@ -393,5 +395,9 @@
 
     function openLFAFList() {
         window.open(`/LF/LF_AF_List.html?User=${WebUser}&U_BC=${WebBC}&GUID=C4E3A590-9C6E-4D2A-85C0-1F6EF46A8475`, 'list', 'scrollbars=yes,resizable=yes,width=1300,height=500,left=250,top=100')
+    }
+
+    function openFRList() {
+        window.open(`/Feat/Feat_M_List.html?User=${WebUser}&U_BC=${WebBC}`, 'list', 'scrollbars=yes,resizable=yes,width=1300,height=500,left=250,top=100')
     }
 </script>

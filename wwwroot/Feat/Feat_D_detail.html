@@ -1,0 +1,99 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script src="../Base.js"></script>
+    <title>作業平台</title>
+</head>
+<body>
+    <table width="600" border="0" cellspacing="0" cellpadding="0">
+        <tbody>
+            <tr>
+                <td width="20">　</td>
+                <td width="230" height="24"><span class="c14k"><strong>業績折扣標準設定</strong></span></td>
+                <td width="150">
+                </td>
+            </tr>
+            <tr>
+                <td>　</td>
+                <td colspan="2">
+                    <table border="0" width="100%" id="table1">
+                        <tbody>
+                            <tr class="c12-k">
+                                <td width="85%">
+                                    <font color="blue"><b> 申貸方案</b></font> &gt; &gt; <span id="FR_M_name"></span>
+                                </td>
+                                <td width="15%" align="center">
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table id="MainTable" width="650" border="0" cellpadding="4" cellspacing="1" bgcolor="#666666" style="font-size:14px;">
+        <thead>
+            <tr align="center" height="30" bgcolor="#CCCCFF" class="c12-k">
+                <td width="40">序號</td>
+                <td width="150">貸款成數</td>
+                <td width="60">承作利率</td>
+                <td width="60">業績折扣</td>
+                <td width="60">替代方案另收手續費</td>
+                <td width="40">刪除</td>
+            </tr>
+        </thead>
+        <tbody></tbody>
+        <tfoot>
+            <tr align="center" height="15" bgcolor="#CCCCFF">
+                <td class="c12-k" colspan="6">
+                    <input type="button" value="確定修改" name="save" onclick="saveData();" />
+                </td>
+            </tr>
+        </tfoot>
+    </table>
+</body>
+</html>
+<script>
+    let Params = new URLSearchParams(window.location.search);
+    let WebUser = decryptParameter(Params.get('User'));
+    let frCode = decryptParameter(Params.get('FR_M_code'));
+    let bcType = decryptParameter(Params.get('bcType'));
+    let frName = Params.get('FR_M_name');
+
+    document.getElementById('FR_M_name').textContent = frName;
+
+    fetchData();
+
+    function fetchData() {
+        const url = `${BASE_URL}/AE_FT/Feat_D_LQuery?FR_M_code=${frCode}&bcType=${bcType}`;
+
+        fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include'
+        })
+            .then(response => response.json())
+            .then(responseData => {
+                if (responseData.resultCode == "000") {
+                    data = JSON.parse(responseData.objResult);
+                    /*showTable();*/
+                } else {
+                    alert(response.resultMsg);
+                }
+            })
+            .catch(error => {
+                alert('API 請求失敗:', error);
+            });
+    }
+
+    function showTable() {
+
+    }
+</script>
