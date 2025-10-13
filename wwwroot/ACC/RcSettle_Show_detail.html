@@ -164,14 +164,14 @@
 
                     pj_Title = data[0].project_title;
 
-                    //project_title 這裡加上增便利判定(PJ00999)/短約專案判定(PJ00017)/薪分期(PJ00099)
+                    //project_title 這裡加上增便利判定(PJ00999)/短約專案判定(PJ00017)/薪分期(PJ00099)/機車專案(PJ00046&PJ00047)
                     const { project_title, RC_count } = data[0];
                     if (project_title === 'PJ00999') {
                         setFeeDisplay(RC_count >= 15 ? 2 : 13, RC_count >= 15);
                     } else if (project_title === 'PJ00017' && RC_count <= 7) {
                         setFeeDisplay(1, true);
                     }
-                    else if (project_title === 'PJ00099') {
+                    else if (project_title === 'PJ00099' || project_title === 'PJ00046' || project_title === 'PJ00047') {
                         setFeeDisplay(0, true);
                         document.getElementById("interestAMT_display").innerText = 0;
                     }
@@ -316,7 +316,7 @@
 
     function updateInterestAMT(differenceInDays)
     {
-        if (pj_Title != 'PJ00099') {
+        if (!['PJ00099', 'PJ00046', 'PJ00047'].includes(pj_Title)) {
             var interest = parseFloat((document.getElementsByName('interest_display')[0].textContent).replace(/,/g, ''));
             var interestAmt = Math.ceil((interest / 30) * differenceInDays);
             document.getElementById("interestAMT_display").innerText = interestAmt.toLocaleString();
