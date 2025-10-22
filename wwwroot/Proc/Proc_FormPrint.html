@@ -130,27 +130,27 @@
             </td>
         </tr>
         <tr>
-            <td colspan="2" >管理部</td>
-            <td colspan="2" >財務</td>
-            <td colspan="2" >會計</td>
+            <!--<td colspan="2" >管理部</td>-->
+            <td colspan="3" >財務</td>
+            <td colspan="3" >會計</td>
             <td colspan="3" >會簽單位</td>
         </tr>
         <tr style="height: 120px;">
-            <td colspan="2">
+            <!--<td colspan="2">
                 <span id="sign4"></span>
                 <br />
                 <span id="signDate4"></span>
                 <br />
                 <span id="signDesc4"></span>
-            </td>
-            <td colspan="2">
+            </td>-->
+            <td colspan="3">
                 <span id="sign3"></span>
                 <br />
                 <span id="signDate3"></span>
                 <br />
                 <span id="signDesc3"></span>
             </td>
-            <td colspan="2">
+            <td colspan="3">
                 <span id="sign2"></span>
                 <br />
                 <span id="signDate2"></span>
@@ -296,12 +296,12 @@
                     document.getElementById("sign3").textContent = sign3.U_name;
                     document.getElementById("signDate3").textContent = sign3.FD_Step_date;
                     document.getElementById("signDesc3").textContent = sign3.FD_Step_desc;
-                    const sign4 = flowsList.find(flow => flow.FD_Sign_Countersign === 'S' && flow.FD_Step === '4')
-                    document.getElementById("sign4").textContent = sign4.U_name;
-                    document.getElementById("signDate4").textContent = sign4.FD_Step_date;
-                    document.getElementById("signDesc4").textContent = sign4.FD_Step_desc;
+                    //const sign4 = flowsList.find(flow => flow.FD_Sign_Countersign === 'S' && flow.FD_Step === '4')
+                    //document.getElementById("sign4").textContent = sign4.U_name;
+                    //document.getElementById("signDate4").textContent = sign4.FD_Step_date;
+                    //document.getElementById("signDesc4").textContent = sign4.FD_Step_desc;
 
-                    const signdata = flowsList.filter(flow => flow.FD_Sign_Countersign === 'S' && flow.FD_Step === '5')
+                    const signdata = flowsList.filter(flow => flow.FD_Sign_Countersign === 'S' && flow.FD_Step === '4')
                     document.getElementById("sign5").textContent = signdata[0].U_name;
                     document.getElementById("signDate5").textContent = signdata[0].FD_Step_date;
                     document.getElementById("signDesc5").textContent = signdata[0].FD_Step_desc;
@@ -309,7 +309,7 @@
                     document.getElementById("signDate6").textContent = signdata[1].FD_Step_date;
                     document.getElementById("signDesc6").textContent = signdata[1].desc;
 
-                    const signPre = flowsList.filter(flow => flow.FD_Sign_Countersign === 'S' && flow.FD_Step === '6')
+                    const signPre = flowsList.filter(flow => flow.FD_Sign_Countersign === 'S' && flow.FD_Step === '5')
                     document.getElementById("sign7").textContent = signPre[0].U_name;
                     document.getElementById("signDate7").textContent = signPre[0].FD_Step_date;
                     document.getElementById("signDesc7").textContent = signPre[0].FD_Step_desc;

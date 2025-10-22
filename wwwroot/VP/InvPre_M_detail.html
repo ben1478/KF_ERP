@@ -83,6 +83,16 @@
                 </td>
             </tr>
             <tr>
+                <td>公司別</td>
+                <td>
+                    <select name="VP_COM" id="VP_COM">
+                        <option value="52611690">國峯租賃</option>
+                        <option value="60650397">宏啟數位科技</option>
+                        <option value="60741876">厝好貸有限公司</option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
                 <td>申請部門</td>
                 <td>
                     <select name="VP_BC" id="VP_BC"></select>
@@ -433,6 +443,7 @@
         const formData = {
             Ins_List: detailsList,
             VP_ID: VP_ID,
+            VP_COM: document.querySelector('#VP_COM').value,
             VP_BC: document.querySelector('#VP_BC').value,
             VP_type: Array.from(document.querySelectorAll('input[name="VP_type"]:checked')).map(input => input.value),
             VP_Pay_Type: document.querySelector('input[name="VP_Pay_Type"]:checked') ? document.querySelector('input[name="VP_Pay_Type"]:checked').value : '',
@@ -511,6 +522,7 @@
                         const data = JSON.parse(responseData.objResult);
 
                         const vpType = data.VP_type[0];
+                        $("select[name='VP_COM']").val(data.VP_COM);
                         if (vpType === "PP") {
                             document.getElementById("VP_type_PP").checked = true;
                         } else if (vpType === "PS") {
