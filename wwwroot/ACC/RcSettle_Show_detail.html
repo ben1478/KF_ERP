@@ -48,8 +48,8 @@
                     <span id="BreakAmt_text"></span><span id="BreakAmt_display"></span>(結清本金*<span id="rate_display"></span>%)<br>
                     <span id="isFisrt_show" style="display: none;">扣除首期月付金：-<span id="amount_per_month"></span><br></span>
                     利息：<span id="interestAMT_display"></span><br>
-                    計息公式：(<span name="interest_display"></span>/30)*<span name="interestDay"></span>(<span name="date_s_display"></span>~<span name="date_e_display"></span>)<br>
-                    計息金額：<span name="interest_display"></span>	　計息天數：<span name="interestDay"></span>	   <br>
+                    <span id="interest_show1">計息公式：(<span name="interest_display"></span>/30)*<span name="interestDay"></span>(<span name="date_s_display"></span>~<span name="date_e_display"></span>)<br></span>
+                    <span id="interest_show2">計息金額：<span name="interest_display"></span>	　計息天數：<span name="interestDay"></span><br></span>
                     利息起算日：<span name="date_s_display"></span>~<span name="date_e_display"></span><br>
                 </td>
             </tr>
@@ -151,16 +151,6 @@
                     $("input[name='Breach_date_s']").val(convertToROCDate(data[0].RC_date));
                     $("input[name='Breach_date_e']").val(convertToROCDate(data[0].OffDate));
                     $("input[name='cs_name']").val(data[0].CS_name);
-                    isFirst = data[0].isFirst;
-                    if (isFirst === 'Y') {
-                        document.getElementById("isFisrt_show").style.display = 'inline';
-                        document.getElementById("trDelayMoney").style.display = 'none';
-                        document.getElementById("amount_per_month").innerText = data[0].amount_per_month.toLocaleString();
-                        amount_per_month = data[0].amount_per_month;
-                    } else {
-                        document.getElementById("isFisrt_show").style.display = 'none';
-                        document.getElementById("trDelayMoney").style.display = 'table-row';
-                    }
 
                     pj_Title = data[0].project_title;
 
@@ -184,6 +174,22 @@
                     } else {
                         const isFee = RC_count >= 20 && isNewFun === 'Y';
                         setFeeDisplay(isFee ? 2 : 13, isFee);
+                    }
+
+                    isFirst = data[0].isFirst;
+                    if (isFirst === 'Y') {
+                        document.getElementById("isFisrt_show").style.display = 'inline';
+                        document.getElementById("trDelayMoney").style.display = 'none';
+                        document.getElementById("amount_per_month").innerText = data[0].amount_per_month.toLocaleString();
+                        amount_per_month = data[0].amount_per_month;
+                    } else {
+                        document.getElementById("isFisrt_show").style.display = 'none';
+                        document.getElementById("trDelayMoney").style.display = 'table-row';
+                    }
+
+                    if (isFirst === 'Y' && (project_title === 'PJ00046' || project_title === 'PJ00047')) {
+                        document.getElementById("interest_show1").style.display = 'none';
+                        document.getElementById("interest_show2").style.display = 'none';
                     }
 
                     document.getElementById("rate_display").innerText = show_Breach_rate;
@@ -354,7 +360,7 @@
       
         var desc = "";
 
-        if (isFirst === "Y") {
+        if (isFirst === "Y" && pj_Title !== "PJ00046" && pj_Title !== "PJ00047") {
             TotalSettAmt = RP_AMT + parseFloat($('#Break_AMT').val() || 0) + interestAmt - amount_per_month + court_Amt - Over_Amt;
             desc = RP_AMT.toLocaleString() + "+" + $('#Break_AMT').val().toLocaleString() + "+" + interestAmt.toLocaleString() + "-" + amount_per_month.toLocaleString() + "+" + court_Amt.toLocaleString();
             if (Over_Amt !== 0) {
@@ -392,6 +398,7 @@
         localStorage.setItem('Delay_AMT', parseFloat(document.getElementById("Delay_AMT").value || 0).toLocaleString());
         localStorage.setItem('TotalSettAmt', TotalSettAmt.toLocaleString());
         localStorage.setItem('Over_Amt', Over_Amt);
+        localStorage.setItem('pj_Title', pj_Title);
 
         window.open('RcSettle_FormPrint.html', '_blank', 'scrollbars=yes,resizable=yes,top=50,width=800,height=900');
     }

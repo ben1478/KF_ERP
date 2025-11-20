@@ -32,7 +32,7 @@
             <span id="cs_name"></span>
         </div>
         <div style="margin-bottom: 10px;margin-left: 390px;">
-            
+
             <span id="date_begin_settle"></span>
         </div>
         <div style="margin-bottom: 10px;margin-left: 350px;">
@@ -53,13 +53,14 @@
         <span><b>◆清償金額請匯入本公司帳號</b></span>
         <br>
         <br>
-        <div style="margin-left: 140px; font-family: Arial, sans-serif; font-size: 16px;">
-            <div style="margin: 1px 0; line-height: 1.4;">上海銀行 城中分行 0110060</div><br />
-            <div style="margin: 1px 0; line-height: 1.4;">帳號:06102000099866</div><br />
-            <div style="margin: 1px 0; line-height: 1.4;">戶名:國峯租賃股份有限公司</div><br />
-            <div style="margin: 1px 0; line-height: 1.4;">匯完款請傳真:02-2313-1218</div><br />
-            <div style="margin: 1px 0; line-height: 1.4;">電話:02-2313-1268</div><br />
-        </div>
+        <div id="bank-info" style="margin-left: 140px; font-family: Arial, sans-serif; font-size: 16px;"></div>
+        <!--<div style="margin-left: 140px; font-family: Arial, sans-serif; font-size: 16px;">
+        <div style="margin: 1px 0; line-height: 1.4;">上海銀行 城中分行 0110060</div><br />
+        <div style="margin: 1px 0; line-height: 1.4;">帳號:06102000099866</div><br />
+        <div style="margin: 1px 0; line-height: 1.4;">戶名:國峯租賃股份有限公司</div><br />
+        <div style="margin: 1px 0; line-height: 1.4;">匯完款請傳真:02-2313-1218</div><br />
+        <div style="margin: 1px 0; line-height: 1.4;">電話:02-2313-1268</div><br />
+    </div>-->
         <br>
         <span style="margin-left: 50px;">本公司清償證明製作時間為三天以上，不便之處敬請原諒</span><br />
 
@@ -84,6 +85,27 @@
     document.getElementById("Delay_AMT").innerHTML = '<b>延滯利息:' + localStorage.getItem('Delay_AMT') + '元</b>';
     document.getElementById("cs_name_1").innerHTML = '<b>清償:' + localStorage.getItem('cs_name') + '</b>';
     var Over_Amt = localStorage.getItem('Over_Amt');
+    var pj_Title = localStorage.getItem('pj_Title');
+    var divBank = document.getElementById("bank-info");
+    if (pj_Title === "PJ00046" || pj_Title === "PJ00047") {
+        divBank.innerHTML = `
+        <div style="margin: 1px 0; line-height: 1.4;">永豐銀行 營業部 807-1217</div><br />
+        <div style="margin: 1px 0; line-height: 1.4;">帳號:121-018-0016575-8</div><br />
+        <div style="margin: 1px 0; line-height: 1.4;">戶名:國峯租賃股份有限公司</div><br />
+        <div style="margin: 1px 0; line-height: 1.4;">匯完款請傳真:02-2313-1218</div><br />
+        <div style="margin: 1px 0; line-height: 1.4;">電話:02-2313-1268</div><br />
+      `;
+    }
+    else {
+        divBank.innerHTML = `
+        <div style="margin: 1px 0; line-height: 1.4;">上海銀行 城中分行 0110060</div><br />
+        <div style="margin: 1px 0; line-height: 1.4;">帳號:06102000099866</div><br />
+        <div style="margin: 1px 0; line-height: 1.4;">戶名:國峯租賃股份有限公司</div><br />
+        <div style="margin: 1px 0; line-height: 1.4;">匯完款請傳真:02-2313-1218</div><br />
+        <div style="margin: 1px 0; line-height: 1.4;">電話:02-2313-1268</div><br />
+      `;
+    }
+
     fetchCourtAmt();
     
     function fetchCourtAmt() {
