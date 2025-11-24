@@ -1,0 +1,328 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <script type="text/javascript" src="../tool_js/jquery.blockUI.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <link href="../_include/main.css" rel="stylesheet" type="text/css">
+    <script src="../Base.js"></script>
+    <script src="../_include/exceljs.min.js"></script>
+    <script src="../_include/filesaver.min.js"></script>
+    <title>作業平台</title>
+</head>
+<body>
+    <style type="text/css">
+        #MainTable td.Link {
+            text-decoration: underline;
+            font-weight: bold;
+            color: blue;
+            cursor: pointer;
+        }
+
+        #MainTable tr.DIS td {
+            color: #8E8E8E;
+            size: 18;
+        }
+
+        td.LogEDIT {
+            text-decoration: underline;
+            font-weight: bold;
+            color: blue;
+            cursor: pointer;
+            background: #FFF4C1;
+        }
+    </style>
+
+    <table width="1180" border="0" cellspacing="0" cellpadding="0">
+        <tbody>
+            <tr>
+                <td align="left" valign="top">
+                    <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                        <tbody>
+                            <tr>
+                                <td width="20">　</td>
+                                <td width="200" height="24">　<span class="c14k">　<strong>國峯案件核對表</strong></span></td>
+                            </tr>
+                            <tr>
+                                <td></td>
+                                <td align="left" width="80%">
+                                    <div style="margin:5px;">
+                                        <label class="label">上傳新鑫Excel：</label><input type="file" id="excelFile" style="font-size:17px;" accept=".xlsx,.xls" required>
+                                        <button id="uploadBtn" onclick="fetchData();">上傳</button>
+                                        撥款年月：
+                                        <select name="selYear_S" id="selYear_S">
+                                        </select>
+                                        <BR>
+                                        <input type="checkbox" name="isDiff" value="Y" id="isDiff">
+                                        <label class="label" for="isDiff">不相等or未對應or難字</label>
+                                        <label class="label" style="background:#D2E9FF;">不相等(專案,成數,利率,金額)</label>
+                                        <label class="label" style="background:#FFD2D2;">　未對應　</label>
+                                        <label class="label" style="background:#FFFF37;">　難字　</label>
+                                        <input type="button" class="label" value="匯出Excel" name="btnExcel" onclick="exportToExcel()">
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </td>
+            </tr>
+            <tr>
+                <td align="center" valign="top" valign="top" nowrap>
+                    <table width="1100px" id="MainTable" border="0" cellpadding="4" cellspacing="1" bgcolor="#666666">
+                        <thead>
+                            <tr align="center" bgcolor="#CCCCFF" class="TrHead">
+                                <td width="4%">No.</td>
+                                <td width="7%">申購人</td>
+                                <td width="6%">據點</td>
+                                <td width="9%">適用專案</td>
+                                <td width="7%">成數</td>
+                                <td width="8%">合約利率</td>
+                                <td width="7%">金額</td>
+                                <td width="8%">申請人</td>
+                                <td width="6%">區</td>
+                                <td width="8%">業務</td>
+                                <td width="8%">專案</td>
+                                <td width="7%">貸款成數</td>
+                                <td width="8%">承作利率</td>
+                                <td width="7%">核准金額</td>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr align="center" class="c12-k" bgcolor="#FFFFFF" onmouseover="this.style.background='#FFFF66';" onmouseout="this.style.background='#FFFFFF'; " style="background: rgb(255, 255, 255);">
+                            </tr>
+                            <tr align="center" class="c12-k" bgcolor="#FFFFFF" onmouseover="this.style.background='#FFFF66';" onmouseout="this.style.background='#FFFFFF'; " style="background: rgb(255, 255, 255);">
+                            </tr>
+                            <tr align="center" height="30" bgcolor="#CCCCFF">
+                                <td class="c12-k" colspan="20">
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <div id="tables-container">
+    </div>
+</body>
+</html>
+<script>
+    const Params = getQueryParams();
+    let WebUser = Params.WebUser;
+    let WebBC = Params.WebBC;
+
+    const itemsPerPage = 500;
+    let currentPage = 1;
+    let data = [];
+
+    window.onload = function () {
+        loadYYYMMDown();
+    }
+
+    $('#isDiff').on('change', function () {
+        showPage(currentPage);
+    });
+    function loadYYYMMDown() {
+        const url = `${BASE_URL}/AE_RPT/NewXinUpload_loadYYYMMDown`;
+
+        fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                if (data.resultCode === "000") {
+                    const selectElementS = document.getElementById('selYear_S');
+                    const options = JSON.parse(data.objResult);
+
+                    options.forEach(option => {
+                        const optionElementS = document.createElement('option');
+                        optionElementS.selected = option.op === 1;
+                        optionElementS.value = option.yyyymm;
+                        optionElementS.textContent = option.yyyMM;
+                        selectElementS.appendChild(optionElementS);
+                    });
+                } else {
+                    alert('錯誤: ' + (data.resultMsg || '未知錯誤'));
+                }
+
+                //console.log(`[loadYearDown] selYear_S = ${document.getElementById('selYear_S').value}`);
+            })
+            .catch(error => {
+                console.error('載入選項時出錯:', error);
+                alert('無法載入資料，請稍後再試。');
+            });
+    }
+    function fetchData() {
+        var file = $('#excelFile')[0].files[0];
+        if (!file) {
+            alert("請選擇一個 Excel 檔案");
+            return;
+        }
+
+        var formData = new FormData();
+        formData.append('file', file);
+        formData.append('selYear_S', $('#selYear_S').val());
+
+        const url = `${BASE_URL}/AE_RPT/NewKFUpload_LQuery`;
+        $.ajax({
+            url: url,
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function (resData) {
+                if (resData.resultCode == "000") {
+                    data = JSON.parse(resData.objResult);
+                    showPage(currentPage);
+                } else {
+                    alert(response.resultMsg);
+                }
+            },
+            error: function (err) {
+                alert("上傳失敗: " + err.responseText);
+            }
+        });
+
+
+    }
+    function showPage(page) {
+        const tbody = document.querySelector('#MainTable tbody');
+        tbody.innerHTML = '';
+
+        const startIndex = (page - 1) * itemsPerPage;
+        const endIndex = Math.min(startIndex + itemsPerPage, data.length);
+        const pageData = data.slice(startIndex, endIndex);
+
+        // 取得checkbox狀態
+        const isDiffChecked = $('#isDiff').prop('checked');
+
+        for (let item of pageData) {
+            const row = document.createElement('tr');
+            row.setAttribute('align', 'center');
+            row.setAttribute('bgcolor', '#FFFFFF');
+
+            const columnOrder = ['CS_name_xls', 'U_BC_xls', 'Pro_Na_xls', 'Loan_rate_xls', 'interest_rate_pass_xls', 'get_amount_xls', 'CS_name', 'U_BC_name', 'plan_name', 'show_project_title', 'Loan_rate', 'interest_rate_pass', 'isMate', 'isDiff', 'isHaveNCR','get_amount'];
+
+            const serialCell = document.createElement('td');
+            serialCell.textContent = startIndex + pageData.indexOf(item) + 1;
+            row.appendChild(serialCell);
+
+            let isMate = false;
+            let isDiff = false;
+            let isHaveNCR = false;
+
+            for (let key of columnOrder) {
+                const cell = document.createElement('td');
+                switch (key) {
+                    case 'Loan_rate_xls':
+                        cell.textContent = `${item[key] || '0%'}`;
+                        if (item['isDiff'] && (item['Loan_rate_xls'] !== item['Loan_rate'])) {
+                            cell.style.color = 'red';
+                        }
+                        row.appendChild(cell);
+                        break;
+                    case 'Loan_rate':
+                        cell.textContent = `${item[key] || '0%'}`;
+                        if (item['isDiff'] && (item['Loan_rate_xls'] !== item['Loan_rate'])) {
+                            cell.style.color = 'red';
+                        }
+                        row.appendChild(cell);
+                        break;
+                    case 'interest_rate_pass_xls':
+                        cell.textContent = `${item[key] || '0%'}`;
+                        if (item['isDiff'] && (item['interest_rate_pass_xls'] !== item['interest_rate_pass'])) {
+                            cell.style.color = 'red';
+                        }
+                        row.appendChild(cell);
+                        break;
+                    case 'interest_rate_pass':
+                        cell.textContent = `${item[key] || '0%'}`;
+                        if (item['isDiff'] && (item['interest_rate_pass_xls'] !== item['interest_rate_pass'])) {
+                            cell.style.color = 'red';
+                        }
+                        row.appendChild(cell);
+                        break;
+                    case 'show_project_title':
+                        cell.innerHTML = item[key] || '';
+                        row.appendChild(cell);
+                    case 'isHaveNCR':
+                        isHaveNCR = item[key];
+                        if (isHaveNCR == true) {
+                            row.setAttribute("bgcolor", "#FFFF37");
+                        }
+                        break;
+                    case 'isMate':
+                        isMate = item[key];
+                        if (isMate) {
+                            row.setAttribute("bgcolor", "#FFD2D2");
+                        }
+                        break;
+                    case 'isDiff':
+                        isDiff = item[key];
+                        if (isDiff) {
+                            row.setAttribute("bgcolor", "#D2E9FF");
+                        }
+                        break;
+                    default:
+                        cell.textContent = item[key] || '';
+                        row.appendChild(cell);
+                }
+            }
+            if (isMate == false && isDiff == false && isHaveNCR == false) {
+                row.setAttribute('onmouseover', "this.style.background='#FCFCC0';");
+                row.setAttribute('onmouseout', "this.style.background='#FFFFFF';");
+            }
+            // 若有勾選，只顯示 isMate==true || isDiff==true || isHaveNCR==true
+            if (isDiffChecked) {
+                if (!(isMate == true || isDiff == true || isHaveNCR == true)) {
+                    continue; // 不符合則跳過
+                }
+            }
+            tbody.appendChild(row);
+        }
+    }
+    function getCurrentDateTime() {
+        var currentDate = new Date();
+
+        var year = currentDate.getFullYear();
+        var month = ('0' + (currentDate.getMonth() + 1)).slice(-2);
+        var day = ('0' + currentDate.getDate()).slice(-2);
+        var hours = ('0' + currentDate.getHours()).slice(-2);
+        var minutes = ('0' + currentDate.getMinutes()).slice(-2);
+
+        var formattedDateTime = year + month + day + hours + minutes;
+        return formattedDateTime;
+    }
+    function exportToExcel() {
+        if (data.length === 0) {
+            alert("沒有資料可以匯出");
+            return;
+        }
+        let filename = `新鑫案件核對表-${getCurrentDateTime()}`;
+
+        exportTableToExcel('MainTable', filename);
+    }
+    function exportTableToExcel(tableId, filename) {
+        var workbook = new ExcelJS.Workbook();
+        var sheet = workbook.addWorksheet('Sheet1');
+        var table = document.getElementById(tableId);
+        var arrColWidth = [4, 18, 10, 17, 10, 10, 18, 13, 8, 20, 10, 10]; // 預設欄位(最小)寬度
+        // 取得所有列, 並取得每列各欄位資料的長度(arrColWidth)
+        for (var i = 0, row; row = table.rows[i]; i++) {
+            var rowData = [];
+            for (var j = 0, col; col = row.cells[j]; j++) {
+                rowData.push(col.innerText);
+                arrColWidth[j] = col.innerText.length > arrColWidth[j] ? col.innerText.length : arrColWidth[j];
+            }
+            sheet.addRow(rowData);
+        }
+        arrColWidth.forEach(function (width, index) {
+            sheet.getColumn(index + 1).width = width + 2; // 增加一些寬度以適應內容
+        });
+
+        workbook.xlsx.writeBuffer().then(function (buffer) {
+            saveAs(new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }), filename + ".xlsx");
+        });
+    }
+</script>
