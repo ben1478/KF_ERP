@@ -50,7 +50,7 @@
                                 <td></td>
                                 <td align="left" width="80%">
                                     <div style="margin:5px;">
-                                        <label class="label">上傳新鑫Excel：</label><input type="file" id="excelFile" style="font-size:17px;" accept=".xlsx,.xls" required>
+                                        <label class="label">上傳國峯Excel：</label><input type="file" id="excelFile" style="font-size:17px;" accept=".xlsx,.xls" required>
                                         <button id="uploadBtn" onclick="fetchData();">上傳</button>
                                         撥款年月：
                                         <select name="selYear_S" id="selYear_S">
@@ -125,6 +125,7 @@
     $('#isDiff').on('change', function () {
         showPage(currentPage);
     });
+
     function loadYYYMMDown() {
         const url = `${BASE_URL}/AE_RPT/NewXinUpload_loadYYYMMDown`;
 
@@ -145,14 +146,13 @@
                 } else {
                     alert('錯誤: ' + (data.resultMsg || '未知錯誤'));
                 }
-
-                //console.log(`[loadYearDown] selYear_S = ${document.getElementById('selYear_S').value}`);
             })
             .catch(error => {
                 console.error('載入選項時出錯:', error);
                 alert('無法載入資料，請稍後再試。');
             });
     }
+
     function fetchData() {
         var file = $('#excelFile')[0].files[0];
         if (!file) {
@@ -186,6 +186,7 @@
 
 
     }
+
     function showPage(page) {
         const tbody = document.querySelector('#MainTable tbody');
         tbody.innerHTML = '';
@@ -282,6 +283,7 @@
             tbody.appendChild(row);
         }
     }
+
     function getCurrentDateTime() {
         var currentDate = new Date();
 
@@ -294,12 +296,13 @@
         var formattedDateTime = year + month + day + hours + minutes;
         return formattedDateTime;
     }
+
     function exportToExcel() {
         if (data.length === 0) {
             alert("沒有資料可以匯出");
             return;
         }
-        let filename = `新鑫案件核對表-${getCurrentDateTime()}`;
+        let filename = `國峯案件核對表-${getCurrentDateTime()}`;
 
         exportTableToExcel('MainTable', filename);
     }
