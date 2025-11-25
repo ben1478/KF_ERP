@@ -112,9 +112,10 @@
         const url = `${BASE_URL}/AE_AF/RevFlow_LQuery`;
         const RevFlow_Req = {
             U_BC: document.querySelector('select[name="U_BC"]').value,
-            User: document.querySelector('input[name="U_num"]').value,
+            ApprUser: document.querySelector('input[name="U_num"]').value,
             RF_Date_S: document.querySelector('input[name="RF_Date_S"]').value,
-            RF_Date_E: document.querySelector('input[name="RF_Date_E"]').value
+            RF_Date_E: document.querySelector('input[name="RF_Date_E"]').value,
+            WebUser: WebUser
         };
         fetch(url, {
             method: 'POST',
