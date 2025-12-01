@@ -310,7 +310,7 @@
         var workbook = new ExcelJS.Workbook();
         var sheet = workbook.addWorksheet('Sheet1');
         var table = document.getElementById(tableId);
-        var arrColWidth = [4, 18, 10, 17, 10, 10, 18, 13, 8, 20, 10, 10]; // 預設欄位(最小)寬度
+        var arrColWidth = [4, 18, 10, 17, 10, 10, 18, 13, 8, 20, 10, 10, 10, 10]; // 預設欄位(最小)寬度
         // 取得所有列, 並取得每列各欄位資料的長度(arrColWidth)
         for (var i = 0, row; row = table.rows[i]; i++) {
             var rowData = [];
