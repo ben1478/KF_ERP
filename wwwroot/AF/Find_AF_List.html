@@ -289,7 +289,7 @@
                 row.appendChild(signCell);
             }
 
-            if (firstItem.FM_Step_SignType === '同意' && firstItem.AF_ID !== 'PO') {
+            if ((firstItem.FM_Step_SignType === '同意' && firstItem.AF_ID !== 'PO') || firstItem.FM_Step >= 4 && firstItem.AF_ID !== 'PS') {
                 row.appendChild(createButtonCell(
                     "../images/view.png",
                     "列印",
