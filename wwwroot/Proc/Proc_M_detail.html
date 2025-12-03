@@ -236,11 +236,12 @@
         companyInput.maxLength = '13';
         companyInput.value = '';
         companyInput.setAttribute('onkeyup', `getCompanySuggestions(${rowIndex});`);
-        companyInput.addEventListener('blur', function () {
-            setTimeout(function () {
-                validateInput(rowIndex);
-            }, 200);
-        });
+        //取消強制檢查廠商
+        //companyInput.addEventListener('blur', function () {
+        //    setTimeout(function () {
+        //        validateInput(rowIndex);
+        //    }, 200);
+        //});
         const suggestionsDiv = document.createElement('div');
         suggestionsDiv.id = `suggestions_${rowIndex}`;
         suggestionsDiv.style = 'border: 1px solid #ccc; display: none; max-height: 150px; overflow-y: auto;';
@@ -566,11 +567,12 @@
             companyInput.size = '13';
             companyInput.maxLength = '13';
             companyInput.setAttribute('onkeyup', `getCompanySuggestions(${rowIndex});`);
-            companyInput.addEventListener('blur', function () {
-                setTimeout(function () {
-                    validateInput(rowIndex);
-                }, 200);
-            });
+            //取消強制檢查廠商
+            //companyInput.addEventListener('blur', function () {
+            //    setTimeout(function () {
+            //        validateInput(rowIndex);
+            //    }, 200);
+            //});
             const suggestionsDiv = document.createElement('div');
             suggestionsDiv.id = `suggestions_${rowIndex}`;
             suggestionsDiv.style = 'border: 1px solid #ccc; display: none; max-height: 150px; overflow-y: auto;';

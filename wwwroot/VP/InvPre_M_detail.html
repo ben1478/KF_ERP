@@ -127,9 +127,12 @@
             <tr>
                 <td style="color:red">收款名稱</td>
                 <td>
+                    <!--取消強制檢查廠商-->
+                    <!--<input type="text" required name="payee_name" id="payee_name" size="18"
+                               onkeyup="getCompanySuggestions();"
+                               onblur="setTimeout(function(){ validateInput(); }, 200);" />-->
                     <input type="text" required name="payee_name" id="payee_name" size="18"
-                           onkeyup="getCompanySuggestions();"
-                           onblur="setTimeout(function(){ validateInput(); }, 200);">
+                           onkeyup="getCompanySuggestions();" />
                     <div id="suggestions"></div>
                 </td>
             </tr>
