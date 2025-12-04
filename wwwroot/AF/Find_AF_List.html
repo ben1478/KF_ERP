@@ -86,13 +86,14 @@
             selectId: "U_BC",
             itemCode: "branch_company"
         });
+
         $('.datepickerTW').datepickerTW({
             changeYear: true,
             changeMonth: true,
             dateFormat: 'yy-mm-dd'
         });
-        const currentDate = new Date();
 
+        const currentDate = new Date();
         const dateStart = new Date(currentDate);
         dateStart.setMonth(currentDate.getMonth() - 3);
 
@@ -105,10 +106,18 @@
         document.querySelector('input[name="RF_Date_S"]').value = getRepublicDate(dateStart);
         document.querySelector('input[name="RF_Date_E"]').value = getRepublicDate(dateEnd);
 
-        fetchData();
+        const onlyTable = new URLSearchParams(location.search).get("onlyTable");
+
+        fetchData(function () {
+            // ⭐ fetchData 完成後執行
+            if (onlyTable === "Y") {
+                document.body.innerHTML = document.getElementById("MainTable").outerHTML;
+            }
+        });
     };
 
-    function fetchData() {
+
+    function fetchData(callback) {
         const url = `${BASE_URL}/AE_AF/RevFlow_LQuery`;
         const RevFlow_Req = {
             U_BC: document.querySelector('select[name="U_BC"]').value,
@@ -117,6 +126,7 @@
             RF_Date_E: document.querySelector('input[name="RF_Date_E"]').value,
             WebUser: WebUser
         };
+
         fetch(url, {
             method: 'POST',
             headers: {
@@ -131,6 +141,9 @@
                     data = JSON.parse(responseData.objResult);
                     showPage(currentPage);
                     createPagination();
+
+                    // ⭐ 這裡資料已全部渲染完成
+                    if (callback) callback();
                 } else {
                     alert(response.resultMsg);
                 }
@@ -139,6 +152,7 @@
                 alert('API 請求失敗:', error);
             });
     }
+
 
     function showPage(page) {
         const groupedData = data.reduce((acc, item) => {
