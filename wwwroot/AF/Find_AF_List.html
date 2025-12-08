@@ -10,7 +10,7 @@
     <title>作業平台</title>
 </head>
 <body>
-    <table border="0" width="100%">
+    <table border="0" width="100%" id="formContainer">
         <tbody>
             <tr class="c12-k">
                 <td width="86%">
@@ -109,10 +109,10 @@
         const onlyTable = new URLSearchParams(location.search).get("onlyTable");
 
         fetchData(function () {
-            // ⭐ fetchData 完成後執行
             if (onlyTable === "Y") {
-                document.body.innerHTML = document.getElementById("MainTable").outerHTML;
+                document.getElementById('formContainer').remove();
             }
+
         });
     };
 
