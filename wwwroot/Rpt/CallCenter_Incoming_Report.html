@@ -1,0 +1,198 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <script type="text/javascript" src="/tool_js/Jquery.js"></script>
+    <link href="/tool_js/jqplot/css/jquery.jqplot.min.css" rel="stylesheet" />
+    <script type="text/javascript" src="/tool_js/jqplot/js/jquery.jqplot.js?1=fgr"></script>
+    <script type="text/javascript" src="/tool_js/jqplot/js/jqplot.barRenderer.js"></script>
+    <script type="text/javascript" src="/tool_js/jqplot/js/jqplot.pieRenderer.js?11=1458"></script>
+
+    <script type="text/javascript" src="/tool_js/jqplot/plugins/jqplot.canvasTextRenderer.js"></script>
+
+    <script type="text/javascript" src="/tool_js/jqplot/js/jqplot.categoryAxisRenderer.js"></script>
+    <script type="text/javascript" src="/tool_js/jqplot/plugins/jqplot.canvasAxisTickRenderer.js"></script>
+    <script type="text/javascript" src="/tool_js/jqplot/js/jqplot.pointLabels.js"></script>
+    <script type="text/javascript" src="/tool_js/jqplot/js/jqplot.highlighter.js?1=2"></script>
+    <script type="text/javascript" src="../tool_js/jquery.blockUI.js"></script>
+    <script src="../Base.js"></script>
+</head>
+<body>
+    <table border="0" width="100%" style="padding-left:25px;">
+        <tbody>
+            <tr class="c12-k">
+                <td width="86%">
+                    <label>詢問:</label><select name="TelAsk" id="TelAsk" class=""></select>
+                    <label>來源:</label><select name="TelSour" id="TelSour" class=""></select>
+                    <label>狀態:</label><select name="fin_type" id="fin_type" class=""></select>
+                    <label>單位:</label>
+                    <select name="timeGranularity" id="timeGranularity" class="">
+                        <option value="30" selected>半小時</option>
+                        <option value="60">1小時</option>
+                    </select>
+                    <input type="button" value="查詢" onclick="fetchData();" />
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <br />
+    <div id="chartContainer">
+        <div id="chart1" style="height:400px; width:100%;"></div>
+    </div>
+</body>
+</html>
+<script>
+    let data = []; 
+
+    loadItemDropdown({
+        selectId: "TelAsk",
+        itemCode: "TelAsk"
+    });
+    loadItemDropdown({
+        selectId: "TelSour",
+        itemCode: "TelSour"
+    });
+    loadItemDropdown({
+        selectId: "fin_type",
+        itemCode: "fin_type"
+    });
+
+    fetchData();
+
+    // 轉分鐘
+    function timeToMinutes(t) {
+        let [h, m] = t.split(':').map(Number);
+        return h * 60 + m;
+    }
+
+    // 生成半小時區間刻度
+    function generateHalfHourTicks() {
+        let ticks = [];
+        for (let h = 0; h < 24; h++) {
+            let hh = h.toString().padStart(2, '0');
+            ticks.push(`${hh}:00~${hh}:30`);
+            ticks.push(`${hh}:30~${(h + 1).toString().padStart(2, '0')}:00`);
+        }
+        return ticks;
+    }
+
+    // 生成一小時區間刻度
+    function generateHourTicks() {
+        let ticks = [];
+        for (let h = 0; h < 24; h++) {
+            ticks.push(
+                `${h.toString().padStart(2, '0')}:00~${(h + 1)
+                    .toString()
+                    .padStart(2, '0')}:00`
+            );
+        }
+        return ticks;
+    }
+
+    // 將資料對齊到區間
+    function alignDataToTicks(rawData, granularity) {
+        let dataArr = JSON.parse(rawData);
+        let ticks = granularity === 30 ? generateHalfHourTicks() : generateHourTicks();
+        let counts = new Array(ticks.length).fill(0);
+
+        dataArr.forEach(item => {
+            let tMin = timeToMinutes(item.InTime);
+
+            for (let i = 0; i < ticks.length; i++) {
+                let [start, end] = ticks[i].split('~');
+                let startMin = timeToMinutes(start);
+                let endMin = timeToMinutes(end);
+
+                if (tMin >= startMin && tMin < endMin) {
+                    counts[i] += item.Count;
+                    break;
+                }
+            }
+        });
+
+        return { counts, ticks };
+    }
+
+    // 畫圖
+    function drawChart(counts, ticks) {
+        $.jqplot('chart1', [counts], {
+            seriesDefaults: {
+                renderer: $.jqplot.BarRenderer,
+                rendererOptions: { fillToZero: true },
+                pointLabels: { show: true }  // 顯示每個長條的數字
+            },
+            axes: {
+                xaxis: {
+                    renderer: $.jqplot.CategoryAxisRenderer,
+                    ticks: ticks,
+                    label: '初次來電時間',
+                    tickRenderer: $.jqplot.CanvasAxisTickRenderer,
+                    tickOptions: {
+                        angle: -60,
+                        fontSize: '10pt',
+                        showGridline: false,
+                        mark: 'outside',
+                        show: true         // ★強制顯示
+                    }
+                },
+                yaxis: {
+                    min: 0,
+                    label: '來電數量',
+                    max: Math.max(...counts) + 100  // 自動調整 Y 軸最大值，使小值更明顯
+                }
+            },
+            highlighter: {
+                show: true,
+                showMarker: true,
+                tooltipContentEditor: function (str, seriesIndex, pointIndex) {
+                    return ticks[pointIndex] + ' ： ' + counts[pointIndex];
+                }
+            }
+        });
+    }
+
+    // fetch 資料
+    function fetchData() {
+        let model = {
+            TelAsk: document.getElementById('TelAsk')?.value || '',
+            TelSour: document.getElementById('TelSour')?.value || '',
+            Fin_type: document.getElementById('fin_type')?.value || ''
+        };
+
+        const granularity = parseInt(document.getElementById('timeGranularity').value);
+        const url = `${BASE_URL}/AE_RPT/GetIncoming`;
+
+        fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify(model)
+        })
+            .then(response => response.json())
+            .then(responseData => {
+                if (responseData.resultCode === "000") {
+                    clearChart();
+                    const { counts, ticks } = alignDataToTicks(
+                        responseData.objResult,
+                        granularity
+                    );
+                    drawChart(counts, ticks);
+                } else {
+                    alert(responseData.resultMsg);
+                }
+            })
+            .catch(error => {
+                alert('API 請求失敗: ' + error);
+            });
+    }
+
+    function clearChart() {
+        $('#chart1').empty();
+        //$('#chart1').remove(); // 連同 jqPlot 外層 X/Y 軸 DOM 一起清掉
+
+        // 重新建立新的 chart1
+        $('#chartContainer').append(
+            '<div id="chart1" style="height:400px; width:100%;"></div>'
+        );
+    }
+</script>
