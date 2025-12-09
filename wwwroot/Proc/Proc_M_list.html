@@ -236,21 +236,27 @@
                         }
                         break;
                     case 'Print':
-                        if (str_Sign === '同意') {
-                            row.appendChild(createButtonCell(
-                                "../images/view.png",
-                                "列印",
-                                function () {
-                                    window.open(`Proc_FormPrint.html?PM_ID=${encryptedPM_ID}`, '_blank', 'scrollbars=yes,resizable=yes,top=30,width=1150,height=800');
-                                }
-                            ));
-                        } else {
-
-                            let cell2 = document.createElement('td');
-                            cell2.textContent = '-';
-                            row.appendChild(cell2);
-                        }
-
+                        row.appendChild(createButtonCell(
+                            "../images/view.png",
+                            "列印",
+                            function () {
+                                window.open(`Proc_FormPrint.html?PM_ID=${encryptedPM_ID}`, '_blank', 'scrollbars=yes,resizable=yes,top=30,width=1150,height=800');
+                            }
+                        ));
+                        //if (str_Sign === '同意') {
+                        //    row.appendChild(createButtonCell(
+                        //        "../images/view.png",
+                        //        "列印",
+                        //        function () {
+                        //            window.open(`Proc_FormPrint.html?PM_ID=${encryptedPM_ID}`, '_blank', 'scrollbars=yes,resizable=yes,top=30,width=1150,height=800');
+                        //        }
+                        //    ));
+                        //} else {
+                        //
+                        //    let cell2 = document.createElement('td');
+                        //    cell2.textContent = '-';
+                        //    row.appendChild(cell2);
+                        //}
                         break;
                 }
             });
