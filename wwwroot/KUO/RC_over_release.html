@@ -42,12 +42,12 @@
                             <td align="left" colspan="2">
                                 逾放天數：
                                 <select name="overDay" id="overDay" class="">
-                                    <option value="30">30天以上</option>
-                                    <option value="60" selected="">60天以上</option>
+                                    <option value="30" selected="">30天以上</option>
+                                    <option value="60" >60天以上</option>
                                     <option value="90">90天以上</option>
                                 </select>
                                 金額基準：
-                                <input type="text" id="Base_AMT" name="Base_AMT" value="50" size="10" class="c12-k" oninput="this.value = this.value.replace(/[^0-9]/g, '')">(萬)
+                                <input type="text" id="Base_AMT" name="Base_AMT" value="0" size="10" class="c12-k" oninput="this.value = this.value.replace(/[^0-9]/g, '')">(萬)
                                 <input type="button" value="查詢" onclick="getData();" />
                                 <input type="button" value="匯出Excel" name="btnExcel" onclick="exportToExcel()">
                             </td>
