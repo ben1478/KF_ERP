@@ -72,21 +72,25 @@
 </body>
 </html>
 <script>
+    var Over_Amt = localStorage.getItem('Over_Amt');
+    var pj_Title = localStorage.getItem('pj_Title');
+    var divBank = document.getElementById("bank-info");
+
     document.getElementById("cs_name").innerHTML = '<b>客戶姓名: ' + localStorage.getItem('cs_name') + '</b>';
     document.getElementById("date_begin_settle").innerHTML = '<b>清償基準日: ' + localStorage.getItem('date_begin_settle') + '</b>';
     document.getElementById("TotalSettAmt").innerText = localStorage.getItem('TotalSettAmt') + '元';
     document.getElementById("RP_AMT").innerHTML = '<b>結清本金: ' + localStorage.getItem('RP_AMT') + '元</b>'; 
-    document.getElementById("BreakAmt_text").innerHTML = '<b>' + localStorage.getItem('BreakAmt_text') + ':</b>';
-    document.getElementById("Break_AMT").innerHTML = '<b>' + localStorage.getItem('Break_AMT') + '元</b>';
-    document.getElementById("Breach_rate").innerHTML = '<b>(' + localStorage.getItem('Breach_rate') + '%)</b>';
-    document.getElementById("interestAmt").innerHTML = '<b>利息:' + localStorage.getItem('interestAmt') + '元</b>';
-    document.getElementById("interest_display").innerHTML = '<b>(' + localStorage.getItem('interest_display') + '/30*' + localStorage.getItem('interestDay')
-    + '_' + localStorage.getItem('Breach_date_s').split("/").slice(1).join('/') + '~' + localStorage.getItem('Breach_date_e').split("/").slice(1).join('/') + ')</b>';
+    if (pj_Title === "PJ00046" || pj_Title === "PJ00047") {
+    } else {
+        document.getElementById("BreakAmt_text").innerHTML = '<b>' + localStorage.getItem('BreakAmt_text') + ':</b>';
+        document.getElementById("Break_AMT").innerHTML = '<b>' + localStorage.getItem('Break_AMT') + '元</b>';
+        document.getElementById("Breach_rate").innerHTML = '<b>(' + localStorage.getItem('Breach_rate') + '%)</b>';
+        document.getElementById("interestAmt").innerHTML = '<b>利息:' + localStorage.getItem('interestAmt') + '元</b>';
+        document.getElementById("interest_display").innerHTML = '<b>(' + localStorage.getItem('interest_display') + '/30*' + localStorage.getItem('interestDay')
+            + '_' + localStorage.getItem('Breach_date_s').split("/").slice(1).join('/') + '~' + localStorage.getItem('Breach_date_e').split("/").slice(1).join('/') + ')</b>';
+    }
     document.getElementById("Delay_AMT").innerHTML = '<b>延滯利息:' + localStorage.getItem('Delay_AMT') + '元</b>';
     document.getElementById("cs_name_1").innerHTML = '<b>清償:' + localStorage.getItem('cs_name') + '</b>';
-    var Over_Amt = localStorage.getItem('Over_Amt');
-    var pj_Title = localStorage.getItem('pj_Title');
-    var divBank = document.getElementById("bank-info");
     if (pj_Title === "PJ00046" || pj_Title === "PJ00047") {
         divBank.innerHTML = `
         <div style="margin: 1px 0; line-height: 1.4;">中國信託(822) 營業部(0901)</div><br />
