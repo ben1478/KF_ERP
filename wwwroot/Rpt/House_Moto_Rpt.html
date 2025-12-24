@@ -10,8 +10,11 @@
     <title>作業平台</title>
 </head>
 <body>
-    <input type="button" value="匯出總表資訊" onclick="exportToExcel()"/>
+    <input type="button" value="匯出總表資訊" onclick="exportToExcel()" />
     <table id="MainTable" width="1200" border="0" cellpadding="4" cellspacing="1" bgcolor="#666666">
+        <caption style="font-size:18px; font-weight:bold; padding:8px;">
+            機車分期付款專案彙整表
+        </caption>
         <thead>
             <tr align="center" height="30" bgcolor="#CCCCFF" class="c12-k">
                 <td></td>
@@ -33,11 +36,51 @@
         </thead>
         <tbody></tbody>
     </table>
+    <br />
+    <table id="MainTable1" width="980" border="0" cellpadding="4" cellspacing="1" bgcolor="#666666">
+        <caption style="font-size:18px; font-weight:bold; padding:8px;">
+            機車A專案彙整表
+        </caption>
+        <thead>
+            <tr align="center" height="30" bgcolor="#CCCCFF" class="c12-k">
+                <td></td>
+                <td>進件數</td>
+                <td>核准數</td>
+                <td>撥款數</td>
+                <td>核准總額</td>
+                <td>撥款總額</td>
+                <td>核准率</td>
+                <td>動撥率</td>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+    <br />
+    <table id="MainTable2" width="980" border="0" cellpadding="4" cellspacing="1" bgcolor="#666666">
+        <caption style="font-size:18px; font-weight:bold; padding:8px;">
+            機車B專案彙整表
+        </caption>
+        <thead>
+            <tr align="center" height="30" bgcolor="#CCCCFF" class="c12-k">
+                <td></td>
+                <td>進件數</td>
+                <td>核准數</td>
+                <td>撥款數</td>
+                <td>核准總額</td>
+                <td>撥款總額</td>
+                <td>核准率</td>
+                <td>動撥率</td>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
 </body>
 </html>
 <script>
     let data = [];
     fetchData();
+    fetchDataA();
+    fetchDataB();
 
     function fetchData() {
         const url = `${BASE_URL}/AE_RPT/GetMotoSummaryList`;
@@ -91,22 +134,22 @@
                     tr.bgColor = index % 2 === 0 ? "#FFFFFF" : "#F0F0F0";
 
                     tr.innerHTML = `
-                <td>${toROC(item.YYYYMM)}</td>
-                <td>${item.SendCount}</td>
-                <td>${item.PassCount}</td>
-                <td>${item.GetCount}</td>
-                <td>${item.PassAmount}萬</td>
-                <td>${item.GetAmount}萬</td>
-                <td>${(item.GetAmount * 0.03).toFixed(2)}萬</td>
-                <td>${Number(item.PerAmount).toLocaleString()}元</td>
-                <td>${Number(item.RemAmount).toLocaleString()}元</td>
-                <td>${item.SettCount}</td>
-                <td>${item.SettAmount === 0 ? "0" : Number(item.SettAmount).toLocaleString() + "萬"}</td>
-                <td>${item.BadCount}</td>
-                <td>${item.BadAmount === 0 ? "0" : Number(item.BadAmount).toLocaleString() + "萬"}</td>
-                <td>${item.PassRate}</td>
-                <td>${item.GetRate}</td>
-            `;
+                        <td>${toROC(item.YYYYMM)}</td>
+                        <td>${item.SendCount}</td>
+                        <td>${item.PassCount}</td>
+                        <td>${item.GetCount}</td>
+                        <td>${item.PassAmount}萬</td>
+                        <td>${item.GetAmount}萬</td>
+                        <td>${(item.GetAmount * 0.03).toFixed(2)}萬</td>
+                        <td>${Number(item.PerAmount).toLocaleString()}元</td>
+                        <td>${Number(item.RemAmount).toLocaleString()}元</td>
+                        <td>${item.SettCount}</td>
+                        <td>${item.SettAmount === 0 ? "0" : Number(item.SettAmount).toLocaleString() + "萬"}</td>
+                        <td>${item.BadCount}</td>
+                        <td>${item.BadAmount === 0 ? "0" : Number(item.BadAmount).toLocaleString() + "萬"}</td>
+                        <td>${item.PassRate}</td>
+                        <td>${item.GetRate}</td>
+                    `;
                     tbody.appendChild(tr);
                 });
 
@@ -117,22 +160,22 @@
                 totalTr.style.backgroundColor = "#FFD966";
 
                 totalTr.innerHTML = `
-            <td>合計</td>
-            <td>${total.SendCount}</td>
-            <td>${total.PassCount}</td>
-            <td>${total.GetCount}</td>
-            <td>${total.PassAmount}萬</td>
-            <td>${total.GetAmount}萬</td>
-            <td>${(total.GetAmount * 0.03).toFixed(2)}萬</td>
-            <td>${Number(total.PerAmount).toLocaleString()}元</td>
-            <td>${Number(total.RemAmount).toLocaleString()}元</td>
-            <td>${total.SettCount}</td>
-            <td>${total.SettAmount === 0 ? "0" : Number(total.SettAmount).toLocaleString() + "萬"}</td>
-            <td>${total.BadCount}</td>
-            <td>${total.BadAmount === 0 ? "0" : Number(total.BadAmount).toLocaleString() + "萬"}</td>
-            <td>-</td>
-            <td>-</td>
-        `;
+                    <td>合計</td>
+                    <td>${total.SendCount}</td>
+                    <td>${total.PassCount}</td>
+                    <td>${total.GetCount}</td>
+                    <td>${total.PassAmount}萬</td>
+                    <td>${total.GetAmount}萬</td>
+                    <td>${(total.GetAmount * 0.03).toFixed(2)}萬</td>
+                    <td>${Number(total.PerAmount).toLocaleString()}元</td>
+                    <td>${Number(total.RemAmount).toLocaleString()}元</td>
+                    <td>${total.SettCount}</td>
+                    <td>${total.SettAmount === 0 ? "0" : Number(total.SettAmount).toLocaleString() + "萬"}</td>
+                    <td>${total.BadCount}</td>
+                    <td>${total.BadAmount === 0 ? "0" : Number(total.BadAmount).toLocaleString() + "萬"}</td>
+                    <td>-</td>
+                    <td>-</td>
+                `;
 
                 tbody.appendChild(totalTr);
             })
@@ -141,7 +184,7 @@
             })
             .finally(() => {
                 $('body').css('cursor', 'default');
-            });;
+            });
     }
 
     function toROC(yyyymm) {
@@ -188,5 +231,162 @@
 
         var formattedDateTime = year + month + day;
         return formattedDateTime;
+    }
+
+    function fetchDataA() {
+        const url = `${BASE_URL}/AE_RPT/GetProjectMotoList?project=PJ00046`;
+        $('body').css('cursor', 'wait');
+        fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include'
+        })
+            .then(response => response.json())
+            .then(responseData => {
+                const data = JSON.parse(responseData.objResult);
+                const tbody = document.querySelector('#MainTable1 tbody');
+
+                tbody.innerHTML = "";
+
+                // 合計物件
+                let total = {
+                    SendCount: 0,
+                    PassCount: 0,
+                    GetCount: 0,
+                    PassAmount: 0,
+                    GetAmount: 0
+                };
+
+                data.forEach((item, index) => {
+
+                    // 累計
+                    total.SendCount += item.SendCount;
+                    total.PassCount += item.PassCount;
+                    total.GetCount += item.GetCount;
+                    total.PassAmount += item.PassAmount;
+                    total.GetAmount += item.GetAmount;
+
+                    // 產生資料列
+                    const tr = document.createElement("tr");
+                    tr.align = "center";
+                    tr.height = "26";
+                    tr.bgColor = index % 2 === 0 ? "#FFFFFF" : "#F0F0F0";
+
+                    tr.innerHTML = `
+                        <td>${toROC(item.YYYYMM)}</td>
+                        <td>${item.SendCount}</td>
+                        <td>${item.PassCount}</td>
+                        <td>${item.GetCount}</td>
+                        <td>${item.PassAmount}萬</td>
+                        <td>${item.GetAmount}萬</td>
+                        <td>${item.PassRate}</td>
+                        <td>${item.GetRate}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+
+                // 加總列
+                const totalTr = document.createElement("tr");
+                totalTr.align = "center";
+                totalTr.height = "30";
+                totalTr.style.backgroundColor = "#FFD966";
+
+                totalTr.innerHTML = `
+                    <td>合計</td>
+                    <td>${total.SendCount}</td>
+                    <td>${total.PassCount}</td>
+                    <td>${total.GetCount}</td>
+                    <td>${total.PassAmount}萬</td>
+                    <td>${total.GetAmount}萬</td>
+                    <td>-</td>
+                    <td>-</td>
+                `;
+
+                tbody.appendChild(totalTr);
+            })
+            .catch(error => {
+                alert('API 請求失敗:', error);
+            })
+            .finally(() => {
+                $('body').css('cursor', 'default');
+            });
+    }
+
+    function fetchDataB() {
+        const url = `${BASE_URL}/AE_RPT/GetProjectMotoList?project=PJ00047`;
+        $('body').css('cursor', 'wait');
+        fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include'
+        })
+            .then(response => response.json())
+            .then(responseData => {
+                const data = JSON.parse(responseData.objResult);
+                const tbody = document.querySelector('#MainTable2 tbody');
+                tbody.innerHTML = "";
+
+                // 合計物件
+                let total = {
+                    SendCount: 0,
+                    PassCount: 0,
+                    GetCount: 0,
+                    PassAmount: 0,
+                    GetAmount: 0
+                };
+
+                data.forEach((item, index) => {
+
+                    // 累計
+                    total.SendCount += item.SendCount;
+                    total.PassCount += item.PassCount;
+                    total.GetCount += item.GetCount;
+                    total.PassAmount += item.PassAmount;
+                    total.GetAmount += item.GetAmount;
+
+                    // 產生資料列
+                    const tr = document.createElement("tr");
+                    tr.align = "center";
+                    tr.height = "26";
+                    tr.bgColor = index % 2 === 0 ? "#FFFFFF" : "#F0F0F0";
+
+                    tr.innerHTML = `
+                        <td>${toROC(item.YYYYMM)}</td>
+                        <td>${item.SendCount}</td>
+                        <td>${item.PassCount}</td>
+                        <td>${item.GetCount}</td>
+                        <td>${item.PassAmount}萬</td>
+                        <td>${item.GetAmount}萬</td>
+                        <td>${item.PassRate}</td>
+                        <td>${item.GetRate}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+
+                // 加總列
+                const totalTr = document.createElement("tr");
+                totalTr.align = "center";
+                totalTr.height = "30";
+                totalTr.style.backgroundColor = "#FFD966";
+
+                totalTr.innerHTML = `
+                    <td>合計</td>
+                    <td>${total.SendCount}</td>
+                    <td>${total.PassCount}</td>
+                    <td>${total.GetCount}</td>
+                    <td>${total.PassAmount}萬</td>
+                    <td>${total.GetAmount}萬</td>
+                    <td>-</td>
+                    <td>-</td>
+                `;
+
+                tbody.appendChild(totalTr);
+            })
+            .catch(error => {
+                alert('API 請求失敗:', error);
+            })
+            .finally(() => {
+                $('body').css('cursor', 'default');
+            });
     }
 </script>
