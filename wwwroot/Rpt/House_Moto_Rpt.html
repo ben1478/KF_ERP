@@ -8,9 +8,19 @@
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
     <script src="../Base.js"></script>
     <title>作業平台</title>
+    <style>
+        body.loading {
+            cursor: wait;
+        }
+    </style>
 </head>
 <body>
     <input type="button" value="匯出總表資訊" onclick="exportToExcel()" />
+    <br />
+    <label>截止日期:</label>
+    <input type="text" value="" name="checkDateS" class="datepickerTW" placeholder="年 /月 /日" style="width:80px;">~
+    <input type="text" value="" name="checkDateE" class="datepickerTW" placeholder="年 /月 /日" style="width:80px;">
+    <input type="button" value="查詢" onclick="fetchDataAll()" />
     <table id="MainTable" width="1200" border="0" cellpadding="4" cellspacing="1" bgcolor="#666666">
         <caption style="font-size:18px; font-weight:bold; padding:8px;">
             機車分期付款專案彙整表
@@ -78,17 +88,75 @@
 </html>
 <script>
     let data = [];
-    fetchData();
-    fetchDataA();
-    fetchDataB();
+    
+    dateTW();
+    convertToTaiwanDate();
 
-    function fetchData() {
+    $('.datepickerTW').datepickerTW({
+        changeYear: true,
+        changeMonth: true,
+        dateFormat: 'yy-mm-dd'
+    });
+
+    function convertToTaiwanDate() {
+        var currentDate = new Date();
+        var westernYear = currentDate.getFullYear();
+        var taiwanYear = westernYear - 1911;
+        var month = currentDate.getMonth() + 1;
+        var day = currentDate.getDate();
+        var formattedDate = taiwanYear + '-' + (month < 10 ? '0' + month : month) + '-' + (day < 10 ? '0' + day : day);
+        document.querySelector('input[name="checkDateE"]').value = formattedDate;
+        document.querySelector('input[name="checkDateS"]').value = '114-10-01'
+    }
+
+    async function fetchDataAll() {
+        const parts_S = document.querySelector('input[name="checkDateS"]').value.split('-');
+        const taiwanYear_S = parseInt(parts_S[0], 10);
+        const month_S = parseInt(parts_S[1], 10);
+        const day_S = parseInt(parts_S[2], 10);
+
+        const parts_E = document.querySelector('input[name="checkDateE"]').value.split('-');
+        const taiwanYear_E = parseInt(parts_E[0], 10);
+        const month_E = parseInt(parts_E[1], 10);
+        const day_E = parseInt(parts_E[2], 10);
+
+        const westernYear_S = taiwanYear_S + 1911;
+        const yyyymmdd_S = `${westernYear_S}-${String(month_S).padStart(2, '0')}-${String(day_S).padStart(2, '0')}`;
+
+        const westernYear_E = taiwanYear_E + 1911;
+        const yyyymmdd_E = `${westernYear_E}-${String(month_E).padStart(2, '0')}-${String(day_E).padStart(2, '0')}`;
+        try {
+            document.body.classList.add('loading');
+
+            const [res1, res2, res3] = await Promise.all([
+                fetchData(yyyymmdd_S, yyyymmdd_E),
+                fetchDataA(yyyymmdd_S, yyyymmdd_E),
+                fetchDataB(yyyymmdd_S, yyyymmdd_E)
+            ]);
+
+            console.log(res1, res2, res3);
+
+        } catch (err) {
+            console.error('API 發生錯誤', err);
+            alert('資料讀取失敗');
+        } finally {
+            document.body.classList.remove('loading');
+        }
+    }
+
+
+    function fetchData(yyyymmdd_S, yyyymmdd_E) {
+        const requestData = {
+            checkDateS: yyyymmdd_S,
+            checkDateE: yyyymmdd_E
+        };
+
         const url = `${BASE_URL}/AE_RPT/GetMotoSummaryList`;
-        $('body').css('cursor', 'wait');
-        fetch(url, {
+        return fetch(url, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            credentials: 'include'
+            credentials: 'include',
+            body: JSON.stringify(requestData)
         })
             .then(response => response.json())
             .then(responseData => {
@@ -181,9 +249,6 @@
             })
             .catch(error => {
                 alert('API 請求失敗:', error);
-            })
-            .finally(() => {
-                $('body').css('cursor', 'default');
             });
     }
 
@@ -194,6 +259,26 @@
     }
 
     function exportToExcel() {
+        const parts_S = document.querySelector('input[name="checkDateS"]').value.split('-');
+        const taiwanYear_S = parseInt(parts_S[0], 10);
+        const month_S = parseInt(parts_S[1], 10);
+        const day_S = parseInt(parts_S[2], 10);
+
+        const parts_E = document.querySelector('input[name="checkDateE"]').value.split('-');
+        const taiwanYear_E = parseInt(parts_E[0], 10);
+        const month_E = parseInt(parts_E[1], 10);
+        const day_E = parseInt(parts_E[2], 10);
+
+        const westernYear_S = taiwanYear_S + 1911;
+        const yyyymmdd_S = `${westernYear_S}-${String(month_S).padStart(2, '0')}-${String(day_S).padStart(2, '0')}`;
+
+        const westernYear_E = taiwanYear_E + 1911;
+        const yyyymmdd_E = `${westernYear_E}-${String(month_E).padStart(2, '0')}-${String(day_E).padStart(2, '0')}`;
+
+        const requestData = {
+            checkDateS: yyyymmdd_S,
+            checkDateE: yyyymmdd_E
+        };
         const url = `${BASE_URL}/AE_RPT/GetMotoSummaryExcel`;
         $('body').css('cursor', 'wait');
         $.ajax({
@@ -203,6 +288,7 @@
                 responseType: 'blob'
             },
             contentType: 'application/json',
+            data: JSON.stringify(requestData),
             success: function (response) {
                 const url = window.URL.createObjectURL(response);
                 const a = document.createElement('a');
@@ -233,13 +319,18 @@
         return formattedDateTime;
     }
 
-    function fetchDataA() {
-        const url = `${BASE_URL}/AE_RPT/GetProjectMotoList?project=PJ00046`;
-        $('body').css('cursor', 'wait');
-        fetch(url, {
+    function fetchDataA(yyyymmdd_S, yyyymmdd_E) {
+        const requestData = {
+            checkDateS: yyyymmdd_S,
+            checkDateE: yyyymmdd_E,
+            project:'PJ00046'
+        };
+        const url = `${BASE_URL}/AE_RPT/GetProjectMotoList`;
+        return fetch(url, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            credentials: 'include'
+            credentials: 'include',
+            body: JSON.stringify(requestData)
         })
             .then(response => response.json())
             .then(responseData => {
@@ -306,19 +397,21 @@
             })
             .catch(error => {
                 alert('API 請求失敗:', error);
-            })
-            .finally(() => {
-                $('body').css('cursor', 'default');
             });
     }
 
-    function fetchDataB() {
-        const url = `${BASE_URL}/AE_RPT/GetProjectMotoList?project=PJ00047`;
-        $('body').css('cursor', 'wait');
-        fetch(url, {
+    function fetchDataB(yyyymmdd_S, yyyymmdd_E) {
+        const requestData = {
+            checkDateS: yyyymmdd_S,
+            checkDateE: yyyymmdd_E,
+            project: 'PJ00047'
+        };
+        const url = `${BASE_URL}/AE_RPT/GetProjectMotoList`;
+        return fetch(url, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            credentials: 'include'
+            credentials: 'include',
+            body: JSON.stringify(requestData)
         })
             .then(response => response.json())
             .then(responseData => {
@@ -384,9 +477,6 @@
             })
             .catch(error => {
                 alert('API 請求失敗:', error);
-            })
-            .finally(() => {
-                $('body').css('cursor', 'default');
             });
     }
 </script>
