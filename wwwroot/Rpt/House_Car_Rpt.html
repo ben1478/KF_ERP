@@ -1,0 +1,279 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script src="../Base.js"></script>
+    <title>作業平台</title>
+    <style>
+        body.loading {
+            cursor: wait;
+        }
+    </style>
+</head>
+<body>
+    <input type="button" value="匯出總表資訊" onclick="exportToExcel()" />
+    <br />
+    <label>截止日期:</label>
+    <input type="text" value="" name="checkDateS" class="datepickerTW" placeholder="年 /月 /日" style="width:80px;">~
+    <input type="text" value="" name="checkDateE" class="datepickerTW" placeholder="年 /月 /日" style="width:80px;">
+    <input type="button" value="查詢" onclick="fetchDataAll()" />
+    <table id="MainTable" width="1200" border="0" cellpadding="4" cellspacing="1" bgcolor="#666666">
+        <caption style="font-size:18px; font-weight:bold; padding:8px;">
+            汽車改裝專案彙整表
+        </caption>
+        <thead>
+            <tr align="center" height="30" bgcolor="#CCCCFF" class="c12-k">
+                <td></td>
+                <td>進件數</td>
+                <td>核准數</td>
+                <td>撥款數</td>
+                <td>核准總額</td>
+                <td>撥款總額</td>
+                <td>呆帳準備金</td>
+                <td>目前月付金總額</td>
+                <td>本金餘額</td>
+                <td>已清償件數</td>
+                <td>已清償金額</td>
+                <td>呆帳</td>
+                <td>呆帳金額</td>
+                <td>核准率</td>
+                <td>動撥率</td>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</body>
+</html>
+<script>
+    let data = [];
+
+    dateTW();
+    convertToTaiwanDate();
+
+    $('.datepickerTW').datepickerTW({
+        changeYear: true,
+        changeMonth: true,
+        dateFormat: 'yy-mm-dd'
+    });
+
+    function convertToTaiwanDate() {
+        var currentDate = new Date();
+        var westernYear = currentDate.getFullYear();
+        var taiwanYear = westernYear - 1911;
+        var month = currentDate.getMonth() + 1;
+        var day = currentDate.getDate();
+        var formattedDate = taiwanYear + '-' + (month < 10 ? '0' + month : month) + '-' + (day < 10 ? '0' + day : day);
+        document.querySelector('input[name="checkDateE"]').value = formattedDate;
+        document.querySelector('input[name="checkDateS"]').value = '114-12-01'
+    }
+
+    async function fetchDataAll() {
+        const parts_S = document.querySelector('input[name="checkDateS"]').value.split('-');
+        const taiwanYear_S = parseInt(parts_S[0], 10);
+        const month_S = parseInt(parts_S[1], 10);
+        const day_S = parseInt(parts_S[2], 10);
+
+        const parts_E = document.querySelector('input[name="checkDateE"]').value.split('-');
+        const taiwanYear_E = parseInt(parts_E[0], 10);
+        const month_E = parseInt(parts_E[1], 10);
+        const day_E = parseInt(parts_E[2], 10);
+
+        const westernYear_S = taiwanYear_S + 1911;
+        const yyyymmdd_S = `${westernYear_S}-${String(month_S).padStart(2, '0')}-${String(day_S).padStart(2, '0')}`;
+
+        const westernYear_E = taiwanYear_E + 1911;
+        const yyyymmdd_E = `${westernYear_E}-${String(month_E).padStart(2, '0')}-${String(day_E).padStart(2, '0')}`;
+        try {
+            document.body.classList.add('loading');
+
+            const [res1, res2, res3] = await Promise.all([
+                fetchData(yyyymmdd_S, yyyymmdd_E)
+            ]);
+            console.log(res1, res2, res3);
+        } catch (err) {
+            console.error('API 發生錯誤', err);
+            alert('資料讀取失敗');
+        } finally {
+            document.body.classList.remove('loading');
+        }
+    }
+
+    function fetchData(yyyymmdd_S, yyyymmdd_E) {
+        const requestData = {
+            checkDateS: yyyymmdd_S,
+            checkDateE: yyyymmdd_E
+        };
+
+        const url = `${BASE_URL}/AE_RPT/GetCarSummaryList`;
+        return fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify(requestData)
+        })
+            .then(response => response.json())
+            .then(responseData => {
+                const data = JSON.parse(responseData.objResult);
+                const tbody = document.querySelector('#MainTable tbody');
+
+                tbody.innerHTML = "";
+
+                // 合計物件
+                let total = {
+                    SendCount: 0,
+                    PassCount: 0,
+                    GetCount: 0,
+                    PassAmount: 0,
+                    GetAmount: 0,
+                    PerAmount: 0,
+                    RemAmount: 0,
+                    SettCount: 0,
+                    SettAmount: 0,
+                    BadCount: 0,
+                    BadAmount: 0
+                };
+
+                data.forEach((item, index) => {
+
+                    // 累計
+                    total.SendCount += item.SendCount;
+                    total.PassCount += item.PassCount;
+                    total.GetCount += item.GetCount;
+                    total.PassAmount += item.PassAmount;
+                    total.GetAmount += item.GetAmount;
+                    total.PerAmount += item.PerAmount;
+                    total.RemAmount += item.RemAmount;
+                    total.SettCount += item.SettCount;
+                    total.SettAmount += item.SettAmount;
+                    total.BadCount += item.BadCount;
+                    total.BadAmount += item.BadAmount;
+
+                    // 產生資料列
+                    const tr = document.createElement("tr");
+                    tr.align = "center";
+                    tr.height = "26";
+                    tr.bgColor = index % 2 === 0 ? "#FFFFFF" : "#F0F0F0";
+
+                    tr.innerHTML = `
+                    <td>${toROC(item.YYYYMM)}</td>
+                    <td>${item.SendCount}</td>
+                    <td>${item.PassCount}</td>
+                    <td>${item.GetCount}</td>
+                    <td>${item.PassAmount}萬</td>
+                    <td>${item.GetAmount}萬</td>
+                    <td>${(item.GetAmount * 0.03).toFixed(2)}萬</td>
+                    <td>${Number(item.PerAmount).toLocaleString()}元</td>
+                    <td>${Number(item.RemAmount).toLocaleString()}元</td>
+                    <td>${item.SettCount}</td>
+                    <td>${item.SettAmount === 0 ? "0" : Number(item.SettAmount).toLocaleString() + "萬"}</td>
+                    <td>${item.BadCount}</td>
+                    <td>${item.BadAmount === 0 ? "0" : Number(item.BadAmount).toLocaleString() + "萬"}</td>
+                    <td>${item.PassRate}</td>
+                    <td>${item.GetRate}</td>
+                `;
+                    tbody.appendChild(tr);
+                });
+
+                // 加總列
+                const totalTr = document.createElement("tr");
+                totalTr.align = "center";
+                totalTr.height = "30";
+                totalTr.style.backgroundColor = "#FFD966";
+
+                totalTr.innerHTML = `
+                <td>合計</td>
+                <td>${total.SendCount}</td>
+                <td>${total.PassCount}</td>
+                <td>${total.GetCount}</td>
+                <td>${total.PassAmount}萬</td>
+                <td>${total.GetAmount}萬</td>
+                <td>${(total.GetAmount * 0.03).toFixed(2)}萬</td>
+                <td>${Number(total.PerAmount).toLocaleString()}元</td>
+                <td>${Number(total.RemAmount).toLocaleString()}元</td>
+                <td>${total.SettCount}</td>
+                <td>${total.SettAmount === 0 ? "0" : Number(total.SettAmount).toLocaleString() + "萬"}</td>
+                <td>${total.BadCount}</td>
+                <td>${total.BadAmount === 0 ? "0" : Number(total.BadAmount).toLocaleString() + "萬"}</td>
+                <td>-</td>
+                <td>-</td>
+            `;
+
+                tbody.appendChild(totalTr);
+            })
+            .catch(error => {
+                alert('API 請求失敗:', error);
+            });
+    }
+
+    function toROC(yyyymm) {
+        const [yyyy, mm] = yyyymm.split("-");
+        const rocYear = yyyy - 1911;
+        return `${rocYear}年${mm}月`;
+    }
+
+    function exportToExcel() {
+        const parts_S = document.querySelector('input[name="checkDateS"]').value.split('-');
+        const taiwanYear_S = parseInt(parts_S[0], 10);
+        const month_S = parseInt(parts_S[1], 10);
+        const day_S = parseInt(parts_S[2], 10);
+
+        const parts_E = document.querySelector('input[name="checkDateE"]').value.split('-');
+        const taiwanYear_E = parseInt(parts_E[0], 10);
+        const month_E = parseInt(parts_E[1], 10);
+        const day_E = parseInt(parts_E[2], 10);
+
+        const westernYear_S = taiwanYear_S + 1911;
+        const yyyymmdd_S = `${westernYear_S}-${String(month_S).padStart(2, '0')}-${String(day_S).padStart(2, '0')}`;
+
+        const westernYear_E = taiwanYear_E + 1911;
+        const yyyymmdd_E = `${westernYear_E}-${String(month_E).padStart(2, '0')}-${String(day_E).padStart(2, '0')}`;
+
+        const requestData = {
+            checkDateS: yyyymmdd_S,
+            checkDateE: yyyymmdd_E
+        };
+        const url = `${BASE_URL}/AE_RPT/GetCarSummaryExcel`;
+        $('body').css('cursor', 'wait');
+        $.ajax({
+            url: url,
+            method: 'POST',
+            xhrFields: {
+                responseType: 'blob'
+            },
+            contentType: 'application/json',
+            data: JSON.stringify(requestData),
+            success: function (response) {
+                const url = window.URL.createObjectURL(response);
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = url;
+                a.download = `汽車分期總表-${getCurrentDateTime()}.xlsx`;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+            },
+            error: function (err) {
+                alert('Error generating file');
+            },
+            complete: function () {
+                $('body').css('cursor', 'default');
+            }
+        });
+    }
+
+    function getCurrentDateTime() {
+        var currentDate = new Date();
+
+        var year = currentDate.getFullYear();
+        var month = ('0' + (currentDate.getMonth() + 1)).slice(-2);
+        var day = ('0' + currentDate.getDate()).slice(-2);
+
+        var formattedDateTime = year + month + day;
+        return formattedDateTime;
+    }
+
+</script>
