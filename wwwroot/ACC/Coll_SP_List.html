@@ -1,0 +1,181 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script src="../Base.js"></script>
+    <title>作業平台</title>
+</head>
+<body>
+    &nbsp;&nbsp; &nbsp;&nbsp;&nbsp;<span class="c14k"><strong name="titleShow">應收帳款-催收</strong></span><br />
+    <table width="950" border="0" cellspacing="0" cellpadding="0">
+        <tbody>
+            <tr>
+                <td height="24">
+                    客戶:<input type="text" name="name" width="50" />
+                </td>
+                <td height="24" align="right">
+                    本期繳款日：<input type="text" class="datepickerTW" name="str_Date_S" /> ~ <input type="text" class="datepickerTW" name="str_Date_E" />
+                </td>
+                <td height="24" align="right">
+                    逾期天數：
+                    <select name="DiffDay_Type" id="DiffDay_Type" class="">
+                        <option value="" selected="">不限</option>
+                        <option value="0">1~29</option>
+                        <option value="A">30~59</option>
+                        <option value="B">60~89</option>
+                        <option value="C">90天以上</option>
+                    </select>
+                </td>
+                <td height="24" align="right">
+                    <input type="button" value="查詢" onclick="fetchData(); ">
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <br />
+    <table id="MainTable" width="1300" border="0" cellpadding="4" cellspacing="1" bgcolor="#666666" style="font-size:13px;">
+        <thead>
+            <tr align="center" height="30" bgcolor="#CCCCFF" class="c12-k">
+                <td width="40">序</td>
+                <td width="100">客戶姓名</td>
+                <td width="100">總金額</td>
+                <td width="60">期數</td>
+                <td width="60">第幾期</td>
+                <td width="100">本期繳款日</td>
+                <td width="60">逾期天數</td>
+                <td width="60">月付金</td>
+                <td width="60">利息</td>
+                <td width="60">償還本金</td>
+                <td width="60">本金餘額</td>
+                <td width="480">催收備註</td>
+            </tr>
+        </thead>
+        <tbody></tbody>
+        <tfoot>
+            <tr align="center" height="15" bgcolor="#CCCCFF">
+                <td class="c12-k" colspan="12">
+                    <font color="#000080">
+                        <label id="CountRows"></label>
+                    </font>
+                </td>
+            </tr>
+        </tfoot>
+    </table>
+</body>
+</html>
+<script>
+    const Params = getQueryParams();
+    let WebUser = Params.WebUser;
+    let WebBC = Params.WebBC;
+    let data = [];
+    
+
+    dateTW();
+    $('.datepickerTW').datepickerTW({
+        changeYear: true,
+        changeMonth: true,
+        dateFormat: 'yy-mm-dd'
+    });
+
+    $(document).ready(function () {
+        const today = new Date();
+
+        function toROCDateString(date) {
+            const rocYear = date.getFullYear() - 1911;
+            const month = (date.getMonth() + 1).toString().padStart(2, '0');
+            const day = date.getDate().toString().padStart(2, '0');
+            return `${rocYear}-${month}-${day}`;
+        }
+
+        const todayStr = toROCDateString(today);
+
+        const past = new Date();
+        past.setFullYear(today.getFullYear() - 5);
+        const pastStr = toROCDateString(past);
+
+        $('input[name="str_Date_S"]').val(pastStr);
+        $('input[name="str_Date_E"]').val(todayStr);
+
+        fetchData();
+    });
+
+    function fetchData() {
+        const requestData = {
+            name: document.querySelector('input[name="name"]').value,
+            str_Date_S: document.querySelector('input[name="str_Date_S"]').value,
+            str_Date_E: document.querySelector('input[name="str_Date_E"]').value,
+            DiffDay_Type: document.querySelector('select[name="DiffDay_Type"]').value
+        };
+
+        const url = `${BASE_URL}/AE_ACC/Coll_SP_LQuery`;
+
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestData)
+        })
+            .then(response => response.json())
+            .then(responseData => {
+                if (responseData.resultCode == "000") {
+                    data = JSON.parse(responseData.objResult);
+                    showTable();
+                } else {
+                    alert(response.resultMsg);
+                }
+            })
+            .catch(error => {
+                alert('API 請求失敗:', error);
+            });
+    }
+
+    function showTable() {
+        document.getElementById('CountRows').innerHTML = `筆數:${data.length}`;
+        const tbody = document.querySelector('#MainTable tbody');
+        tbody.innerHTML = '';
+
+        const columnOrder = ['CS_name', 'amount_total', 'month_total', 'RC_count', 'RC_date', 'DiffDay', 'amount_per_month', 'interest', 'Rmoney', 'Ex_RemainingPrincipal', 'disExpe_note'];
+        data.forEach((item, index) => {
+            const row = document.createElement('tr');
+            row.setAttribute('align', 'center');
+            row.className = 'c12-k';
+            row.style.backgroundColor = '#FFFFFF';
+            row.onmouseover = function () { this.style.background = '#FCFCC0'; };
+            row.onmouseout = function () { this.style.background = '#FFFFFF'; };
+
+            const serialCell = document.createElement('td');
+            serialCell.textContent = index + 1;  // 序號
+            row.appendChild(serialCell);
+
+            columnOrder.forEach(key => {
+                const cell = document.createElement('td');
+                switch (key) {
+                    case "amount_total":
+                    case "amount_per_month":
+                    case "interest":
+                    case "Rmoney":
+                    case "Ex_RemainingPrincipal":
+                        cell.innerHTML = item[key].toLocaleString();
+                        row.appendChild(cell);
+                        break;
+                    case "disExpe_note":
+                        cell.innerHTML = item[key];
+                        cell.style.textAlign = 'left';    
+                        cell.style.whiteSpace = 'normal';   
+                        row.appendChild(cell);
+                        break;
+                    default:
+                        cell.textContent = item[key];
+                        row.appendChild(cell);
+                        break;
+                }
+            });
+            tbody.appendChild(row);
+        });
+    }
+</script>

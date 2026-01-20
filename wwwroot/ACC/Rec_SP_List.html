@@ -1,0 +1,253 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script src="../Base.js"></script>
+    <title>作業平台</title>
+</head>
+<body>
+    &nbsp;&nbsp; &nbsp;&nbsp;&nbsp;<span class="c14k"><strong name="titleShow">應收帳款分期管理</strong></span><br />
+    <table width="1200" border="0" cellspacing="0" cellpadding="0">
+        <tbody>
+            <tr>
+                <td height="24">
+                    客戶:<input type="text" name="name" style="width: 120px;" />
+                    本期繳款日：<input type="text" class="datepickerTW" name="RC_Date_S" style="width: 120px;" /> ~
+                    <input type="text" class="datepickerTW" name="RC_Date_E" style="width: 120px;" />
+                    沖銷狀態：
+                    <select name="check_type" id="check_type" class="">
+                        <option value="">不限</option>
+                        <option value="N" selected="">未沖銷</option>
+                        <option value="Y">已沖銷</option>
+                        <option value="S">已結清</option>
+                    </select>
+                    沖銷狀態：
+                    <select name="bad_type" id="bad_type" class="">
+                        <option value="">不限</option>
+                        <option value="N" selected="">未轉呆</option>
+                        <option value="Y">已轉呆</option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td height="24">
+                    發票號碼:<input type="text" name="invoice_no" style="width: 120px;" />
+                    發票日期：<input type="text" class="datepickerTW" name="invoice_date_S" style="width: 120px;" /> ~
+                    <input type="text" class="datepickerTW" name="invoice_date_E" style="width: 120px;" />
+                    沖銷日期：<input type="text" class="datepickerTW" name="pay_date_S" style="width: 120px;" /> ~
+                    <input type="text" class="datepickerTW" name="pay_date_E" style="width: 120px;" />
+                    <input type="button" value="查詢" onclick="fetchData(); ">
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <br />
+    <table id="MainTable" border="0" cellpadding="4" cellspacing="1" bgcolor="#666666" style="font-size:13px;">
+        <thead>
+            <tr align="center" height="30" bgcolor="#CCCCFF" class="c12-k">
+                <td>序</td>
+                <td>客戶姓名</td>
+                <td>身分ID</td>
+                <td>總金額</td>
+                <td>期數</td>
+                <td>第幾期</td>
+                <td>本期繳款日</td>
+                <td>月付金</td>
+                <td>利息</td>
+                <td>償還本金</td>
+                <td>手續費</td>
+                <td>本金餘額</td>
+                <td>實際繳款</td>
+                <td>差異金額</td>
+                <td>延滯天數</td>
+                <td>延滯利息</td>
+                <td>沖銷狀態</td>
+                <td>沖銷日期</td>
+                <td>沖銷人員</td>
+                <td>備註</td>
+                <td>轉呆狀態</td>
+                <td>轉呆日期</td>
+                <td>轉呆人員</td>
+                <td>發票號碼</td>
+                <td>發票日期</td>
+            </tr>
+        </thead>
+        <tbody></tbody>
+        <tfoot>
+            <tr align="center" height="15" bgcolor="#CCCCFF">
+                <td class="c12-k" colspan="25">
+                    <font color="#000080">
+                        <label id="CountRows"></label>
+                    </font>
+                </td>
+            </tr>
+        </tfoot>
+    </table>
+</body>
+</html>
+<script>
+    const Params = getQueryParams();
+    let WebUser = Params.WebUser;
+    let WebBC = Params.WebBC;
+    let data = [];
+
+    dateTW();
+    $('.datepickerTW').datepickerTW({
+        changeYear: true,
+        changeMonth: true,
+        dateFormat: 'yy-mm-dd'
+    });
+
+    $(document).ready(function () {
+        const today = new Date();
+
+        function toROCDateString(date) {
+            const rocYear = date.getFullYear() - 1911;
+            const month = (date.getMonth() + 1).toString().padStart(2, '0');
+            const day = date.getDate().toString().padStart(2, '0');
+            return `${rocYear}-${month}-${day}`;
+        }
+
+        const todayStr = toROCDateString(today);
+
+        const past = new Date();
+        past.setMonth(today.getMonth() - 2); 
+
+        const pastStr = toROCDateString(past);
+
+        $('input[name="RC_Date_S"]').val(pastStr);
+        $('input[name="RC_Date_E"]').val(todayStr);
+
+        fetchData();
+    });
+
+    function fetchData() {
+        const requestData = {
+            name: document.querySelector('input[name="name"]').value,
+            RC_Date_S: document.querySelector('input[name="RC_Date_S"]').value,
+            RC_Date_E: document.querySelector('input[name="RC_Date_E"]').value,
+            check_type: document.querySelector('select[name="check_type"]').value,
+            bad_type: document.querySelector('select[name="bad_type"]').value,
+            invoice_no: document.querySelector('input[name="invoice_no"]').value,
+            invoice_date_S: document.querySelector('input[name="invoice_date_S"]').value,
+            invoice_date_E: document.querySelector('input[name="invoice_date_E"]').value,
+            pay_date_S: document.querySelector('input[name="pay_date_S"]').value,
+            pay_date_E: document.querySelector('input[name="pay_date_E"]').value
+        };
+
+        const url = `${BASE_URL}/AE_ACC/Rec_SP_LQuery`;
+
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestData)
+        })
+            .then(response => response.json())
+            .then(responseData => {
+                if (responseData.resultCode == "000") {
+                    data = JSON.parse(responseData.objResult);
+                    showTable();
+                } else {
+                    alert(response.resultMsg);
+                }
+            })
+            .catch(error => {
+                alert('API 請求失敗:', error);
+            });
+    }
+
+    function showTable() {
+        document.getElementById('CountRows').innerHTML = `筆數:${data.length}`;
+        const tbody = document.querySelector('#MainTable tbody');
+        tbody.innerHTML = '';
+
+        const columnOrder = ['CS_name', 'CS_PID', 'amount_total', 'month_total', 'RC_count', 'roc_RC_date', 'amount_per_month', 'interest', 'Rmoney', 'HFees'
+            , 'Ex_RemainingPrincipal', 'RecPayAmt', 'diffAMT', 'DelayDay', 'Delaymoney', 'check_pay_type', 'check_pay_date', 'check_pay_name'
+            , 'RC_Note', 'bad_debt_type', 'bad_debt_date', 'bad_debt_name', 'invoice_no', 'invoice_date'];
+
+        data.forEach((item, index) => {
+            const row = document.createElement('tr');
+            row.setAttribute('align', 'center');
+            row.className = 'c12-k';
+            row.style.backgroundColor = '#FFFFFF';
+            row.onmouseover = function () { this.style.background = '#FCFCC0'; };
+            row.onmouseout = function () { this.style.background = '#FFFFFF'; };
+
+            const serialCell = document.createElement('td');
+            serialCell.textContent = index + 1;  // 序號
+            row.appendChild(serialCell);
+
+            columnOrder.forEach(key => {
+                const cell = document.createElement('td');
+                switch (key) {
+                    case "amount_total":
+                    case "amount_per_month":
+                    case "interest":
+                    case "Rmoney":
+                    case "Ex_RemainingPrincipal":
+                        cell.innerHTML = item[key].toLocaleString();
+                        row.appendChild(cell);
+                        break;
+                    case "DelayDay":
+                        if (item.check_pay_type === 'N') {
+                            cell.textContent = '';
+                        } else {
+                            cell.textContent = item[key];
+                        }
+                        row.appendChild(cell);
+                        break;
+                    case "Delaymoney":
+                        if (item.check_pay_type === 'N') {
+                            cell.textContent = '';
+                        } else {
+                            cell.textContent = item[key];
+                        }
+                        row.appendChild(cell);
+                        break;
+                    case "check_pay_type":
+                        switch (item[key]) {
+                            case "N":
+                                cell.textContent = "未沖銷";
+                                break;
+                            case "Y":
+                                cell.textContent = "已沖銷";
+                                break;
+                            case "S":
+                                cell.textContent = "已結清";
+                                break;
+                            default:
+                                cell.textContent = item[key] ?? "";
+                                break;
+                        }
+                        row.appendChild(cell);
+                        break;
+                    case "bad_debt_type":
+                        switch (item[key]) {
+                            case "N":
+                                cell.textContent = "";
+                                break;
+                            case "Y":
+                                cell.textContent = "已轉呆";
+                                break;
+                            default:
+                                cell.textContent = item[key] ?? "";
+                                break;
+                        }
+                        row.appendChild(cell);
+                        break;
+                    default:
+                        cell.textContent = item[key];
+                        row.appendChild(cell);
+                        break;
+                }
+            });
+            tbody.appendChild(row);
+        });
+    }
+</script>
