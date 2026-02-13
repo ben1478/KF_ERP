@@ -80,7 +80,7 @@
     document.getElementById("date_begin_settle").innerHTML = '<b>清償基準日: ' + localStorage.getItem('date_begin_settle') + '</b>';
     document.getElementById("TotalSettAmt").innerText = localStorage.getItem('TotalSettAmt') + '元';
     document.getElementById("RP_AMT").innerHTML = '<b>結清本金: ' + localStorage.getItem('RP_AMT') + '元</b>'; 
-    if (pj_Title === "PJ00046" || pj_Title === "PJ00047") {
+    if (pj_Title === "PJ00046" || pj_Title === "PJ00047" || pj_Title === "PJ00048") {
     } else {
         document.getElementById("BreakAmt_text").innerHTML = '<b>' + localStorage.getItem('BreakAmt_text') + ':</b>';
         document.getElementById("Break_AMT").innerHTML = '<b>' + localStorage.getItem('Break_AMT') + '元</b>';
@@ -91,10 +91,10 @@
     }
     document.getElementById("Delay_AMT").innerHTML = '<b>延滯利息:' + localStorage.getItem('Delay_AMT') + '元</b>';
     document.getElementById("cs_name_1").innerHTML = '<b>清償:' + localStorage.getItem('cs_name') + '</b>';
-    if (pj_Title === "PJ00046" || pj_Title === "PJ00047") {
+    if (pj_Title === "PJ00046" || pj_Title === "PJ00047" || pj_Title === "PJ00048") {
         divBank.innerHTML = `
         <div style="margin: 1px 0; line-height: 1.4;">中國信託(822) 營業部(0901)</div><br />
-        <div style="margin: 1px 0; line-height: 1.4;">帳號:90111-991371-8</div><br />
+        <div style="margin: 1px 0; line-height: 1.4;">帳號:901540925841</div><br />
         <div style="margin: 1px 0; line-height: 1.4;">戶名:國峯租賃股份有限公司</div><br />
         <div style="margin: 1px 0; line-height: 1.4;">匯完款請傳真:02-2313-1218</div><br />
         <div style="margin: 1px 0; line-height: 1.4;">電話:02-2313-1268</div><br />
