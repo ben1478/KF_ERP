@@ -8,12 +8,31 @@
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
     <script src="../Base.js"></script>
     <title>作業平台</title>
+    <style>
+        .form-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+            margin-left: 20px;
+        }
+    </style>
 </head>
 <body>
+    <div class="form-row" id="specSection" style="display:none;">
+        <label>客戶:</label>
+        <input type="text" name="name" style="width:100px;" value="">
+
+        <label>身分證:</label>
+        <input type="text" name="FID" style="width:100px;" value="">
+
+        <input type="button" value="查詢" onclick="fetchDataSpec();">
+    </div>
     <table width="550" border="0" cellspacing="0" cellpadding="0">
         <tbody>
             <tr>
-                <td valign="top"> </td>
+                <td valign="top">
+                </td>
                 <td align="center" valign="top">
                     <table id="MainTable" width="500" border="0" cellpadding="4" cellspacing="1" bgcolor="#666666">
                         <thead>
@@ -44,10 +63,18 @@
 </body>
 </html>
 <script>
+    let Params = new URLSearchParams(window.location.search);
+    let SpeID = Params.get('Spe');
     let currentPage = 1;
-    let data = []; 
+    let data = [];
 
-    fetchData();
+    if (SpeID === "N") {
+        fetchData();
+        document.getElementById("specSection").style.display = "none";
+    }else {
+        document.getElementById("specSection").style.display = "block";
+    }
+
 
     function fetchData() {
         const url = `${BASE_URL}/AE_SD/Fina_BDebt_LQuery`;
@@ -73,7 +100,7 @@
 
     function showPage(page) {
         const tbody = document.querySelector('#MainTable tbody');
-        tbody.innerHTML = ''; 
+        tbody.innerHTML = '';
 
         const columnOrder = ['RCM_id', 'CS_name', 'CS_PID', 'amount_total'];
 
@@ -109,5 +136,35 @@
         } else {
             alert("找不到資料或原視窗不存在！");
         }
+    }
+
+    function fetchDataSpec() {
+        const name = document.querySelector('input[name="name"]').value;
+        const fid = document.querySelector('input[name="FID"]').value;
+
+        if (name === "" && fid === "") {
+            alert("請輸入 客戶 或 身分證");
+            return;
+        }
+
+        const url = `${BASE_URL}/AE_SD/Fina_BDebt_Spec_SQuery?Name=${encodeURIComponent(name)}&FID=${encodeURIComponent(fid)}`;
+
+        fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include'
+        })
+            .then(response => response.json())
+            .then(responseData => {
+                if (responseData.resultCode == "000") {
+                    data = JSON.parse(responseData.objResult);
+                    showPage(currentPage);
+                }
+            })
+            .catch(error => {
+                alert('API 請求失敗:', error);
+            });
     }
 </script>

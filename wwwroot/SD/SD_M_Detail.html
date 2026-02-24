@@ -21,7 +21,14 @@
                 <td align="right" bgcolor="#CCCCFF">客戶姓名</td>
                 <td align="left">
                     <span id="SD_Name"></span>
-                    <input id="BadDebtBut" type="button" value="選取" onclick="getBadDebtList();"/>
+                    <input id="BadDebtBut" type="button" value="選取" onclick="getBadDebtList();" />
+                    <input id="BadDebtBut" type="button" value="列外選取" onclick="getBadDebtSpeList();" />
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td align="right" bgcolor="#CCCCFF">本金餘額</td>
+                <td align="left">
+                    <input type="text" name="RemainingPrincipal" size="12" maxlength="20" class="box" value="" />
                 </td>
             </tr>
             <tr class="c12-k" bgcolor="#FFFFFF">
@@ -73,11 +80,12 @@
         }
     }
     function getBadDebtList() {
-        window.open(`Bad_Debt_List.html?User=${encryptParameter(WebUser)}`,'_blank','scrollbars=yes,resizable=yes,width=600,height=200,left=100,top=25');
+        window.open(`Bad_Debt_List.html?User=${encryptParameter(WebUser)}&Spe=N`,'_blank','scrollbars=yes,resizable=yes,width=600,height=200,left=100,top=25');
     }
 
     function receiveDebtData(data) {
         document.getElementById('SD_Name').textContent = data.CS_name;
+        document.querySelector('input[name="RemainingPrincipal"]').value = data.RemainingPrincipal;
         RData.push(data);
     }
 
@@ -90,7 +98,7 @@
             RCM_id: RData[0].RCM_id,
             sdm_id: SdmID,
             amount_total: RData[0].amount_total,
-            RemainingPrincipal: RData[0].RemainingPrincipal,
+            RemainingPrincipal: document.querySelector('input[name="RemainingPrincipal"]').value,
             total_due_amount: document.querySelector('input[name="total_due_amount"]').value,
             total_paid_amount: document.querySelector('input[name="total_paid_amount"]').value,
             total_bad_debt: document.querySelector('input[name="total_bad_debt"]').value,
@@ -140,6 +148,7 @@
                     const model = resultData[0];
                     RData.push(resultData);
                     document.getElementById('SD_Name').textContent = model.CS_name;
+                    document.querySelector('input[name="RemainingPrincipal"]').value = model.RemainingPrincipal;
                     document.querySelector('input[name="total_due_amount"]').value = model.total_due_amount;
                     document.querySelector('input[name="total_paid_amount"]').value = model.total_paid_amount;
                     document.querySelector('input[name="total_bad_debt"]').value = model.total_bad_debt;
@@ -148,5 +157,9 @@
             }).catch(error => {
                 alert('請求失敗，請稍後再試。');
             });
+    }
+
+    function getBadDebtSpeList() {
+        window.open(`Bad_Debt_List.html?User=${encryptParameter(WebUser)}&Spe=Y`, '_blank', 'scrollbars=yes,resizable=yes,width=600,height=200,left=100,top=25');
     }
 </script>

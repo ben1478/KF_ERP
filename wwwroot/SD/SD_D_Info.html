@@ -53,6 +53,14 @@
 
             </tr>
             <tr class="12" bgcolor="#CCCCFF" height="25" align="center">
+                <td colspan="2">保人名稱</td>
+                <td colspan="2">保人身分證</td>
+            </tr>
+            <tr class="12-k" bgcolor="#FFFFFF" height="25" align="center">
+                <td colspan="2"><span id="HG_Name"></span></td>
+                <td colspan="2"><span id="HG_PID"></span></td>
+            </tr>
+            <tr class="12" bgcolor="#CCCCFF" height="25" align="center">
                 <td colspan="4">備註</td>
             </tr>
             <tr class="12-k" bgcolor="#FFFFFF" height="25" align="center">
@@ -117,6 +125,8 @@
                     document.getElementById('str_total_paid_amount').textContent = data.str_total_paid_amount;
                     document.getElementById('str_total_bad_debt').textContent = data.str_total_bad_debt;
                     document.getElementById('remarks').textContent = data.remarks ?? '';
+                    document.getElementById('HG_Name').textContent = data.HG_Name;
+                    document.getElementById('HG_PID').textContent = data.HG_PID;
                     showTable(data.SDList);
                 }
             }).catch(error => {
