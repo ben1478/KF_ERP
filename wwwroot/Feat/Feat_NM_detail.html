@@ -1,0 +1,84 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script src="../Base.js"></script>
+    <title>作業平台</title>
+</head>
+<body>
+    <table width="380" border="0" cellspacing="1" cellpadding="3" bgcolor="#999999">
+        <tbody>
+            <tr class="c12-k" bgcolor="#BDDDEA" height="30">
+                <td colspan="2" align="center"><span class="c14k">業績折扣標準設定-申貸方案</span></td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td width="100" align="right">申貸方案：</td>
+                <td width="280">
+                    <select name="FR_M" id="FR_M" class="">
+                    </select>
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td colspan="2" align="center">
+                    <input type="button" value="確定新增" onclick="saveData();">
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</body>
+</html>
+<script>
+    let Params = new URLSearchParams(window.location.search);
+    let WebUser = decryptParameter(Params.get('User'));
+    let bcType = decryptParameter(Params.get('bcType'));
+
+    loadItemDropdown({
+        selectId: "FR_M",
+        itemCode: "project_title"
+    });
+
+    function saveData() {
+        const select = document.getElementById("FR_M");
+        const selectedValue = select.value;
+        const selectedText = select.options[select.selectedIndex].text;
+
+        const FeatMData = {
+            FR_M_code: selectedValue,
+            FR_M_name: selectedText,
+            U_BC: bcType,
+            tbInfo: {
+                add_num: WebUser,
+                edit_num: WebUser
+            }
+        };
+
+        const url = `${BASE_URL}/AE_FT/Feat_NM_Ins`;
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include',
+            body: JSON.stringify(FeatMData)
+        })
+            .then(response => response.json())
+            .then(response => {
+                if (response.resultCode == "000") {
+                    alert('儲存成功');
+                    window.opener.location.reload();
+                    window.close();
+                } else {
+                    alert('儲存失敗');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('請求失敗');
+            });
+
+    }
+</script>

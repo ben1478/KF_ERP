@@ -1,0 +1,306 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script src="../Base.js"></script>
+    <title>作業平台</title>
+</head>
+<body>
+    <table width="600" border="0" cellspacing="0" cellpadding="0">
+        <tbody>
+            <tr>
+                <td width="20">　</td>
+                <td width="230" height="24"><span class="c14k"><strong>業績折扣標準設定</strong></span></td>
+                <td width="150">
+                </td>
+            </tr>
+            <tr>
+                <td>　</td>
+                <td colspan="2">
+                    <table border="0" width="100%" id="table1">
+                        <tbody>
+                            <tr class="c12-k">
+                                <td width="85%">
+                                    <font color="blue"><b> 申貸方案</b></font> &gt; &gt; <span id="FR_M_name"></span>
+                                </td>
+                                <td width="15%" align="center">
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table id="MainTable" width="650" border="0" cellpadding="4" cellspacing="1" bgcolor="#666666" style="font-size:14px;">
+        <thead>
+            <tr align="center" height="30" bgcolor="#CCCCFF" class="c12-k">
+                <td width="40">序號</td>
+                <td width="150">貸款成數</td>
+                <td width="60">承作利率</td>
+                <td width="60">佣金</td>
+                <td width="40">刪除</td>
+            </tr>
+        </thead>
+        <tbody></tbody>
+        <tfoot>
+            <tr align="center" height="15" bgcolor="#CCCCFF">
+                <td class="c12-k" colspan="6">
+                    <input type="button" value="確定修改" name="save" onclick="saveData();" />
+                </td>
+            </tr>
+        </tfoot>
+    </table>
+</body>
+</html>
+<script>
+    let Params = new URLSearchParams(window.location.search);
+    let WebUser = decryptParameter(Params.get('User'));
+    let frCode = decryptParameter(Params.get('FR_M_code'));
+    let bcType = decryptParameter(Params.get('bcType'));
+    let frName = Params.get('FR_M_name');
+
+    let data = [];
+
+    document.getElementById('FR_M_name').textContent = frName;
+    fetchData();
+
+    function fetchData() {
+        const url = `${BASE_URL}/AE_FT/Feat_ND_LQuery?FR_M_code=${frCode}&bcType=${bcType}`;
+
+        fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include'
+        })
+            .then(response => response.json())
+            .then(responseData => {
+                if (responseData.resultCode == "000") {
+                    data = JSON.parse(responseData.objResult);
+                    showTable();
+                } else {
+                    alert(response.resultMsg);
+                }
+            })
+            .catch(error => {
+                alert('API 請求失敗:', error);
+            });
+    }
+
+    function showTable() {
+        const tbody = document.querySelector('#MainTable tbody');
+        tbody.innerHTML = '';
+
+        for (var i = 0; i < data.length + 11; i++) {
+            const row = document.createElement('tr');
+            row.setAttribute('align', 'center');
+            row.className = 'c12-k';
+            row.style.backgroundColor = '#FFFFFF';
+            row.onmouseover = function () { this.style.background = '#FCFCC0'; };
+            row.onmouseout = function () { this.style.background = '#FFFFFF'; };
+
+            const featData = data[i] || {};  // 避免超出 data.length
+            const serialCell = document.createElement('td');
+            serialCell.textContent = i + 1;
+            if (featData.FR_id) {
+                serialCell.setAttribute('data-fr-id', featData.FR_id);
+            }
+            row.appendChild(serialCell);
+
+            const rageCell = createRageCell(i, featData);
+            row.appendChild(rageCell);
+
+            const rateCell = createCell(i, featData, 'FR_D_rate');
+            row.appendChild(rateCell);
+
+            const disCell = createCell(i, featData, 'FR_D_discount');
+            row.appendChild(disCell);
+
+            if (featData.FR_id) {
+                row.appendChild(createButtonCell(
+                    "../images/delete.png",
+                    "刪除",
+                    function () {
+                        const confirmDelete = window.confirm("確定要刪除嗎？");
+                        if (confirmDelete) {
+                            featDDel(featData.FR_id);
+                        }
+                    }
+                ));
+            } else {
+                const emptyTd = document.createElement('td');
+                row.appendChild(emptyTd);
+            }
+
+            tbody.appendChild(row);
+        }
+    }
+
+    function createRageCell(i, featData) {
+        const cell = document.createElement('td');
+
+        const inputA = document.createElement('input');
+        inputA.type = 'text';
+        inputA.name = `FR_D_ratio_A`;
+        inputA.size = 10;
+        inputA.style.width = '40px';
+        inputA.maxLength = 10;
+        inputA.classList.add('box');
+        inputA.value = featData.FR_D_ratio_A ?? '0';
+
+        const tilde = document.createTextNode('%～');
+
+        const inputB = document.createElement('input');
+        inputB.type = 'text';
+        inputB.name = `FR_D_ratio_B`;
+        inputB.size = 10;
+        inputB.style.width = '40px';
+        inputB.maxLength = 10;
+        inputB.classList.add('box');
+        inputB.value = featData.FR_D_ratio_B ?? '200';
+
+        const percent = document.createTextNode('%');
+
+        cell.appendChild(inputA);
+        cell.appendChild(tilde);
+        cell.appendChild(inputB);
+        cell.appendChild(percent);
+        return cell;
+    }
+
+    function createCell(i, featData, strStyle) {
+        const cell = document.createElement('td');
+
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.name = strStyle;
+        input.size = 10;
+        input.style.width = '40px';
+        input.maxLength = 10;
+        input.classList.add('box');
+
+        // 正確取得欄位值
+        input.value = featData[strStyle] != null ? String(featData[strStyle]) : '';
+
+        let unitText = '%';
+        if (strStyle === 'FR_D_replace') {
+            unitText = '折';
+        }
+        const unit = document.createTextNode(unitText);
+
+        cell.appendChild(input);
+        cell.appendChild(unit);
+
+        return cell;
+    }
+
+    function featDDel(FR_id) {
+        const url = `${BASE_URL}/AE_FT/Feat_ND_Del?FR_id=${FR_id}&user=${WebUser}`;
+
+        fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include'
+        })
+            .then(response => response.json())
+            .then(responseData => {
+                if (responseData.resultCode == "000") {
+                    alert(responseData.resultMsg);
+                    location.reload();
+                } else {
+                    alert(responseData.resultMsg);
+                }
+            })
+            .catch(error => {
+                alert('API 請求失敗:', error);
+            });
+    }
+
+    function saveData() {
+        const tableData = collectTableData();
+
+        if (tableData.length === 0) {
+            alert('請輸入最少一筆設定');
+            return;
+        }
+
+        const url = `${BASE_URL}/AE_FT/Feat_ND_Upd`;
+
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(tableData)
+        })
+            .then(response => response.json())
+            .then(responseData => {
+                if (responseData.resultCode === '000') {
+                    alert(responseData.resultMsg);
+                } else {
+                    alert(responseData.resultMsg);
+                }
+                window.location.reload();
+            }).catch(error => {
+                alert('儲存失敗，請稍後再試。');
+            });
+    }
+
+    function collectTableData() {
+        const tbody = document.querySelector('#MainTable tbody');
+        const rows = tbody.querySelectorAll('tr');
+
+        const columnOrder = [
+            'FR_id',
+            'FR_D_ratio_A',
+            'FR_D_ratio_B',
+            'FR_D_rate',
+            'FR_D_discount'
+        ];
+
+        const result = [];
+
+        rows.forEach(row => {
+            const data = {
+                FR_M_code: frCode,
+                FR_M_name: frName,
+                U_BC: bcType,
+                tbInfo: {
+                    add_num: WebUser,
+                    edit_num: WebUser
+                }
+            };
+
+            const serialCell = row.querySelector('td');
+            if (serialCell && serialCell.hasAttribute('data-fr-id')) {
+                data.FR_id = serialCell.getAttribute('data-fr-id');
+            }
+
+            const inputs = row.querySelectorAll('input');
+            inputs.forEach(input => {
+                const name = input.name;
+                if (columnOrder.includes(name)) {
+                    data[name] = input.value.trim();
+                }
+            });
+
+            // 檢查 FR_D_rate 是否有值，若沒有則跳過此筆資料
+            if (!data.FR_D_rate) {
+                return;
+            }
+
+            result.push(data);
+        });
+
+        return result;
+    }
+
+</script>
