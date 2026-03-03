@@ -1,0 +1,228 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <script type="text/javascript" src="../tool_js/jquery.blockUI.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <link href="../_include/main.css" rel="stylesheet" type="text/css">
+    <script src="../Base.js"></script>
+    <script src="../_include/exceljs.min.js"></script>
+    <script src="../_include/filesaver.min.js"></script>
+    <title>作業平台</title>
+</head>
+<body>
+    <table width="1180" border="0" cellspacing="0" cellpadding="0">
+        <tbody>
+            <tr>
+                <td align="left" valign="top">
+                    <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                        <tbody>
+                            <tr>
+                                <td width="20">　</td>
+                                <td width="200" height="24">　<span class="c14k">　<strong>上傳文中發票</strong></span></td>
+                            </tr>
+                            <tr>
+                                <td></td>
+                                <td align="left" width="80%">
+                                    <div style="margin:5px;">
+                                        <label class="label">上傳Excel：</label><input type="file" id="excelFile" style="font-size:17px;" accept=".xlsx,.xls" required>
+                                        <button id="uploadWin" onclick="fetchData();">檢查資料</button>
+                                        <button id="uploadWin" onclick="UpdWinInv();">上傳文中</button>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </td>
+            </tr>
+            <tr>
+                <td align="center" valign="top" valign="top" nowrap>
+                    <table width="1100px" id="MainTable" border="0" cellpadding="4" cellspacing="1" bgcolor="#666666">
+                        <thead>
+                            <tr align="center" bgcolor="#CCCCFF" class="TrHead">
+                                <td width="3%">No.</td>
+                                <td width="3%"></td>
+                                <td width="5%">客戶姓名</td>
+                                <td width="5%">繳款期數</td>
+                                <td width="10%">應繳款日期</td>
+                                <td width="10%">月付金</td>
+                                <td width="10%">利息</td>
+                                <td width="10%">償還本金</td>
+                                <td width="10%">手續費</td>
+                                <td width="10%">本金餘額</td>
+                                <td width="24%">回應訊息</td>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                        <tfoot>
+                            <tr align="center" height="15" bgcolor="#CCCCFF">
+                                <td class="c12-k" colspan="12">
+                                    <font color="#000080">
+                                        <label id="CountRows"></label>
+                                    </font>
+                                </td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</body>
+</html>
+<script>
+    const Params = getQueryParams();
+    let WebUser = Params.WebUser;
+    let WebBC = Params.WebBC;
+
+    const itemsPerPage = 500;
+    let currentPage = 1;
+    let data = [];
+
+    function fetchData() {
+        var file = $('#excelFile')[0].files[0];
+        if (!file) {
+            alert("請選擇一個 Excel 檔案");
+            return;
+        }
+
+        var formData = new FormData();
+        formData.append('file', file);
+
+        const url = `${BASE_URL}/AE_RPT/GetRecForWin`;
+        $.ajax({
+            url: url,
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function (resData) {
+                if (resData.resultCode == "000") {
+                    data = JSON.parse(resData.objResult);
+                    showTable();
+                } else {
+                    alert(response.resultMsg);
+                }
+            },
+            error: function (err) {
+                alert("上傳失敗: " + err.responseText);
+            }
+        });
+    }
+
+    function showTable() {
+        document.getElementById('CountRows').innerHTML = `筆數:${data.length}`;
+        const tbody = document.querySelector('#MainTable tbody');
+        tbody.innerHTML = '';
+
+        const columnOrder = ['RCD_id', 'CS_name', 'RC_count', 'roc_RC_date', 'amount_per_month', 'interest', 'Rmoney', 'HFees', 'Ex_RemainingPrincipal', 'Win_Msg'];
+        data.forEach((item, index) => {
+            const row = document.createElement('tr');
+            row.setAttribute('align', 'center');
+            row.className = 'c12-k';
+            row.style.backgroundColor = '#FFFFFF';
+            row.onmouseover = function () { this.style.background = '#FCFCC0'; };
+            row.onmouseout = function () { this.style.background = '#FFFFFF'; };
+
+            //把整筆資料存到 tr
+            row.dataset.rowData = JSON.stringify(item);
+
+            const serialCell = document.createElement('td');
+            serialCell.textContent = index + 1;  // 序號
+            row.appendChild(serialCell);
+
+            columnOrder.forEach(key => {
+                const cell = document.createElement('td');
+                if (key === "RCD_id") {
+
+                    const checkbox = document.createElement('input');
+                    checkbox.type = 'checkbox';
+                    checkbox.className = 'row-check';
+                    checkbox.value = item.RCD_id;  
+
+                    cell.appendChild(checkbox);
+                    row.appendChild(cell);
+
+                } else {
+
+                    switch (key) {
+                        case "amount_per_month":
+                        case "interest":
+                        case "Rmoney":
+                        case "HFees":
+                        case "Ex_RemainingPrincipal":
+                            cell.textContent = Number(item[key]).toLocaleString();
+                            break;
+                        default:
+                            cell.textContent = item[key];
+                            break;
+                    }
+
+                    row.appendChild(cell);
+                }
+            });
+            tbody.appendChild(row);
+        });
+    }
+
+    function UpdWinInv() {
+
+        const selectedData = [];
+
+        document.querySelectorAll('.row-check:checked').forEach(chk => {
+
+            const row = chk.closest('tr');
+
+            // 取出整筆資料
+            const rowData = JSON.parse(row.dataset.rowData);
+
+            // 組成和後端 Model 相同格式
+            const model = {
+                HS_id: Number(rowData.HS_id),
+                RCD_id: Number(rowData.RCD_id),
+                CS_name: rowData.CS_name,
+                CS_PID: rowData.CS_PID,
+                RC_count: Number(rowData.RC_count),
+                roc_RC_date: rowData.roc_RC_date,
+                amount_per_month: Number(rowData.amount_per_month),
+                interest: Number(rowData.interest),
+                Rmoney: Number(rowData.Rmoney),
+                HFees: rowData.HFees ? Number(rowData.HFees) : null,
+                Ex_RemainingPrincipal: Number(rowData.Ex_RemainingPrincipal),
+                amount_total: Number(rowData.amount_total),
+                month_total: Number(rowData.month_total),
+                Win_Msg: rowData.Win_Msg
+            };
+
+            selectedData.push(model);
+        });
+
+        if (selectedData.length === 0) {
+            alert("請至少勾選一筆資料");
+            return;
+        }
+
+
+        const url = `${BASE_URL}/SendReceivableForInv`;
+
+        $.ajax({
+            url: url,
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(selectedData),
+            success: function (resData) {
+                if (resData.resultCode == "000") {
+                    data = JSON.parse(resData.objResult);
+                    showTable();
+                } else {
+                    alert(response.resultMsg);
+                }
+            }
+        });
+
+        console.log(selectedData); // 開發用
+    }
+</script>
