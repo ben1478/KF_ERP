@@ -28,6 +28,7 @@
                                 <td></td>
                                 <td align="left" width="80%">
                                     <div style="margin:5px;">
+                                        <a href="../客戶繳款明細_範例.xlsx" download>下載Excel範本</a>
                                         <label class="label">上傳Excel：</label><input type="file" id="excelFile" style="font-size:17px;" accept=".xlsx,.xls" required>
                                         <button id="uploadWin" onclick="fetchData();">檢查資料</button>
                                         <button id="uploadWin" onclick="UpdWinInv();">上傳文中</button>
@@ -44,7 +45,7 @@
                         <thead>
                             <tr align="center" bgcolor="#CCCCFF" class="TrHead">
                                 <td width="3%">No.</td>
-                                <td width="3%"></td>
+                                <td width="3%"> <input type="checkbox" id="select-all"></td>
                                 <td width="5%">客戶姓名</td>
                                 <td width="5%">繳款期數</td>
                                 <td width="10%">應繳款日期</td>
@@ -82,6 +83,19 @@
     let currentPage = 1;
     let data = [];
 
+    document.addEventListener("change", function (e) {
+
+        if (e.target.id === "select-all") {
+
+            const isChecked = e.target.checked;
+
+            document.querySelectorAll(".row-check").forEach(function (cb) {
+                cb.checked = isChecked;
+            });
+        }
+
+    });
+
     function fetchData() {
         var file = $('#excelFile')[0].files[0];
         if (!file) {
@@ -93,6 +107,9 @@
         formData.append('file', file);
 
         const url = `${BASE_URL}/AE_RPT/GetRecForWin`;
+
+        $('body').css('cursor', 'wait');
+
         $.ajax({
             url: url,
             type: 'POST',
@@ -103,12 +120,14 @@
                 if (resData.resultCode == "000") {
                     data = JSON.parse(resData.objResult);
                     showTable();
-                } else {
-                    alert(response.resultMsg);
-                }
+                    alert(resData.resultMsg);
+                } 
             },
             error: function (err) {
                 alert("上傳失敗: " + err.responseText);
+            },
+            complete: function () {
+                $('body').css('cursor', 'default');
             }
         });
     }
@@ -194,7 +213,9 @@
                 Ex_RemainingPrincipal: Number(rowData.Ex_RemainingPrincipal),
                 amount_total: Number(rowData.amount_total),
                 month_total: Number(rowData.month_total),
-                Win_Msg: rowData.Win_Msg
+                RecPayDate: rowData.RecPayDate,
+                Win_Msg: rowData.Win_Msg,
+                User: WebUser
             };
 
             selectedData.push(model);
@@ -208,6 +229,8 @@
 
         const url = `${BASE_URL}/SendReceivableForInv`;
 
+        $('body').css('cursor', 'wait');
+
         $.ajax({
             url: url,
             type: 'POST',
@@ -218,11 +241,17 @@
                     data = JSON.parse(resData.objResult);
                     showTable();
                 } else {
-                    alert(response.resultMsg);
+                    alert(resData.resultMsg);
                 }
+            },
+            error: function (err) {
+                alert("開立失敗: " + err.responseText);
+            },
+            complete: function () {
+                $('body').css('cursor', 'default');
             }
         });
 
-        console.log(selectedData); // 開發用
+       /* console.log(selectedData);*/
     }
 </script>
