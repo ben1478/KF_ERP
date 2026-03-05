@@ -1,0 +1,103 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <script type="text/javascript" src="../tool_js/jquery.blockUI.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <link href="../_include/main.css" rel="stylesheet" type="text/css">
+    <script src="../Base.js"></script>
+    <script src="../_include/exceljs.min.js"></script>
+    <script src="../_include/filesaver.min.js"></script>
+    <title>作業平台</title>
+</head>
+<body>
+    <label>應繳款日期區間:</label>
+    <input type="text" value="" name="checkDateS" class="datepickerTW" placeholder="年 /月 /日" style="width:80px;">~
+    <input type="text" value="" name="checkDateE" class="datepickerTW" placeholder="年 /月 /日" style="width:80px;">
+    <input type="button" value="查詢" onclick="fetchData();" />
+    <input type="button" value="上傳文中" />
+    <br />
+    <table width="1180px" id="MainTable" border="0" cellpadding="4" cellspacing="1" bgcolor="#666666">
+        <thead>
+            <tr align="center" bgcolor="#CCCCFF" class="TrHead">
+                <td width="3%">No.</td>
+                <td width="3%"> <input type="checkbox" id="select-all"></td>
+                <td width="5%">客戶姓名</td>
+                <td width="5%">客戶ID</td>
+                <td width="5%">繳款期數</td>
+                <td width="7%">應繳款日期</td>
+                <td width="7%">月付金</td>
+                <td width="7%">利息</td>
+                <td width="7%">償還本金</td>
+                <td width="5%">手續費</td>
+                <td width="10%">本金餘額</td>
+                <td width="7%">繳款日期</td>
+                <td width="7%">帳戶後5碼</td>
+                <td width="12%">備註</td>
+                <td width="10%">上傳檔案</td>
+            </tr>
+        </thead>
+        <tbody></tbody>
+        <tfoot>
+            <tr align="center" height="15" bgcolor="#CCCCFF">
+                <td class="c12-k" colspan="14">
+                    <font color="#000080">
+                        <label id="CountRows"></label>
+                    </font>
+                </td>
+            </tr>
+        </tfoot>
+    </table>
+</body>
+</html>
+<script>
+    const Params = getQueryParams();
+    let WebUser = Params.WebUser;
+    let WebBC = Params.WebBC;
+
+    let ChkRole;
+    let data = [];
+
+    document.addEventListener("change", function (e) {
+        if (e.target.id === "select-all") {
+            const isChecked = e.target.checked;
+            document.querySelectorAll(".row-check").forEach(function (cb) {
+                cb.checked = isChecked;
+            });
+        }
+    });
+
+    //判定是否財務
+    ChkUserRole();
+
+    function ChkUserRole() {
+        const url = `${BASE_URL}/AE_VP/ChkUserRole?User=${WebUser}`;
+        fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+            .then(response => response.json())
+            .then(responseData => {
+                if (responseData.resultCode === '000') {
+                    ChkRole = responseData.objResult;
+                }
+            })
+            .catch(error => {
+                console.error('ChkUserRole Error:', error);
+                alert('角色辨別失敗，請稍後再試。');
+            })
+    }
+
+    function fetchData() {
+        if (ChkRole == 'N') {
+
+        } else {
+
+        }
+    }
+</script>
