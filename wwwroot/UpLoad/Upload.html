@@ -1,0 +1,229 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+	<style>
+    #loading-mask {
+        display: none;
+        position: fixed;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        background: rgba(0,0,0,0.5);
+        z-index: 9999;
+        color: white;
+        text-align: center;
+        padding-top: 20%;
+        font-family: "Microsoft JhengHei", sans-serif;
+    }
+    .spinner {
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid #3498db;
+        border-radius: 50%;
+        width: 40px; height: 40px;
+        animation: spin 2s linear infinite;
+        margin: 0 auto 10px;
+    }
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+</style>
+    <script src="../Base.js"></script>
+    <title>作業平台</title>
+</head>
+<div id="loading-mask">
+    <div class="spinner"></div>
+    <div>檔案處理中，請稍候...</div>
+</div>
+<table width="700" border="0" cellpadding="4" cellspacing="1" bgcolor="#666666">
+   <tr align="center" height="30" bgcolor="#CCCCFF"> 
+     <td class="c12-k" colspan="2"><font color="#000080">檔案上傳</font></td>
+   </tr>
+   <tr align="center" height="30" bgcolor="#CCCCFF"> 
+     <td class="c12-k" colspan="2"><font color="#000080">檔案編號：<span id="spCknum"></span></font></td>
+   </tr>
+   <tr align="center" height="30" bgcolor="#CCCCFF" class="c12-k"> 
+     <td width="100"><font size="2" color="#000000" class="c12">序號</font></td>
+     <td width="600"><font size="2" color="#000000" class="c12">請選擇上傳檔案</font></td>
+   </tr>
+   <tr align="center" class="c12-k" bgcolor="#FFFFFF" onmouseover="this.style.background='#FCFCC0';" onmouseout="this.style.background='#FFFFFF'; "> 
+     <td>檔案01</td>
+     <td align="left">
+	 <input type="file" class="file" name="File1" size="40" ID="File1">
+	 <label id="lblFile1"></label>
+	 </td>
+   </tr>
+   <tr align="center" class="c12-k" bgcolor="#FFFFFF" onmouseover="this.style.background='#FCFCC0';" onmouseout="this.style.background='#FFFFFF'; "> 
+     <td>檔案02</td>
+     <td align="left">
+	 <input type="file" class="file" name="File2" size="40" ID="File2">
+	  <label id="lblFile2"></label>
+	 </td>
+   </tr>
+   <tr align="center" class="c12-k" bgcolor="#FFFFFF" onmouseover="this.style.background='#FCFCC0';" onmouseout="this.style.background='#FFFFFF'; "> 
+     <td>檔案03</td>
+     <td align="left"><input type="file" class="file" name="File3" size="40" ID="File3"> <label id="lblFile3"></label></td>
+   </tr>
+   <tr align="center" class="c12-k" bgcolor="#FFFFFF" onmouseover="this.style.background='#FCFCC0';" onmouseout="this.style.background='#FFFFFF'; "> 
+     <td>檔案04</td>
+     <td align="left"><input type="file" class="file" name="File4" size="40" ID="File4"><label id="lblFile4"></label></td>
+   </tr>
+   <tr align="center" class="c12-k" bgcolor="#FFFFFF" onmouseover="this.style.background='#FCFCC0';" onmouseout="this.style.background='#FFFFFF'; "> 
+     <td>檔案05</td>
+     <td align="left"><input type="file" class="file" name="File5" size="40" ID="File5"><label id="lblFile5"></label></td>
+   </tr>
+   <tr align="center" class="c12-k" bgcolor="#FFFFFF" onmouseover="this.style.background='#FCFCC0';" onmouseout="this.style.background='#FFFFFF'; "> 
+     <td>檔案06</td>
+     <td align="left"><input type="file" class="file" name="File6" size="40" ID="File6"><label id="lblFile6"></label></td>
+   </tr>
+   <tr align="center" class="c12-k" bgcolor="#FFFFFF" onmouseover="this.style.background='#FCFCC0';" onmouseout="this.style.background='#FFFFFF'; "> 
+     <td>檔案07</td>
+     <td align="left"><input type="file" class="file" name="File7" size="40" ID="File7"><label id="lblFile7"></label></td>
+   </tr>
+   <tr align="center" class="c12-k" bgcolor="#FFFFFF" onmouseover="this.style.background='#FCFCC0';" onmouseout="this.style.background='#FFFFFF'; "> 
+     <td>檔案08</td>
+     <td align="left"><input type="file" class="file" name="File8" size="40" ID="File8"><label id="lblFile8"></label></td>
+   </tr>
+   <tr align="center" class="c12-k" bgcolor="#FFFFFF" onmouseover="this.style.background='#FCFCC0';" onmouseout="this.style.background='#FFFFFF'; "> 
+     <td>檔案09</td>
+     <td align="left"><input type="file" class="file" name="File9" size="40" ID="File9"><label id="lblFile9"></label></td>
+   </tr>
+   <tr align="center" class="c12-k" bgcolor="#FFFFFF" onmouseover="this.style.background='#FCFCC0';" onmouseout="this.style.background='#FFFFFF'; "> 
+     <td>檔案10</td>
+     <td align="left"><input type="file" class="file" name="File10" size="40" ID="File10"><label id="lblFile10"></label></td>
+   </tr>
+   <tr align="center" height="30" bgcolor="#CCCCFF"> 
+     <td class="c12-k" colspan="2"><font color="#000080">
+		<input type="hidden"  id="attachmentFile" name="attachmentFile" value="">
+     	<input type="hidden" size="30" maxlength="30" id="hidCknum" name="cknum" value="">
+		
+		<input type="hidden" size="30" maxlength="30" name="ChkType" value="">
+         
+		  <input type="button" id="addFile" name="add" value="確認上傳檔案" onclick="">
+                                               
+     	</font>
+     </td>
+   </tr>
+  </table>
+</html>
+<script>
+
+$(document).ready(function() {
+
+	//sessionStorage.getItem("U_num");
+	const Params = new URLSearchParams(window.location.search);
+	const cknum = Params.get('cknum');
+	$("#spCknum").html(cknum)
+	$("#hidCknum").val(cknum)
+	
+	$('.file').bind('change', function() {
+			convertFiles('.file',"attachmentFile") 
+	});
+	
+	$('#addFile').bind('click', function() {
+			InsertReceive()
+	});
+	
+});
+
+  
+
+function readFile(InputID,file, index, callback) 
+{
+		const reader = new FileReader();
+		reader.readAsDataURL(file);
+		reader.onload = () => 
+    {
+        const fileObj = 
+        {
+            file_index: index.toString(),
+            file_body_encode: reader.result.split(',')[1],
+            file_size: file.size.toString(),
+            content_type: file.name.split('.').pop(),
+            file_name: file.name
+        };
+        const fileSizeInBytes = file.size;
+        $("#lbl"+InputID).html(  Math.floor((fileSizeInBytes / 1024)).toString()+"KB");
+        
+        callback(fileObj);
+		};
+}
+
+function convertFiles(p_Class,p_preName) 
+{
+    const fileInputs = [];
+		$(p_Class).each(function(index, element) 
+    {
+        fileInputs.push(element)
+		});
+    const results = [];
+    let m_fileIndex = 1;
+    for (let i = 0; i < fileInputs.length; i++) 
+		{
+        if (fileInputs[i].files.length > 0)
+        {
+            const file = fileInputs[i].files[0];
+            readFile(fileInputs[i].id,file, m_fileIndex, (fileObj) => 
+            {
+                results.push(fileObj);
+                $("#" + p_preName).prop("textContent",JSON.stringify(results, null, 2));
+            });
+            m_fileIndex += 1;
+        }
+    }
+    return false;
+}
+
+
+function InsertReceive()
+{
+	const url = `${BASE_URL}/AE/InsertFile`;
+	var KeyID=$("#hidCknum").val();
+	let objFiles = JSON.parse($("#attachmentFile").prop("textContent"));
+	var U_num = sessionStorage.getItem("U_num");
+	// 顯示遮罩
+    $("#loading-mask").show();
+	
+	
+	// 執行POST請求
+	$.ajax({
+		url: url+'?KeyID='+KeyID+'&Type=Upload&u_num='+U_num,
+		type: 'POST',
+		data: JSON.stringify(objFiles),
+		contentType: 'application/json; charset=utf-8',
+		success: function(result) 
+		{
+			if(result.resultCode=="000")
+			{
+				// 轉檔完成後關閉遮罩
+               setTimeout(function() { $("#loading-mask").hide();
+                }, 100);
+				var m_form_no=result.resultMsg;
+				alert("上傳成功 ");
+				if (window.opener && !window.opener.closed) {
+					window.opener.location.reload(); // 通知父頁面重新整理
+				}
+				window.close(); // 關閉當前的 B 頁面
+				
+			}
+			else
+			{
+			$("#loading-mask").hide();
+				alert("上傳失敗;"+result.resultMsg);
+			}
+		 },
+		error: function(xhr, status, error) 
+		{
+		$("#loading-mask").hide();
+		  alert("WebAPI連線錯誤!!");
+		}
+	});
+}
+
+
+
+</script>

@@ -18,14 +18,51 @@
     <input type="text" value="" name="checkDateS" class="datepickerTW" placeholder="年 /月 /日" style="width:80px;">~
     <input type="text" value="" name="checkDateE" class="datepickerTW" placeholder="年 /月 /日" style="width:80px;">
     <input type="button" value="查詢" onclick="fetchData();" />
-    <input type="button" value="上傳文中" />
+   
     <br />
-    <table width="1180px" id="MainTable" border="0" cellpadding="4" cellspacing="1" bgcolor="#666666">
+    <br />
+    <table width="1250px" id="MainTableRec" border="0" cellpadding="4" cellspacing="1" bgcolor="#666666" style="display:none;">
+        <thead>
+            <tr align="center" bgcolor="#CCCCFF" class="TrHead">
+                <td width="3%">No.</td>
+                <td width="8%">客戶姓名</td>
+                <td width="5%">客戶ID</td>
+                <td width="7%">繳款期數</td>
+                <td width="7%">應繳款日期</td>
+                <td width="7%">月付金</td>
+                <td width="7%">利息</td>
+                <td width="7%">償還本金</td>
+                <td width="5%">手續費</td>
+                <td width="10%">本金餘額</td>
+                <td width="7%">繳款日期</td>
+                <td width="7%">帳戶後5碼</td>
+                <td width="10%">備註</td>
+                <td width="7%">上傳檔案</td>
+            </tr>
+        </thead>
+        <tbody></tbody>
+        <tfoot>
+            <tr align="center" height="15" bgcolor="#CCCCFF">
+                <td class="c12-k" colspan="15">
+                    <font color="#000080">
+                        <label id="CountRows"></label>
+                    </font>
+                </td>
+            </tr>
+            <tr align="center" height="40" bgcolor="#EEEEFF">
+                <td class="c12-k" colspan="15">
+                    <input type="button" value="確認送出" onclick="SaveData();" style="padding:5px 15px;">
+                </td>
+            </tr>
+        </tfoot>
+    </table>
+
+    <table width="1250px" id="MainTableWin" border="0" cellpadding="4" cellspacing="1" bgcolor="#666666" style="display:none;">
         <thead>
             <tr align="center" bgcolor="#CCCCFF" class="TrHead">
                 <td width="3%">No.</td>
                 <td width="3%"> <input type="checkbox" id="select-all"></td>
-                <td width="5%">客戶姓名</td>
+                <td width="10%">客戶姓名</td>
                 <td width="5%">客戶ID</td>
                 <td width="5%">繳款期數</td>
                 <td width="7%">應繳款日期</td>
@@ -36,20 +73,30 @@
                 <td width="10%">本金餘額</td>
                 <td width="7%">繳款日期</td>
                 <td width="7%">帳戶後5碼</td>
-                <td width="12%">備註</td>
-                <td width="10%">上傳檔案</td>
+                <td width="10%">備註</td>
+                <td width="7%">上傳檔案</td>
             </tr>
         </thead>
         <tbody></tbody>
         <tfoot>
             <tr align="center" height="15" bgcolor="#CCCCFF">
-                <td class="c12-k" colspan="14">
+                <td class="c12-k" colspan="15">
                     <font color="#000080">
                         <label id="CountRows"></label>
                     </font>
                 </td>
             </tr>
         </tfoot>
+        <!--<tr align="center" height="40" bgcolor="#EEEEFF"> ???備註要給誰看 TODO
+            <td class="c12-k" colspan="15">
+                <input type="button" value="暫時儲存" onclick="UpdRecPay();" style="padding:5px 15px;">
+            </td>
+        </tr>-->
+        <tr align="center" height="40" bgcolor="#EEEEFF">
+            <td class="c12-k" colspan="15">
+                <input type="button" value="上傳文中" onclick="UpdWinInv();" style="padding:5px 15px;">
+            </td>
+        </tr>
     </table>
 </body>
 </html>
@@ -70,8 +117,14 @@
         }
     });
 
-    //判定是否財務
-    ChkUserRole();
+    dateTW();
+    ChkUserRole(); //判定是否財務
+
+    $('.datepickerTW').datepickerTW({
+        changeYear: true,
+        changeMonth: true,
+        dateFormat: 'yy-mm-dd'
+    });
 
     function ChkUserRole() {
         const url = `${BASE_URL}/AE_VP/ChkUserRole?User=${WebUser}`;
@@ -95,9 +148,185 @@
 
     function fetchData() {
         if (ChkRole == 'N') {
-
+            RecPayLQuery();
         } else {
-
+            CliePayLQuery();
         }
+    }
+
+    function RecPayLQuery() {
+        const RecData_req = {
+            tbInfo: {
+                add_num: WebUser,
+                edit_num: WebUser
+            },
+            RC_Date_S: document.querySelector('input[name="checkDateS"]').value,
+            RC_Date_E: document.querySelector('input[name="checkDateE"]').value
+        };
+
+        const url = `${BASE_URL}/AE_HM/Receivable_Pay_LQuery`;
+
+        $('body').css('cursor', 'wait');
+
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include',
+            body: JSON.stringify(RecData_req)
+        })
+            .then(response => response.json())
+            .then(responseData => {
+                if (responseData.resultCode == "000") {
+                    data = JSON.parse(responseData.objResult);
+                    showRecTable();
+                } else {
+                    alert(responseData.resultMsg);
+                }
+            })
+            .catch(error => {
+                alert('API 請求失敗:', error);
+            })
+            .finally(
+                $('body').css('cursor', 'default')
+            );
+    }
+
+    function showRecTable() {
+        document.querySelector('#MainTableRec').style.display = "table";
+        document.getElementById('CountRows').innerHTML = `筆數:${data.length}`;
+        const tbody = document.querySelector('#MainTableRec tbody');
+        tbody.innerHTML = '';
+
+        const columnOrder = ['CS_name','CS_PID', 'RC_count', 'roc_RC_date', 'amount_per_month', 'interest', 'Rmoney', 'HFees',
+            'Ex_RemainingPrincipal', 'CP_pay_date', 'CP_account_last', 'CP_bus_remark','FileCount'];
+        data.forEach((item, index) => {
+            const row = document.createElement('tr');
+            row.setAttribute('align', 'center');
+            row.className = 'c12-k';
+            row.style.backgroundColor = '#FFFFFF';
+            row.onmouseover = function () { this.style.background = '#FCFCC0'; };
+            row.onmouseout = function () { this.style.background = '#FFFFFF'; };
+
+            //把整筆資料存到 tr
+            row.dataset.rowData = JSON.stringify(item);
+
+            const serialCell = document.createElement('td');
+            serialCell.textContent = index + 1;  // 序號
+            row.appendChild(serialCell);
+
+            columnOrder.forEach(key => {
+                const cell = document.createElement('td');
+                switch (key) {
+                    case "amount_per_month":
+                    case "interest":
+                    case "Rmoney":
+                    case "HFees":
+                    case "Ex_RemainingPrincipal":
+                        cell.textContent = Number(item[key]).toLocaleString();
+                        break;
+                    case "CP_pay_date":
+                        cell.innerHTML = `<input type="text" name="CP_pay_date" class="datepickerTW" placeholder="年 /月 /日" style="width:80px;">`;
+                        break;
+                    case "CP_account_last":
+                        cell.innerHTML = `<input type="text" name="CP_account_last" maxlength="6" size="6">`;
+                        break;
+                    case "CP_bus_remark":
+                        cell.innerHTML = `<input type="text" name="CP_bus_remark">`;
+                        break;
+                    case "FileCount":
+                        cell.innerHTML = `<input type="button" value="附加檔案(${Number(item[key])})" onclick="OpenUpload('P${item.RCD_id}','Upload')">`;
+                        break;
+                    default:
+                        cell.textContent = item[key];
+                        break;
+                }
+
+                row.appendChild(cell);
+            });
+            tbody.appendChild(row);
+            dateTW();
+            $('.datepickerTW').datepickerTW({
+                changeYear: true,
+                changeMonth: true,
+                dateFormat: 'yy-mm-dd'
+            });
+        });
+    }
+
+    function SaveData() {
+        const tbody = document.querySelector('#MainTableRec tbody');
+        const rows = tbody.querySelectorAll('tr');
+
+        const updatedData = [];
+
+        rows.forEach(row => {
+            const rowData = JSON.parse(row.dataset.rowData);
+
+            const cpPayDate = convertTWDateToAD(row.querySelector('input[name="CP_pay_date"]').value);
+            const cpAccountLast = row.querySelector('input[name="CP_account_last"]').value;
+
+            if (cpPayDate && cpAccountLast) {
+                rowData.CP_pay_date = cpPayDate;
+                rowData.CP_account_last = cpAccountLast;
+                rowData.CP_bus_remark = row.querySelector('input[name="CP_bus_remark"]').value;
+                rowData.User = WebUser
+                updatedData.push(rowData);
+            }
+        });
+
+        if (updatedData.length === 0) {
+            alert("請至少輸入一筆資料");
+            return;
+        }
+
+        const url = `${BASE_URL}/AE_HM/Client_Pay_Ins`;
+
+        $('body').css('cursor', 'wait');
+
+        $.ajax({
+            url: url,
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(updatedData),
+            success: function (resData) {
+                alert(resData.resultMsg);
+            },
+            error: function (err) {
+                alert("儲存失敗: " + err.responseText);
+            },
+            complete: function () {
+                $('body').css('cursor', 'default');
+                RecPayLQuery();
+            }
+        });
+
+        console.log(updatedData);
+    }
+
+    function CliePayLQuery() {
+
+    }
+
+    function UpdWinInv() {
+
+    }
+
+    function convertTWDateToAD(twDate) {
+        if (!twDate) return null;
+        const parts = twDate.split('-');
+        if (parts.length !== 3) return null;
+
+        const year = parseInt(parts[0], 10) + 1911;
+        const month = String(parseInt(parts[1], 10)).padStart(2, '0');
+        const day = String(parseInt(parts[2], 10)).padStart(2, '0');
+
+        return `${year}-${month}-${day}`; // 例如 "2026-03-07"
+    }
+
+    function OpenUpload(File_ID, File_Type) {
+        var url = "../UpLoad/Upload_List.html?cknum=" + File_ID
+        window.open(url, "_file_list", "scrollbars=yes,resizable=no,width=725,height=400,top=300,left=150");
     }
 </script>
