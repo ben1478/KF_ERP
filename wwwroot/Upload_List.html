@@ -1,0 +1,258 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+	<style>
+    #loading-mask {
+        display: none;
+        position: fixed;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        background: rgba(0,0,0,0.5);
+        z-index: 9999;
+        color: white;
+        text-align: center;
+        padding-top: 20%;
+        font-family: "Microsoft JhengHei", sans-serif;
+    }
+    .spinner {
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid #3498db;
+        border-radius: 50%;
+        width: 40px; height: 40px;
+        animation: spin 2s linear infinite;
+        margin: 0 auto 10px;
+    }
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+</style>
+    <script src="../Base.js"></script>
+    <title>作業平台</title>
+</head>
+
+<div id="loading-mask">
+    <div class="spinner"></div>
+    <div>檔案處理中，請稍候...</div>
+</div>
+<table width="700" border="0" id="MainTable" cellspacing="0" cellpadding="0">
+  <tr bgcolor="#FFFFFF" height="40">
+    <td width="500" align="left">
+      <b>&nbsp; <span class="c14k">夾檔作業 </span> </b>　<font size="2" color="#663300" class="c12">編號：<span id="spCknum"></span></font>
+	 <br><b>&nbsp; <span class="c14k">檔案數量: </span> </b> 
+	
+						
+    </td>
+    <td width="200" align="right">
+	
+			<input type="button" name="new" class="btn_red_1" value="檔案上傳" style="cursor: pointer;" onclick="uploadFile();">&nbsp;&nbsp;
+		
+    </td>
+  </tr>	<input type="hidden" size="30" maxlength="30" id="hidCknum" name="cknum" value="">
+</table>
+
+
+ <table width="700" border="0" cellpadding="4" cellspacing="1" bgcolor="#666666">
+    <tr height="30" align="center" bgcolor="#CCCCFF" id="TRHead" class="c12-k"> 
+		  <td width="30">序號</td>
+		  <td width="270">檔案名稱</td>
+		  <td width="40">開啟</td>
+		  <td width="180">上傳日期</td>
+		  <td width="180">刪除</td>
+		</tr>
+        
+        <tbody></tbody>
+    </table>
+</html>
+<script>
+
+	const Params = new URLSearchParams(window.location.search);
+	const cknum = Params.get('cknum');
+	const LockFile = Params.get('LockFile');
+	const PID = Params.get('pid');
+	const ChkType = Params.get('ChkType');
+	const ftpUpload = Params.get('ftpUpload');
+
+$(document).ready(function() {
+	$("#spCknum").html(cknum)
+	$("#hidCknum").val(cknum)
+	GetFilesByKeyID()
+});
+
+
+let objFiles=null;
+
+function GetFilesByKeyID()
+{
+	var KeyID=$("#hidCknum").val()
+	const Type="Upload";
+    const url = `${BASE_URL}/AE/GetFilesByKeyID`;
+    $.ajax({
+		 url: url+'?KeyID='+KeyID+'&Type='+Type,
+         type: 'POST',
+         data: {},
+         contentType: 'application/json; charset=utf-8',
+         success: function(result) {
+         if(result.resultCode=="000")
+         {
+			objFiles=result.objResult;
+			BindingDataTable(KeyID,Type,objFiles);
+         }
+         else
+         {
+           alert(result.resultMsg);
+           $("#txtError").val(result.resultMsg);
+         }
+         
+         },
+         error: function(xhr, status, error) {
+         console.log(error);
+         }
+   });
+}
+
+function DeleteFile(KeyID,Type,file_index)
+{
+	
+    const url = `${BASE_URL}/AE/DeleteFile`;
+    $.ajax({
+		 url: url+'?KeyID='+KeyID+'&Type='+ Type +'&file_index='+file_index,
+         type: 'POST',
+         data: {},
+         contentType: 'application/json; charset=utf-8',
+         success: function(result) {
+			 if(result.resultCode=="000")
+			 {
+				 alert("刪除成功");
+				 location.reload(); 
+			 }
+			 else
+			 {
+			   alert(result.resultMsg);
+			 }
+         },
+         error: function(xhr, status, error) {
+         console.log(error);
+         }
+   });
+}
+
+
+
+
+function BindingDataTable(KeyID,Type,objFiles)
+{
+	let table = $('#MainTable')
+	let m_html="";
+	jQuery.each(objFiles, function(index, item) {
+			m_html+='<tr height="30" align="center"  class="c12-k" bgcolor="#FFFFFF" >'
+			m_html+='<td>'+(index+1)+'</td>'
+			m_html+='<td>'+item.file_name+'</td>'
+			m_html+='<td> <img src="../images/view.png" width="16" height="18" border="0" alt="開啟檔案" style="cursor: pointer;" '
+			m_html+=' onclick="GetFileBySeq(\''+ item.file_index+'\',\''+ Type+'\')"></td>'
+			m_html+='<td>'+item.add_date+'</td>'
+			m_html+='<td> <img src="../images/delete.png" width="16" height="18" border="0" alt="刪除" style="cursor: pointer;" '
+			m_html+=' onclick="DeleteFile(\''+ KeyID+'\',\''+ Type+'\',\''+ item.file_index+'\')"></td>'
+			
+			m_html+='</tr >'
+	});
+	
+		$('#TRHead').after(m_html)   
+
+}
+
+
+
+
+ function GetFileBySeq(Index) {
+    var KeyID = $("#hidCknum").val();
+    const Type = "Upload";
+    const url = `${BASE_URL}/AE/GetFileBySeq`;
+
+    // 顯示遮罩
+    $("#loading-mask").show();
+
+    $.ajax({
+        url: url + '?KeyID=' + KeyID + '&Type=' + Type + '&Index=' + Index,
+        type: 'POST',
+        data: {},
+        contentType: 'application/json; charset=utf-8',
+        success: function(result) {
+            if (result.resultCode == "000") {
+                var item = result.objResult;
+                
+                // 使用 setTimeout 確保「顯示遮罩」的動作先被瀏覽器渲染
+                setTimeout(function() {
+                    processFileStream(item.file_body_encode, item.file_name, item.content_type,KeyID);
+                    
+                    // 轉檔完成後關閉遮罩
+                    $("#loading-mask").hide();
+                }, 100);
+            } else {
+                $("#loading-mask").hide();
+                alert(result.resultMsg);
+                $("#txtError").val(result.resultMsg);
+            }
+        },
+        error: function(xhr, status, error) {
+            $("#loading-mask").hide();
+            console.log(error);
+        }
+    });
+}
+
+function processFileStream(base64, fileName, contentType,KeyID) {
+    const ext = fileName.split('.').pop().toLowerCase();
+    
+    // Base64 解碼 (這部分最吃效能)
+    const byteCharacters = atob(base64);
+    const byteNumbers = new Array(byteCharacters.length);
+    for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+    }
+    const byteArray = new Uint8Array(byteNumbers);
+
+    const mimeMap = {
+        'pdf': 'application/pdf',
+        'jpg': 'image/jpeg', 'jpeg': 'image/jpeg', 'png': 'image/png',
+        'txt': 'text/plain',
+        'mp4': 'video/mp4', 'mov': 'video/quicktime'
+    };
+
+    const targetMime = mimeMap[ext] || contentType;
+    const blob = new Blob([byteArray], { type: targetMime });
+    const fileURL = window.URL.createObjectURL(blob);
+
+    const previewExtensions = ['pdf', 'jpg', 'jpeg', 'png', 'txt', 'mp4', 'mov'];
+
+    if (previewExtensions.includes(ext)) {
+       // window.open(fileURL, '_blank');
+		window.open(fileURL,'_UpLoad_'+ KeyID,'scrollbars=yes,resizable=no,width=725,height=480,top=300,left=150');
+
+    } else {
+        const link = document.createElement('a');
+        link.href = fileURL;
+        link.download = fileName;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
+    setTimeout(() => window.URL.revokeObjectURL(fileURL), 10000);
+}  
+
+
+
+
+function uploadFile()
+{
+	window.open('../UpLoad/Upload.html?cknum='+ cknum,'_UpLoad_'+ cknum,'scrollbars=yes,resizable=no,width=725,height=480,top=300,left=150');
+}
+
+
+</script>
