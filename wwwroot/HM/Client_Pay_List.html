@@ -71,10 +71,9 @@
                 <td width="7%">償還本金</td>
                 <td width="5%">手續費</td>
                 <td width="10%">本金餘額</td>
-                <td width="7%">繳款日期</td>
-                <td width="7%">帳戶後5碼</td>
+                <td width="7%">帳號後5碼</td>
                 <td width="10%">備註</td>
-                <td width="7%">上傳檔案</td>
+                <td width="10%">回傳結果</td>
             </tr>
         </thead>
         <tbody></tbody>
@@ -87,11 +86,6 @@
                 </td>
             </tr>
         </tfoot>
-        <!--<tr align="center" height="40" bgcolor="#EEEEFF"> ???備註要給誰看 TODO
-            <td class="c12-k" colspan="15">
-                <input type="button" value="暫時儲存" onclick="UpdRecPay();" style="padding:5px 15px;">
-            </td>
-        </tr>-->
         <tr align="center" height="40" bgcolor="#EEEEFF">
             <td class="c12-k" colspan="15">
                 <input type="button" value="上傳文中" onclick="UpdWinInv();" style="padding:5px 15px;">
@@ -138,6 +132,7 @@
             .then(responseData => {
                 if (responseData.resultCode === '000') {
                     ChkRole = responseData.objResult;
+                    fetchData();
                 }
             })
             .catch(error => {
@@ -306,11 +301,162 @@
     }
 
     function CliePayLQuery() {
+        const url = `${BASE_URL}/AE_HM/Client_Pay_LQuery`;
 
+        $('body').css('cursor', 'wait');
+
+
+        fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include'
+        })
+            .then(response => response.json())
+            .then(responseData => {
+                if (responseData.resultCode == "000") {
+                    data = JSON.parse(responseData.objResult);
+                    showCliePayTable();
+                } else {
+                    alert(responseData.resultMsg);
+                }
+            })
+            .catch(error => {
+                alert('API 請求失敗:', error);
+            })
+            .finally(
+                $('body').css('cursor', 'default')
+        );
+    }
+
+    function showCliePayTable() {
+        document.querySelector('#MainTableWin').style.display = "table";
+        document.getElementById('CountRows').innerHTML = `筆數:${data.length}`;
+        const tbody = document.querySelector('#MainTableWin tbody');
+        tbody.innerHTML = '';
+
+        const columnOrder = ['RCD_id', 'CS_name', 'CS_PID', 'RC_count', 'roc_RC_date', 'amount_per_month', 'interest', 'Rmoney', 'HFees', 'Ex_RemainingPrincipal','CP_account_last', 'CP_fin_remark', 'Win_Msg'];
+        data.forEach((item, index) => {
+            const row = document.createElement('tr');
+            row.setAttribute('align', 'center');
+            row.className = 'c12-k';
+            row.style.backgroundColor = '#FFFFFF';
+            row.onmouseover = function () { this.style.background = '#FCFCC0'; };
+            row.onmouseout = function () { this.style.background = '#FFFFFF'; };
+
+            //把整筆資料存到 tr
+            row.dataset.rowData = JSON.stringify(item);
+
+            const serialCell = document.createElement('td');
+            serialCell.textContent = index + 1;  // 序號
+            row.appendChild(serialCell);
+
+            columnOrder.forEach(key => {
+                const cell = document.createElement('td');
+                if (key === "RCD_id") {
+
+                    const checkbox = document.createElement('input');
+                    checkbox.type = 'checkbox';
+                    checkbox.className = 'row-check';
+                    checkbox.value = item.RCD_id;
+
+                    cell.appendChild(checkbox);
+                    row.appendChild(cell);
+
+                } else {
+
+                    switch (key) {
+                        case "amount_per_month":
+                        case "interest":
+                        case "Rmoney":
+                        case "HFees":
+                        case "Ex_RemainingPrincipal":
+                            cell.textContent = Number(item[key]).toLocaleString();
+                            break;
+                        case "CP_fin_remark":
+                            const input = document.createElement('input');
+                            input.type = 'text';
+                            input.name = 'CP_fin_remark';
+                            input.value = item[key] ?? ''; 
+                            cell.appendChild(input);
+                            break;
+                        default:
+                            cell.textContent = item[key];
+                            break;
+                    }
+
+                    row.appendChild(cell);
+                }
+            });
+            tbody.appendChild(row);
+        });
     }
 
     function UpdWinInv() {
+        const selectedData = [];
 
+        document.querySelectorAll('.row-check:checked').forEach(chk => {
+            const row = chk.closest('tr');
+            const rowData = JSON.parse(row.dataset.rowData);
+
+            const model = {
+                HS_id: Number(rowData.HS_id),
+                RCD_id: Number(rowData.RCD_id),
+                CS_name: rowData.CS_name,
+                CS_PID: rowData.CS_PID,
+                RC_count: Number(rowData.RC_count),
+                roc_RC_date: rowData.roc_RC_date,
+                amount_per_month: Number(rowData.amount_per_month),
+                interest: Number(rowData.interest),
+                Rmoney: Number(rowData.Rmoney),
+                HFees: rowData.HFees ? Number(rowData.HFees) : null,
+                Ex_RemainingPrincipal: Number(rowData.Ex_RemainingPrincipal),
+                amount_total: Number(rowData.amount_total),
+                month_total: Number(rowData.month_total),
+                RecPayDate: rowData.RecPayDate,
+                Win_Msg: rowData.Win_Msg,
+                User: WebUser,
+                CP_account_last: rowData.CP_account_last,
+                CP_fin_remark: row.querySelector('input[name="CP_fin_remark"]').value
+            };
+
+            selectedData.push(model);
+        });
+
+        if (selectedData.length === 0) {
+            alert("請至少勾選一筆資料");
+            return;
+        }
+
+        const url = `${BASE_URL}/SendPaySelfForInv`;
+
+        $.ajax({
+            url: url,
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(selectedData),
+            success: function (resData) {
+                if (resData.resultCode == "000") {
+                    data = JSON.parse(resData.objResult);
+                    showWinResTable();
+                } else {
+                    alert(resData.resultMsg);
+                }
+            },
+            error: function (err) {
+                alert("開立失敗: " + err.responseText);
+            },
+            complete: function () {
+                $('body').css('cursor', 'default');
+            }
+        });
+
+        console.log(selectedData);
+    }
+
+    function showWinResTable() {
+        showCliePayTable();
     }
 
     function convertTWDateToAD(twDate) {
@@ -322,7 +468,7 @@
         const month = String(parseInt(parts[1], 10)).padStart(2, '0');
         const day = String(parseInt(parts[2], 10)).padStart(2, '0');
 
-        return `${year}-${month}-${day}`; // 例如 "2026-03-07"
+        return `${year}-${month}-${day}`;
     }
 
     function OpenUpload(File_ID, File_Type) {
