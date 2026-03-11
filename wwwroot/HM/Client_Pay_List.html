@@ -40,6 +40,15 @@
                 <option value="Y">已繳款</option>
             </select>
         </span>
+        <!--<span id="showClientPay" style="display: none;">
+            <label>繳款日:</label>
+            <input type="text" value="" name="checkPayDateS" class="datepickerTW" placeholder="年 /月 /日" style="width:80px;">
+            &nbsp;&nbsp;
+            <select name="showClientPay" id="showClientPay" >
+                <option value="N" selected>尚未開立發票</option>
+                <option value="Y">已開立發票</option>
+            </select>
+        </span>-->
         <input type="button" value="查詢" onclick="fetchData();" />
     </div>
     <br />
@@ -98,7 +107,8 @@
                 <td width="7%">帳號後5碼</td>
                 <td width="7%">已繳款金額</td>
                 <td width="9%">備註</td>
-                <td width="9%">回傳結果</td>
+                <td width="6%">回傳結果</td>
+                <td width="6%">附件</td>
             </tr>
         </thead>
         <tbody></tbody>
@@ -113,7 +123,8 @@
         </tfoot>
         <tr align="center" height="40" bgcolor="#EEEEFF">
             <td class="c12-k" colspan="15">
-                <input type="button" value="上傳文中" onclick="UpdWinInv();" style="padding:5px 15px;">
+                <input type="button"  id="btnUpWin" value="上傳文中" onclick="UpdWinInv();" style="padding:5px 15px;">
+                <input type="button"  id="btnDelete" value="刪除資料" onclick="DeleteCliePay();" style="padding:5px 15px; background-color:red; color:white; border:none; float:right; cursor:pointer;">
             </td>
         </tr>
     </table>
@@ -168,6 +179,7 @@
                         document.getElementById("select_user_one").addEventListener("click", function () {
                             openUserOne('appUser');
                         });
+                        //document.querySelector('#showClientPay').style.display = "";
                     } else {
                         if (Rnum !== "1009") {
                             document.querySelector('#showSelect').style.display = "";
@@ -181,6 +193,7 @@
                         document.querySelector('#showPlan').style.display = "none";
                         document.querySelector('#showCase').style.display = "none";
                         document.querySelector('#showSelect').style.display = "none";
+                        //document.querySelector('#showClientPay').style.display = "";
                     }
                    
                     if (!RoleA.includes(Rnum)) {
@@ -189,7 +202,6 @@
                 }
             })
             .catch(error => {
-                console.error('ChkUserRole Error:', error);
                 alert('角色辨別失敗，請稍後再試。');
             })
     }
@@ -378,6 +390,16 @@
     }
 
     function CliePayLQuery() {
+        //const showClientPay = document.getElementById("showClientPay").value;
+
+        //if (showClientPay === "Y") {
+        //    document.getElementById("btnUpWin").disabled = true;
+        //    document.getElementById("btnDelete").disabled = true;
+        //} else {
+        //    document.getElementById("btnUpWin").disabled = false;
+        //    document.getElementById("btnDelete").disabled = false;
+        //}
+
         const url = `${BASE_URL}/AE_HM/Client_Pay_LQuery`;
 
         $('body').css('cursor', 'wait');
@@ -413,7 +435,7 @@
         tbody.innerHTML = '';
 
         const columnOrder = ['RCD_id', 'CS_name', 'CS_PID', 'RC_count', 'roc_RC_date', 'amount_per_month', 'interest', 'Rmoney', 'HFees', 'Ex_RemainingPrincipal',
-            'CP_account_last', 'CP_Pay_Amt', 'CP_bus_remark', 'Win_Msg'];
+            'CP_account_last', 'CP_Pay_Amt', 'CP_bus_remark', 'Win_Msg', 'FileCount'];
         data.forEach((item, index) => {
             const row = document.createElement('tr');
             row.setAttribute('align', 'center');
@@ -460,6 +482,9 @@
                             input.name = 'CP_bus_remark';
                             input.value = item[key] ?? ''; 
                             cell.appendChild(input);
+                            break;
+                        case "FileCount":
+                            cell.innerHTML = `<input type="button" value="附加檔案(${Number(item[key])})" onclick="OpenUpload('P${item.RCD_id}','Upload')">`;
                             break;
                         default:
                             cell.textContent = item[key];
@@ -555,5 +580,37 @@
     function OpenUpload(File_ID, File_Type) {
         var url = "../UpLoad/Upload_List.html?cknum=" + File_ID
         window.open(url, "_file_list", "scrollbars=yes,resizable=no,width=725,height=400,top=300,left=150");
+    }
+
+    function DeleteCliePay() {
+        const selectedIds = Array.from(document.querySelectorAll('.row-check:checked')).map(chk => chk.value);
+
+        if (selectedIds.length === 0) {
+            alert('請先勾選要刪除的項目');
+            return;
+        }
+
+        const url = `${BASE_URL}/AE_HM/Client_Pay_Del?user=${encodeURIComponent(WebUser)}`;
+
+        fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(selectedIds)
+        })
+            .then(response => response.json())
+            .then(responseData => {
+                if (responseData.resultCode == "000") {
+                    alert('刪除成功');
+                    selectedIds.forEach(id => {
+                        const chk = document.querySelector(`.row-check[value='${id}']`);
+                        if (chk) chk.closest('tr').remove();
+                    });
+                } else {
+                    alert(responseData.resultMsg);
+                }
+            })
+            .catch(err => {
+                alert('刪除失敗');
+            });
     }
 </script>
