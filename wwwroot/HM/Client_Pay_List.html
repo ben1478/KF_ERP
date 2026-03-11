@@ -15,23 +15,31 @@
 </head>
 <body>
     <div>
-        <label>應繳款日期區間:</label>
-        <input type="text" value="" name="checkDateS" class="datepickerTW" placeholder="年 /月 /日" style="width:80px;">~
-        <input type="text" value="" name="checkDateE" class="datepickerTW" placeholder="年 /月 /日" style="width:80px;">
+        <span id="showPlan">
+            <label>應繳款日期區間:</label>
+            <input type="text" value="" name="checkDateS" class="datepickerTW" placeholder="年 /月 /日" style="width:80px;">~
+            <input type="text" value="" name="checkDateE" class="datepickerTW" placeholder="年 /月 /日" style="width:80px;">
+            &nbsp;&nbsp;
+            <label>客戶姓名:</label>
+            <input type="text" value="" name="CS_Name" style="width:80px" />
+            &nbsp;&nbsp;
+            <label>客戶身分證:</label>
+            <input type="text" value="" name="CS_PID" style="width:80px" />
+            &nbsp;&nbsp;
+        </span>
+        <span id="showSelect" style="display: none;">
+            <label>業務:</label>
+            <input type="hidden" name="U_num" id="U_num" value="">
+            <input type="text" name="U_name" id="U_name" size="10" maxlength="10" class="box" value="" readonly="">
+            <input type="button" value="..." id="select_user_one">
+        </span>
         &nbsp;&nbsp;
-        <label>客戶姓名:</label>
-        <input type="text" value="" name="CS_Name" style="width:80px" />
-        &nbsp;&nbsp;
-        <label>客戶身分證:</label>
-        <input type="text" value="" name="CS_PID" style="width:80px" />
-        &nbsp;&nbsp;
-        <!--<label>業務員工編號:</label>
-        <input type="text" value="" name="CS_PID" style="width:80px" />-->
-        &nbsp;&nbsp;
-        <select name="case_status" id="case_status" style="width:80px; display:none;">
-            <option value="N" selected>代繳款</option>
-            <option value="Y">已繳款</option>
-        </select>
+        <span id="showCase" style="display: none;">
+            <select name="case_status" id="case_status" style="width:80px;">
+                <option value="N" selected>待繳款</option>
+                <option value="Y">已繳款</option>
+            </select>
+        </span>
         <input type="button" value="查詢" onclick="fetchData();" />
     </div>
     <br />
@@ -40,17 +48,18 @@
         <thead>
             <tr align="center" bgcolor="#CCCCFF" class="TrHead">
                 <td width="3%">No.</td>
-                <td width="8%">客戶姓名</td>
+                <td width="7%">客戶姓名</td>
                 <td width="5%">客戶ID</td>
-                <td width="7%">繳款期數</td>
-                <td width="7%">應繳款日期</td>
+                <td width="6%">繳款期數</td>
+                <td width="10%">應繳款日期</td>
                 <td width="7%">月付金</td>
-                <td width="7%">利息</td>
+                <td width="6%">利息</td>
                 <td width="7%">償還本金</td>
-                <td width="5%">手續費</td>
-                <td width="10%">本金餘額</td>
+                <td width="4%">手續費</td>
+                <td width="8%">本金餘額</td>
                 <td width="7%">繳款日期</td>
                 <td width="7%">帳戶後5碼</td>
+                <td width="7%">已繳款金額</td>
                 <td width="10%">備註</td>
                 <td width="7%">上傳檔案</td>
             </tr>
@@ -85,10 +94,11 @@
                 <td width="7%">利息</td>
                 <td width="7%">償還本金</td>
                 <td width="5%">手續費</td>
-                <td width="10%">本金餘額</td>
+                <td width="9%">本金餘額</td>
                 <td width="7%">帳號後5碼</td>
-                <td width="10%">備註</td>
-                <td width="10%">回傳結果</td>
+                <td width="7%">已繳款金額</td>
+                <td width="9%">備註</td>
+                <td width="9%">回傳結果</td>
             </tr>
         </thead>
         <tbody></tbody>
@@ -132,7 +142,6 @@
     });
 
     dateTW();
-    //ChkUserRole(); //判定是否財務
     GetUserRnum();
 
     $('.datepickerTW').datepickerTW({
@@ -140,27 +149,6 @@
         changeMonth: true,
         dateFormat: 'yy-mm-dd'
     });
-
-    //function ChkUserRole() {
-    //    const url = `${BASE_URL}/AE_VP/ChkUserRole?User=${WebUser}`;
-    //    fetch(url, {
-    //        method: 'GET',
-    //        headers: {
-    //            'Content-Type': 'application/json'
-    //        }
-    //    })
-    //        .then(response => response.json())
-    //        .then(responseData => {
-    //            if (responseData.resultCode === '000') {
-    //                ChkRole = responseData.objResult;
-    //                fetchData();
-    //            }
-    //        })
-    //        .catch(error => {
-    //            console.error('ChkUserRole Error:', error);
-    //            alert('角色辨別失敗，請稍後再試。');
-    //        })
-    //}
 
     function GetUserRnum() {
         const url = `${BASE_URL}/AE/GetUserRole?User=${WebUser}`;
@@ -175,9 +163,29 @@
                 if (responseData.resultCode === '000') {
                     Rnum = responseData.objResult;
                     if (RoleA.includes(Rnum)) {
-                        document.querySelector('#case_status').style.display = "";
+                        document.querySelector('#showCase').style.display = "";
+                        document.querySelector('#showSelect').style.display = "";
+                        document.getElementById("select_user_one").addEventListener("click", function () {
+                            openUserOne('appUser');
+                        });
+                    } else {
+                        if (Rnum !== "1009") {
+                            document.querySelector('#showSelect').style.display = "";
+                            document.getElementById("select_user_one").addEventListener("click", function () {
+                                openUserOne('appUser', '', WebBC, 'Y');
+                            });
+                        }
                     }
-                    //fetchData();
+
+                    if (RoleB.includes(Rnum)) {
+                        document.querySelector('#showPlan').style.display = "none";
+                        document.querySelector('#showCase').style.display = "none";
+                        document.querySelector('#showSelect').style.display = "none";
+                    }
+                   
+                    if (!RoleA.includes(Rnum)) {
+                        fetchData();
+                    }
                 }
             })
             .catch(error => {
@@ -189,6 +197,7 @@
     function fetchData() {
         document.querySelector('#MainTableRec').style.display = "none";
         document.querySelector('#MainTableWin').style.display = "none";
+
         if (RoleA.includes(Rnum)) {
             if (document.querySelector('#case_status').value === 'Y') {
                 CliePayLQuery();
@@ -219,7 +228,8 @@
             RC_Date_E: document.querySelector('input[name="checkDateE"]').value,
             queryType: queryType,
             CS_Name: document.querySelector('input[name="CS_Name"]').value,
-            CS_PID: document.querySelector('input[name="CS_PID"]').value
+            CS_PID: document.querySelector('input[name="CS_PID"]').value,
+            plan_num: document.getElementById("U_num").value
         };
 
         const url = `${BASE_URL}/AE_HM/Receivable_Pay_LQuery`;
@@ -258,7 +268,7 @@
         tbody.innerHTML = '';
 
         const columnOrder = ['CS_name','CS_PID', 'RC_count', 'roc_RC_date', 'amount_per_month', 'interest', 'Rmoney', 'HFees',
-            'Ex_RemainingPrincipal', 'CP_pay_date', 'CP_account_last', 'CP_bus_remark','FileCount'];
+            'Ex_RemainingPrincipal', 'CP_pay_date', 'CP_account_last','CP_Pay_Amt', 'CP_bus_remark','FileCount'];
         data.forEach((item, index) => {
             const row = document.createElement('tr');
             row.setAttribute('align', 'center');
@@ -290,8 +300,11 @@
                     case "CP_account_last":
                         cell.innerHTML = `<input type="text" name="CP_account_last" maxlength="6" size="6">`;
                         break;
+                    case "CP_Pay_Amt":
+                        cell.innerHTML = `<input type="text" name="CP_Pay_Amt" maxlength="7" size="7" value="${item[key] ?? ''}">`;
+                        break;
                     case "CP_bus_remark":
-                        cell.innerHTML = `<input type="text" name="CP_bus_remark">`;
+                        cell.innerHTML = `<input type="text" name="CP_bus_remark" value="${item[key] ?? ''}">`;
                         break;
                     case "FileCount":
                         cell.innerHTML = `<input type="button" value="附加檔案(${Number(item[key])})" onclick="OpenUpload('P${item.RCD_id}','Upload')">`;
@@ -324,10 +337,12 @@
 
             const cpPayDate = convertTWDateToAD(row.querySelector('input[name="CP_pay_date"]').value);
             const cpAccountLast = row.querySelector('input[name="CP_account_last"]').value;
+            const cpPayAmt = row.querySelector('input[name="CP_Pay_Amt"]').value;
 
-            if (cpPayDate) {
+            if (cpPayDate && cpPayAmt) {
                 rowData.CP_pay_date = cpPayDate;
                 rowData.CP_account_last = cpAccountLast;
+                rowData.CP_Pay_Amt = cpPayAmt;
                 rowData.CP_bus_remark = row.querySelector('input[name="CP_bus_remark"]').value;
                 rowData.User = WebUser
                 updatedData.push(rowData);
@@ -335,7 +350,7 @@
         });
 
         if (updatedData.length === 0) {
-            alert("請至少輸入一筆資料");
+            alert("至少要有一筆資料，再確認繳款日期跟已繳款金額是否都有輸入");
             return;
         }
 
@@ -356,7 +371,7 @@
             },
             complete: function () {
                 $('body').css('cursor', 'default');
-                RecPayLQuery();
+                fetchData();
             }
         });
 
@@ -397,7 +412,8 @@
         const tbody = document.querySelector('#MainTableWin tbody');
         tbody.innerHTML = '';
 
-        const columnOrder = ['RCD_id', 'CS_name', 'CS_PID', 'RC_count', 'roc_RC_date', 'amount_per_month', 'interest', 'Rmoney', 'HFees', 'Ex_RemainingPrincipal','CP_account_last', 'CP_fin_remark', 'Win_Msg'];
+        const columnOrder = ['RCD_id', 'CS_name', 'CS_PID', 'RC_count', 'roc_RC_date', 'amount_per_month', 'interest', 'Rmoney', 'HFees', 'Ex_RemainingPrincipal',
+            'CP_account_last', 'CP_Pay_Amt', 'CP_bus_remark', 'Win_Msg'];
         data.forEach((item, index) => {
             const row = document.createElement('tr');
             row.setAttribute('align', 'center');
@@ -435,10 +451,13 @@
                         case "Ex_RemainingPrincipal":
                             cell.textContent = Number(item[key]).toLocaleString();
                             break;
-                        case "CP_fin_remark":
+                        case "CP_Pay_Amt":
+                            cell.textContent = Number(item[key]).toLocaleString();
+                            break;
+                        case "CP_bus_remark":
                             const input = document.createElement('input');
                             input.type = 'text';
-                            input.name = 'CP_fin_remark';
+                            input.name = 'CP_bus_remark';
                             input.value = item[key] ?? ''; 
                             cell.appendChild(input);
                             break;
@@ -479,7 +498,8 @@
                 Win_Msg: rowData.Win_Msg,
                 User: WebUser,
                 CP_account_last: rowData.CP_account_last,
-                CP_fin_remark: row.querySelector('input[name="CP_fin_remark"]').value
+                CP_bus_remark: row.querySelector('input[name="CP_bus_remark"]').value,
+                CP_Pay_Amt: rowData.CP_Pay_Amt
             };
 
             selectedData.push(model);
