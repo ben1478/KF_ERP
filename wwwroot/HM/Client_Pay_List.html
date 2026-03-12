@@ -53,13 +53,13 @@
     </div>
     <br />
     <br />
-    <table width="1250px" id="MainTableRec" border="0" cellpadding="4" cellspacing="1" bgcolor="#666666" style="display:none;">
+    <table width="1350px" id="MainTableRec" border="0" cellpadding="4" cellspacing="1" bgcolor="#666666" style="display:none;">
         <thead>
             <tr align="center" bgcolor="#CCCCFF" class="TrHead">
                 <td width="3%">No.</td>
                 <td width="7%">客戶姓名</td>
                 <td width="5%">客戶ID</td>
-                <td width="6%">繳款期數</td>
+                <td width="5%">繳款期數</td>
                 <td width="10%">應繳款日期</td>
                 <td width="7%">月付金</td>
                 <td width="6%">利息</td>
@@ -90,21 +90,22 @@
         </tfoot>
     </table>
 
-    <table width="1250px" id="MainTableWin" border="0" cellpadding="4" cellspacing="1" bgcolor="#666666" style="display:none;">
+    <table width="1350px" id="MainTableWin" border="0" cellpadding="4" cellspacing="1" bgcolor="#666666" style="display:none;">
         <thead>
             <tr align="center" bgcolor="#CCCCFF" class="TrHead">
                 <td width="3%">No.</td>
                 <td width="3%"> <input type="checkbox" id="select-all"></td>
-                <td width="10%">客戶姓名</td>
+                <td width="8%">客戶姓名</td>
                 <td width="5%">客戶ID</td>
-                <td width="5%">繳款期數</td>
+                <td width="3%">繳款期數</td>
                 <td width="7%">應繳款日期</td>
-                <td width="7%">月付金</td>
-                <td width="7%">利息</td>
-                <td width="7%">償還本金</td>
+                <td width="7%" style="color:red">繳款日期</td>
+                <td width="5%" style="color:red">月付金</td>
+                <td width="5%">利息</td>
+                <td width="5%">償還本金</td>
                 <td width="5%">手續費</td>
                 <td width="9%">本金餘額</td>
-                <td width="7%">帳號後5碼</td>
+                <td width="7%" style="color:red">帳號後5碼</td>
                 <td width="7%">已繳款金額</td>
                 <td width="9%">備註</td>
                 <td width="6%">回傳結果</td>
@@ -114,7 +115,7 @@
         <tbody></tbody>
         <tfoot>
             <tr align="center" height="15" bgcolor="#CCCCFF">
-                <td class="c12-k" colspan="15">
+                <td class="c12-k" colspan="17">
                     <font color="#000080">
                         <label id="CountRows"></label>
                     </font>
@@ -122,7 +123,7 @@
             </tr>
         </tfoot>
         <tr align="center" height="40" bgcolor="#EEEEFF">
-            <td class="c12-k" colspan="15">
+            <td class="c12-k" colspan="17">
                 <input type="button"  id="btnUpWin" value="上傳文中" onclick="UpdWinInv();" style="padding:5px 15px;">
                 <input type="button"  id="btnDelete" value="刪除資料" onclick="DeleteCliePay();" style="padding:5px 15px; background-color:red; color:white; border:none; float:right; cursor:pointer;">
             </td>
@@ -402,6 +403,11 @@
 
         const url = `${BASE_URL}/AE_HM/Client_Pay_LQuery`;
 
+        //const ClientData_req = {
+        //    str_CP_pay_date: document.querySelector('input[name="checkDateS"]').value,
+        //    CP_WIN_CK: document.querySelector('#showClientPay').value
+        //};
+
         $('body').css('cursor', 'wait');
 
         fetch(url, {
@@ -434,7 +440,7 @@
         const tbody = document.querySelector('#MainTableWin tbody');
         tbody.innerHTML = '';
 
-        const columnOrder = ['RCD_id', 'CS_name', 'CS_PID', 'RC_count', 'roc_RC_date', 'amount_per_month', 'interest', 'Rmoney', 'HFees', 'Ex_RemainingPrincipal',
+        const columnOrder = ['RCD_id', 'CS_name', 'CS_PID', 'RC_count', 'roc_RC_date','str_Pay_Date', 'amount_per_month', 'interest', 'Rmoney', 'HFees', 'Ex_RemainingPrincipal',
             'CP_account_last', 'CP_Pay_Amt', 'CP_bus_remark', 'Win_Msg', 'FileCount'];
         data.forEach((item, index) => {
             const row = document.createElement('tr');
