@@ -161,7 +161,7 @@
                     } else if (project_title === 'PJ00017' && RC_count <= 7) {
                         setFeeDisplay(1, true);
                     }
-                    else if (project_title === 'PJ00099' || project_title === 'PJ00046' || project_title === 'PJ00047') {
+                    else if (project_title === 'PJ00099' || project_title === 'PJ00046' || project_title === 'PJ00047' || project_title === 'PJ00048') {
                         setFeeDisplay(0, true);
                         document.getElementById("interestAMT_display").innerText = 0;
                     }
@@ -189,7 +189,9 @@
                         document.getElementById("trDelayMoney").style.display = 'table-row';
                     }
 
-                    if (isFirst === 'Y' && (project_title === 'PJ00046' || project_title === 'PJ00047')) {
+                    if (isFirst === 'Y' && (project_title === 'PJ00046' || project_title === 'PJ00047' || project_title === 'PJ00048')) {
+                        document.getElementById("isFisrt_show").style.display = 'none';
+                        document.getElementById("trDelayMoney").style.display = 'table-row';
                         document.getElementById("interest_show1").style.display = 'none';
                         document.getElementById("interest_show2").style.display = 'none';
                     }
@@ -324,7 +326,7 @@
 
     function updateInterestAMT(differenceInDays)
     {
-        if (!['PJ00099', 'PJ00046', 'PJ00047'].includes(pj_Title)) {
+        if (!['PJ00099', 'PJ00046', 'PJ00047', 'PJ00048'].includes(pj_Title)) {
             var interest = parseFloat((document.getElementsByName('interest_display')[0].textContent).replace(/,/g, ''));
             var interestAmt = Math.ceil((interest / 30) * differenceInDays);
             document.getElementById("interestAMT_display").innerText = interestAmt.toLocaleString();
@@ -362,7 +364,7 @@
       
         var desc = "";
 
-        if (isFirst === "Y" && pj_Title !== "PJ00046" && pj_Title !== "PJ00047") {
+        if (isFirst === "Y" && pj_Title !== "PJ00046" && pj_Title !== "PJ00047" && pj_Title !== "PJ00048") {
             TotalSettAmt = RP_AMT + parseFloat($('#Break_AMT').val() || 0) + interestAmt - amount_per_month + court_Amt - Over_Amt;
             desc = RP_AMT.toLocaleString() + "+" + $('#Break_AMT').val().toLocaleString() + "+" + interestAmt.toLocaleString() + "-" + amount_per_month.toLocaleString() + "+" + court_Amt.toLocaleString();
             if (Over_Amt !== 0) {
