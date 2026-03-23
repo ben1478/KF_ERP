@@ -40,15 +40,15 @@
                 <option value="Y">已繳款</option>
             </select>
         </span>
-        <!--<span id="showClientPay" style="display: none;">
+        <span id="showClientPay" style="display: none;">
             <label>繳款日:</label>
             <input type="text" value="" name="checkPayDateS" class="datepickerTW" placeholder="年 /月 /日" style="width:80px;">
             &nbsp;&nbsp;
-            <select name="showClientPay" id="showClientPay" >
+            <select name="ClientPay" id="ClientPay">
                 <option value="N" selected>尚未開立發票</option>
                 <option value="Y">已開立發票</option>
             </select>
-        </span>-->
+        </span>
         <input type="button" value="查詢" onclick="fetchData();" />
     </div>
     <br />
@@ -124,8 +124,8 @@
         </tfoot>
         <tr align="center" height="40" bgcolor="#EEEEFF">
             <td class="c12-k" colspan="17">
-                <input type="button"  id="btnUpWin" value="上傳文中" onclick="UpdWinInv();" style="padding:5px 15px;">
-                <input type="button"  id="btnDelete" value="刪除資料" onclick="DeleteCliePay();" style="padding:5px 15px; background-color:red; color:white; border:none; float:right; cursor:pointer;">
+                <input type="button" id="btnUpWin" value="上傳文中" onclick="UpdWinInv();" style="padding:5px 15px;">
+                <input type="button" id="btnDelete" value="刪除資料" onclick="DeleteCliePay();" style="padding: 5px 15px; float: right; color:red;">
             </td>
         </tr>
     </table>
@@ -142,7 +142,7 @@
 
     const RoleA = ["1001", "1003", "1007", "1011"]; //全部
     const RoleB = ["1004", "1005"]; //財務端
-    const RoleC = ["1008", "1009", "1010"]; //業務端
+    const RoleC = ["1008", "1009", "1010","1023","1017"]; //業務端
 
     document.addEventListener("change", function (e) {
         if (e.target.id === "select-all") {
@@ -180,7 +180,7 @@
                         document.getElementById("select_user_one").addEventListener("click", function () {
                             openUserOne('appUser');
                         });
-                        //document.querySelector('#showClientPay').style.display = "";
+                        document.querySelector('#showClientPay').style.display = "";
                     } else {
                         if (Rnum !== "1009") {
                             document.querySelector('#showSelect').style.display = "";
@@ -194,9 +194,9 @@
                         document.querySelector('#showPlan').style.display = "none";
                         document.querySelector('#showCase').style.display = "none";
                         document.querySelector('#showSelect').style.display = "none";
-                        //document.querySelector('#showClientPay').style.display = "";
+                        document.querySelector('#showClientPay').style.display = "";
                     }
-                   
+
                     if (!RoleA.includes(Rnum)) {
                         fetchData();
                     }
@@ -222,7 +222,7 @@
             CliePayLQuery();
         }
         else if (RoleC.includes(Rnum)) {
-            if (Rnum === '1009') {
+            if (Rnum === '1009'||Rnum === '1017') {
                 RecPayLQuery(3);
             } else {
                 RecPayLQuery(2);
@@ -391,31 +391,34 @@
     }
 
     function CliePayLQuery() {
-        //const showClientPay = document.getElementById("showClientPay").value;
+        let ClientPay = document.getElementById("ClientPay").value;
 
-        //if (showClientPay === "Y") {
-        //    document.getElementById("btnUpWin").disabled = true;
-        //    document.getElementById("btnDelete").disabled = true;
-        //} else {
-        //    document.getElementById("btnUpWin").disabled = false;
-        //    document.getElementById("btnDelete").disabled = false;
-        //}
+        if (ClientPay.trim() === "Y") {
+            document.getElementById("btnDelete").disabled = true;
+            document.getElementById("btnUpWin").disabled = true;
+        } else {
+            document.getElementById("btnDelete").disabled = false;
+            document.getElementById("btnUpWin").disabled = false;
+        }
 
         const url = `${BASE_URL}/AE_HM/Client_Pay_LQuery`;
 
-        //const ClientData_req = {
-        //    str_CP_pay_date: document.querySelector('input[name="checkDateS"]').value,
-        //    CP_WIN_CK: document.querySelector('#showClientPay').value
-        //};
+        const ClientData_req = {
+            str_CP_pay_date: document.querySelector('input[name="checkPayDateS"]').value,
+            CP_WIN_CK: ClientPay
+        };
+
+        console.log(ClientData_req);
 
         $('body').css('cursor', 'wait');
 
         fetch(url, {
-            method: 'GET',
+            method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            credentials: 'include'
+            credentials: 'include',
+            body: JSON.stringify(ClientData_req)
         })
             .then(response => response.json())
             .then(responseData => {
@@ -440,7 +443,7 @@
         const tbody = document.querySelector('#MainTableWin tbody');
         tbody.innerHTML = '';
 
-        const columnOrder = ['RCD_id', 'CS_name', 'CS_PID', 'RC_count', 'roc_RC_date','str_Pay_Date', 'amount_per_month', 'interest', 'Rmoney', 'HFees', 'Ex_RemainingPrincipal',
+        const columnOrder = ['RCD_id', 'CS_name', 'CS_PID', 'RC_count', 'roc_RC_date', 'str_Pay_Date', 'amount_per_month', 'interest', 'Rmoney', 'HFees', 'Ex_RemainingPrincipal',
             'CP_account_last', 'CP_Pay_Amt', 'CP_bus_remark', 'Win_Msg', 'FileCount'];
         data.forEach((item, index) => {
             const row = document.createElement('tr');
@@ -486,7 +489,7 @@
                             const input = document.createElement('input');
                             input.type = 'text';
                             input.name = 'CP_bus_remark';
-                            input.value = item[key] ?? ''; 
+                            input.value = item[key] ?? '';
                             cell.appendChild(input);
                             break;
                         case "FileCount":
@@ -501,7 +504,74 @@
                 }
             });
             tbody.appendChild(row);
+           
         });
+        appendTotalChild(tbody, columnOrder, data);
+    }
+
+    // ====== 加總總計列 ======
+    function appendTotalChild(tbody, columnOrder, data) {
+        // 先累加 totals
+        const totals = {
+            amount_per_month: 0,
+            interest: 0,
+            Rmoney: 0,
+            HFees: 0,
+            CP_Pay_Amt: 0
+        };
+
+        data.forEach(item => {
+            totals.amount_per_month += Number(item.amount_per_month ?? 0);
+            totals.interest += Number(item.interest ?? 0);
+            totals.Rmoney += Number(item.Rmoney ?? 0);
+            totals.HFees += Number(item.HFees ?? 0);
+            totals.CP_Pay_Amt += Number(item.CP_Pay_Amt ?? 0);
+        });
+
+        // 建立總計列
+        const totalRow = document.createElement('tr');
+        totalRow.style.backgroundColor = '#FFFFCC';
+        totalRow.style.fontWeight = 'bold';
+        totalRow.setAttribute('align', 'center');
+
+        columnOrder.forEach((key, index) => {
+            const cell = document.createElement('td');
+
+            switch (index) {
+                case 0: 
+                    cell.textContent = '總計';
+                    break;
+                case 1: 
+                    cell.textContent = '';
+                    break;
+                case 7: // 月付金
+                    cell.textContent = totals.amount_per_month.toLocaleString();
+                    cell.style.textAlign = 'right';
+                    break;
+                case 8: // 利息
+                    cell.textContent = totals.interest.toLocaleString();
+                    cell.style.textAlign = 'right';
+                    break;
+                case 9: // 償還本金
+                    cell.textContent = totals.Rmoney.toLocaleString();
+                    cell.style.textAlign = 'right';
+                    break;
+                case 10: // 手續費
+                    cell.textContent = totals.HFees.toLocaleString();
+                    cell.style.textAlign = 'right';
+                    break;
+                case 13: // 已繳款金額
+                    cell.textContent = totals.CP_Pay_Amt.toLocaleString();
+                    cell.style.textAlign = 'right';
+                    break;
+                default: 
+                    cell.textContent = '';
+                    break;
+            }
+            totalRow.appendChild(cell);
+        });
+
+        tbody.appendChild(totalRow);
     }
 
     function UpdWinInv() {
