@@ -94,8 +94,8 @@
         <thead>
             <tr align="center" bgcolor="#CCCCFF" class="TrHead">
                 <td width="3%">No.</td>
-                <td width="3%"> <input type="checkbox" id="select-all"></td>
-                <td width="8%">客戶姓名</td>
+                <td width="2%"> <input type="checkbox" id="select-all"></td>
+                <td width="6%">客戶姓名</td>
                 <td width="5%">客戶ID</td>
                 <td width="3%">繳款期數</td>
                 <td width="7%">應繳款日期</td>
@@ -104,18 +104,19 @@
                 <td width="5%">利息</td>
                 <td width="5%">償還本金</td>
                 <td width="5%">手續費</td>
-                <td width="9%">本金餘額</td>
+                <td width="8%">本金餘額</td>
                 <td width="7%" style="color:red">帳號後5碼</td>
                 <td width="7%">已繳款金額</td>
-                <td width="9%">備註</td>
+                <td width="7%">備註</td>
                 <td width="6%">回傳結果</td>
                 <td width="6%">附件</td>
+                <td width="6%">上傳人員</td>
             </tr>
         </thead>
         <tbody></tbody>
         <tfoot>
             <tr align="center" height="15" bgcolor="#CCCCFF">
-                <td class="c12-k" colspan="17">
+                <td class="c12-k" colspan="18">
                     <font color="#000080">
                         <label id="CountRows"></label>
                     </font>
@@ -123,7 +124,7 @@
             </tr>
         </tfoot>
         <tr align="center" height="40" bgcolor="#EEEEFF">
-            <td class="c12-k" colspan="17">
+            <td class="c12-k" colspan="18">
                 <input type="button" id="btnUpWin" value="上傳文中" onclick="UpdWinInv();" style="padding:5px 15px;">
                 <input type="button" id="btnDelete" value="刪除資料" onclick="DeleteCliePay();" style="padding: 5px 15px; float: right; color:red;">
             </td>
@@ -139,6 +140,7 @@
     let ChkRole;
     let data = [];
     let Rnum;
+    let isSubmitting = false;
 
     const RoleA = ["1001", "1003", "1007", "1011"]; //全部
     const RoleB = ["1004", "1005"]; //財務端
@@ -340,8 +342,12 @@
     }
 
     function SaveData() {
+        if (isSubmitting) return; //擋重複
+
         const tbody = document.querySelector('#MainTableRec tbody');
         const rows = tbody.querySelectorAll('tr');
+
+        isSubmitting = true;
 
         const updatedData = [];
 
@@ -384,6 +390,7 @@
             },
             complete: function () {
                 $('body').css('cursor', 'default');
+                isSubmitting = false; 
                 fetchData();
             }
         });
@@ -444,7 +451,7 @@
         tbody.innerHTML = '';
 
         const columnOrder = ['RCD_id', 'CS_name', 'CS_PID', 'RC_count', 'roc_RC_date', 'str_Pay_Date', 'amount_per_month', 'interest', 'Rmoney', 'HFees', 'Ex_RemainingPrincipal',
-            'CP_account_last', 'CP_Pay_Amt', 'CP_bus_remark', 'Win_Msg', 'FileCount'];
+            'CP_account_last', 'CP_Pay_Amt', 'CP_bus_remark', 'Win_Msg', 'FileCount','U_Name'];
         data.forEach((item, index) => {
             const row = document.createElement('tr');
             row.setAttribute('align', 'center');
@@ -570,6 +577,10 @@
             }
             totalRow.appendChild(cell);
         });
+
+        const cellt = document.createElement('td');
+        cellt.textContent = '';
+        totalRow.appendChild(cellt);
 
         tbody.appendChild(totalRow);
     }
