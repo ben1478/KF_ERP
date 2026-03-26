@@ -67,7 +67,7 @@
                 <td width="4%">手續費</td>
                 <td width="8%">本金餘額</td>
                 <td width="7%">繳款日期</td>
-                <td width="7%">帳戶後5碼</td>
+                <td width="7%">客戶帳戶後5碼</td>
                 <td width="7%">已繳款金額</td>
                 <td width="10%">備註</td>
                 <td width="7%">上傳檔案</td>
@@ -90,33 +90,34 @@
         </tfoot>
     </table>
 
-    <table width="1350px" id="MainTableWin" border="0" cellpadding="4" cellspacing="1" bgcolor="#666666" style="display:none;">
+    <table width="1480px" id="MainTableWin" border="0" cellpadding="4" cellspacing="1" bgcolor="#666666" style="display:none;">
         <thead>
             <tr align="center" bgcolor="#CCCCFF" class="TrHead">
                 <td width="3%">No.</td>
                 <td width="2%"> <input type="checkbox" id="select-all"></td>
+                <td width="4%" style="color:red">類型</td>
                 <td width="6%">客戶姓名</td>
                 <td width="5%">客戶ID</td>
                 <td width="3%">繳款期數</td>
                 <td width="7%">應繳款日期</td>
                 <td width="7%" style="color:red">繳款日期</td>
                 <td width="5%" style="color:red">月付金</td>
-                <td width="5%">利息</td>
+                <td width="4%">利息</td>
                 <td width="5%">償還本金</td>
-                <td width="5%">手續費</td>
+                <td width="4%">手續費</td>
                 <td width="8%">本金餘額</td>
-                <td width="7%" style="color:red">帳號後5碼</td>
+                <td width="8%" style="color:red">客戶帳號後5碼</td>
                 <td width="7%">已繳款金額</td>
-                <td width="7%">備註</td>
-                <td width="6%">回傳結果</td>
+                <td width="6%">備註</td>
+                <td width="5%">回傳結果</td>
                 <td width="6%">附件</td>
-                <td width="6%">上傳人員</td>
+                <td width="7%">上傳人員</td>
             </tr>
         </thead>
         <tbody></tbody>
         <tfoot>
             <tr align="center" height="15" bgcolor="#CCCCFF">
-                <td class="c12-k" colspan="18">
+                <td class="c12-k" colspan="19">
                     <font color="#000080">
                         <label id="CountRows"></label>
                     </font>
@@ -124,7 +125,7 @@
             </tr>
         </tfoot>
         <tr align="center" height="40" bgcolor="#EEEEFF">
-            <td class="c12-k" colspan="18">
+            <td class="c12-k" colspan="19">
                 <input type="button" id="btnUpWin" value="上傳文中" onclick="UpdWinInv();" style="padding:5px 15px;">
                 <input type="button" id="btnDelete" value="刪除資料" onclick="DeleteCliePay();" style="padding: 5px 15px; float: right; color:red;">
             </td>
@@ -450,7 +451,7 @@
         const tbody = document.querySelector('#MainTableWin tbody');
         tbody.innerHTML = '';
 
-        const columnOrder = ['RCD_id', 'CS_name', 'CS_PID', 'RC_count', 'roc_RC_date', 'str_Pay_Date', 'amount_per_month', 'interest', 'Rmoney', 'HFees', 'Ex_RemainingPrincipal',
+        const columnOrder = ['RCD_id','CaseType', 'CS_name', 'CS_PID', 'RC_count', 'roc_RC_date', 'str_Pay_Date', 'amount_per_month', 'interest', 'Rmoney', 'HFees', 'Ex_RemainingPrincipal',
             'CP_account_last', 'CP_Pay_Amt', 'CP_bus_remark', 'Win_Msg', 'FileCount','U_Name'];
         data.forEach((item, index) => {
             const row = document.createElement('tr');
@@ -551,23 +552,23 @@
                 case 1: 
                     cell.textContent = '';
                     break;
-                case 7: // 月付金
+                case 8: // 月付金
                     cell.textContent = totals.amount_per_month.toLocaleString();
                     cell.style.textAlign = 'right';
                     break;
-                case 8: // 利息
+                case 9: // 利息
                     cell.textContent = totals.interest.toLocaleString();
                     cell.style.textAlign = 'right';
                     break;
-                case 9: // 償還本金
+                case 10: // 償還本金
                     cell.textContent = totals.Rmoney.toLocaleString();
                     cell.style.textAlign = 'right';
                     break;
-                case 10: // 手續費
+                case 11: // 手續費
                     cell.textContent = totals.HFees.toLocaleString();
                     cell.style.textAlign = 'right';
                     break;
-                case 13: // 已繳款金額
+                case 14: // 已繳款金額
                     cell.textContent = totals.CP_Pay_Amt.toLocaleString();
                     cell.style.textAlign = 'right';
                     break;
