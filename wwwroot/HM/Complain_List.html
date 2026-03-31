@@ -1,0 +1,333 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <script type="text/javascript" src="../tool_js/jquery.blockUI.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <link href="../_include/main.css" rel="stylesheet" type="text/css">
+    <script src="../Base.js"></script>
+    <script src="../_include/exceljs.min.js"></script>
+    <script src="../_include/filesaver.min.js"></script>
+    <title>作業平台</title>
+    <style>
+        input, select {
+            height: 23px;
+            box-sizing: border-box;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div>
+        <label>客訴日期:</label>
+        <input type="text" value="" name="checkDateS" id="checkDateS" class="datepickerTW" placeholder="年 /月 /日" style="width:80px;">~
+        <input type="text" value="" name="checkDateE" id="checkDateE" class="datepickerTW" placeholder="年 /月 /日" style="width:80px;">
+        &nbsp;
+        <label>客戶姓名:</label>
+        <input type="text" value="" name="CS_Name" id="CS_Name" style="width:80px" />
+        &nbsp;
+        <label>客戶身分證:</label>
+        <input type="text" value="" name="CS_PID" id="CS_PID" style="width:80px" />
+        &nbsp;
+        <label>業務:</label>
+        <input type="hidden" name="U_num" id="U_num" value="">
+        <input type="text" name="U_name" id="U_name" size="10" maxlength="10" class="box" value="" readonly="">
+        <input type="button" value="..." id="select_user_one">
+        &nbsp;
+        <label>風險級別:</label>
+        <select name="RiskLevel" id="RiskLevel">
+        </select>
+        &nbsp;
+        <label>客訴來源:</label>
+        <select name="CompSou" id="CompSou">
+        </select>
+        &nbsp;
+        <label>是否完成:</label>
+        <select name="IsClose" id="IsClose">
+            <option value="A" selected>請選擇</option>
+            <option value="N">尚未結案</option>
+            <option value="Y">結案</option>
+        </select>
+        &nbsp;
+        <input type="button" value="查詢" onclick="fetchData();" />
+    </div>
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            <input type="button" value="匯出明細表" onclick="ComplaintExcel();" />
+            <label>客訴截止日:</label>
+            <input type="text" value="" name="DeadlineDate" id="DeadlineDate" class="datepickerTW" placeholder="年 /月 /日" style="width:80px;">
+            <input type="button" value="匯出結案檢核表" onclick="ComplaintCloseExcel();" />
+        </div>
+        &nbsp;
+        <div>
+            <input type="button" value="新增客訴資料" onclick="addComplaint();" />
+        </div>
+    </div>
+   
+    <table width="1350px" id="MainTable" border="0" cellpadding="4" cellspacing="1" bgcolor="#666666">
+        <thead>
+            <tr align="center" bgcolor="#CCCCFF" class="TrHead">
+                <td width="3%">No.</td>
+                <td width="10%">客訴日期</td>
+                <td width="7%">客訴來源</td>
+                <td width="7%">合約編號</td>
+                <td width="7%">客戶姓名</td>
+                <td width="5%">客戶ID</td>
+                <td width="7%">業務員</td>
+                <td width="7%">客訴說明</td>
+                <td width="3%">風險級別</td>
+                <td width="13%">處理方式</td>
+                <td width="13%">處理狀況</td>
+                <td width="3%">是否完成</td>
+                <td width="10%">結案日期</td>
+                <td width="5%"></td>
+            </tr>
+        </thead>
+        <tbody></tbody>
+        <tfoot>
+            <tr align="center" height="15" bgcolor="#CCCCFF">
+                <td class="c12-k" colspan="15">
+                    <font color="#000080">
+                        <label id="CountRows"></label>
+                    </font>
+                </td>
+            </tr>
+        </tfoot>
+    </table>
+    <div id="pagination"></div>
+</body>
+</html>
+<script>
+    const Params = getQueryParams();
+    let WebUser = Params.WebUser;
+    let WebBC = Params.WebBC;
+
+    let Rnum;
+    let RoleType;
+    const itemsPerPage = 20;
+    let currentPage = 1;  
+    let data = [];
+
+    const RoleA = ["1001", "1004", "1007"]; //全部
+    const RoleB = ["1009"]; //業務
+    const RoleC = ["1008", "1010"]; //業務主管 業務助理
+
+    document.getElementById("select_user_one").addEventListener("click", function () {
+        openUserOne('appUser');
+    });
+   
+    loadItemDropdown({
+        selectId: "RiskLevel",
+        itemCode: "RiskLevel"
+    });
+
+    loadItemDropdown({
+        selectId: "CompSou",
+        itemCode: "CompSou"
+    });
+
+    dateTW();
+    GetUserRnum();
+    
+
+    $('.datepickerTW').datepickerTW({
+        changeYear: true,
+        changeMonth: true,
+        dateFormat: 'yy-mm-dd'
+    });
+
+    function GetUserRnum() {
+        const url = `${BASE_URL}/AE/GetUserRole?User=${WebUser}`;
+        fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+            .then(response => response.json())
+            .then(responseData => {
+                if (responseData.resultCode === '000') {
+                    Rnum = responseData.objResult;
+                    console.log(Rnum);
+                    if (RoleA.includes(Rnum)) {
+                        RoleType = "RoleA";
+                    } else if (RoleB.includes(Rnum)) {
+                        RoleType = "RoleB";
+                    } else if (RoleC.includes(Rnum)) {
+                        RoleType = "RoleC";
+                    } else {
+                        alert('角色辨別失敗，請稍後再試。');
+                        return; 
+                    }
+                    fetchData();
+                }
+            })
+            .catch(error => {
+                alert('角色辨別失敗，請稍後再試。');
+            })
+            
+    }
+
+    function addComplaint() {
+        const CompID = 'add';
+        let encryptedCompID = encryptParameter(CompID);
+        let encryptedWebUser = encryptParameter(WebUser);
+        window.open(`Complaint_Detail.html?Comp_Id=${encryptedCompID}&User=${encryptedWebUser}`, '_blank', 'scrollbars=yes,resizable=yes,top=100,width=900,height=800');
+    }
+
+    function fetchData() {
+        let url = `${BASE_URL}/AE_HM/Complaint_LQuery`;
+       
+        const reqDate = {
+            RoleType: RoleType,
+            CheckDateS: document.getElementById('checkDateS').value,
+            CheckDateE: document.getElementById('checkDateE').value,
+            CS_name: document.getElementById('CS_Name').value,
+            CS_PID: document.getElementById('CS_PID').value,
+            Sales_num: document.getElementById('U_num').value,
+            RiskLevel: document.getElementById('RiskLevel').value,
+            CompSou: document.getElementById('CompSou').value,
+            IsClose: document.getElementById('IsClose').value,
+            U_BC: WebBC,
+            User: WebUser
+        }
+        
+        $.ajax({
+            url: url,
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(reqDate),
+            success: function (resData) {
+                data = JSON.parse(resData.objResult);  
+                showPage(currentPage); 
+                createPagination();  
+            },
+            error: function (err) {
+                alert("失敗：" + err.responseText);
+            },
+            complete: function () {
+            }
+        });
+    }
+
+    function showPage(page) {
+        document.getElementById('CountRows').innerHTML = `筆數:${data.length}`;
+        const tbody = document.querySelector('#MainTable tbody');
+        tbody.innerHTML = '';
+
+        const startIndex = (page - 1) * itemsPerPage;
+        const endIndex = Math.min(startIndex + itemsPerPage, data.length);
+        const pageData = data.slice(startIndex, endIndex);
+
+        pageData.forEach((item, index) => {
+            const row = document.createElement('tr');
+            row.setAttribute('align', 'center');
+            row.setAttribute('class', 'c12-k');
+            row.setAttribute('bgcolor', '#FFFFFF');
+            row.setAttribute('onmouseover', "this.style.background='#FCFCC0';");
+            row.setAttribute('onmouseout', "this.style.background='#FFFFFF';");
+
+            const serialCell = document.createElement('td');
+            serialCell.textContent = startIndex + index + 1;  // 序號
+            row.appendChild(serialCell);
+
+            const keys = Object.keys(item);
+            keys.forEach(key => {
+                if (key !== 'Comp_Id') {
+                    const cell = document.createElement('td');
+                    cell.textContent = item[key];
+                    row.appendChild(cell);
+                }
+            });
+
+            row.appendChild(createButtonCell(
+                "../images/edit.png",
+                "修改",
+                function () {
+                    window.open(`Complaint_Detail.html?Comp_Id=${encryptParameter(item.Comp_Id)}&User=${encryptParameter(WebUser)}`, '_blank', 'scrollbars=yes,resizable=yes,top=100,width=1280,height=800');
+                }
+            ));
+            console.log(item.Comp_Id);
+            tbody.appendChild(row);
+        });
+    }
+
+    function ComplaintExcel() {
+        let url = `${BASE_URL}/AE_HM/Complaint_Excel`;
+
+        const reqDate = {
+            RoleType: RoleType,
+            CheckDateS: document.getElementById('checkDateS').value,
+            CheckDateE: document.getElementById('checkDateE').value,
+            CS_name: document.getElementById('CS_Name').value,
+            CS_PID: document.getElementById('CS_PID').value,
+            Sales_num: document.getElementById('U_num').value,
+            RiskLevel: document.getElementById('RiskLevel').value,
+            CompSou: document.getElementById('CompSou').value,
+            IsClose: document.getElementById('IsClose').value,
+            U_BC: WebBC,
+            User: WebUser
+        }
+
+        $('body').css('cursor', 'wait');
+        $.ajax({
+            url: url,
+            method: 'POST',
+            xhrFields: {
+                responseType: 'blob'
+            },
+            contentType: 'application/json',
+            data: JSON.stringify(reqDate),
+            success: function (response) {
+                const url = window.URL.createObjectURL(response);
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = url;
+                a.download = `客訴明細表-${getCurrentDateTime()}.xlsx`;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+            },
+            error: function (err) {
+                alert('Error generating file');
+            },
+            complete: function () {
+                $('body').css('cursor', 'default');
+            }
+        });
+    }
+
+    function ComplaintCloseExcel() {
+        let DeadlineDate = document.getElementById('DeadlineDate').value;
+        let url = `${BASE_URL}/AE_HM/Complaint_Close_Excel?DeadlineDate=${DeadlineDate}`;
+
+        $('body').css('cursor', 'wait');
+        $.ajax({
+            url: url,
+            method: 'GET',
+            xhrFields: {
+                responseType: 'blob'
+            },
+            contentType: 'application/json',
+            success: function (response) {
+                const url = window.URL.createObjectURL(response);
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = url;
+                a.download = `結案檢核表-${DeadlineDate}.xlsx`;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+            },
+            error: function (err) {
+                alert('Error generating file');
+            },
+            complete: function () {
+                $('body').css('cursor', 'default');
+            }
+        });
+    }
+</script>

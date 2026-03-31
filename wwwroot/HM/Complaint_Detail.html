@@ -1,0 +1,253 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script src="../Base.js"></script>
+    <title>作業平台</title>
+</head>
+<body>
+    <div style="font-size: 20px;"><span style="color:red;">*</span> 必填欄位</div>
+    <form id="myForm">
+        <table width="880" border="1" cellspacing="0" cellpadding="3" bgcolor="#6666FF">
+            <tr class="14-k" bgcolor="#FFFFFF" height="35" align="center">
+                <td colspan="6">客訴明細資料</td>
+            </tr>
+            <tr class="12-k" bgcolor="#FFFFFF" height="25" align="center">
+                <td width="90"><span style="color:red">*</span>客戶姓名</td>
+                <td width="180" align="left">
+                    <input type="text" class="text_box_1" id="CS_name" name="CS_name" value="" size="10" maxlength="30" required>
+                </td>
+                <td width="90"><span style="color:red">*</span>身份證號</td>
+                <td width="170" align="left"><input type="text" class="text_box_1" id="CS_PID" name="CS_PID" size="10" maxlength="10" value="" required></td>
+                <td width="90">業務</td>
+                <td>
+                    <input type="hidden" name="U_num" id="U_num" value="">
+                    <input type="text" name="U_name" id="U_name" size="10" maxlength="10" class="box" value="" readonly="">
+                    <input type="button" value="..." id="select_user_one">
+                </td>
+
+            </tr>
+            <tr class="12-k" bgcolor="#FFFFFF" height="25" align="center">
+                <td width="90">通路商</td>
+                <td width="280" align="left" colspan="2">
+                    <input type="text" class="text_box_1" id="PassID" name="PassID" value="" size="30" maxlength="30">
+                </td>
+                <td width="90">合約編號</td>
+                <td width="180" align="left" colspan="2">
+                    <input type="text" class="text_box_1" id="ContractID" name="ContractID" value="" size="20" maxlength="20">
+                </td>
+            </tr>
+            <tr class="12-k" bgcolor="#FFFFFF" height="25" align="center">
+                <td width="90"><span style="color:red">*</span>客訴日期</td>
+                <td width="180" align="left">
+                    <input type="text" class="datepickerTW" id="CompDate" name="CompDate" value="" placeholder="年 /月 /日" style="width:80px;" required>
+                </td>
+                <td width="90"><span style="color:red">*</span>客訴來源</td>
+                <td width="180" align="left">
+                    <select name="CompSou" id="CompSou" required></select>
+                </td>
+                <td width="90"><span style="color:red">*</span>風險級別</td>
+                <td width="180" align="left">
+                    <select name="RiskLevel" id="RiskLevel" required></select>
+                </td>
+            </tr>
+            <tr class="12-k" bgcolor="#FFFFFF" height="25" align="center">
+                <td width="90"><span style="color:red">*</span>客訴原因</td>
+                <td width="280" align="left" colspan="2">
+                    <input type="text" class="text_box_1" id="Complaint" name="Complaint" value="" size="30" maxlength="30" required>
+                </td>
+                <td width="90" colspan="2">客訴處理權責單位</td>
+                <td width="180" align="left">
+                    <select name="ResponsBC" id="ResponsBC"></select>
+                </td>
+            </tr>
+            <tr class="14-k" bgcolor="#FFFFFF" height="25" align="center">
+                <td><span style="color:red">*</span>客訴說明</td>
+                <td align="left" colspan="5">
+                    <textarea name="Remark" cols="80" rows="6" required></textarea>
+                </td>
+            </tr>
+            <tr class="14-k" bgcolor="#FFFFFF" height="25" align="center">
+                <td>處理方式</td>
+                <td align="left" colspan="5">
+                    <textarea name="ResponsWay" cols="80" rows="6"></textarea>
+                </td>
+            </tr>
+            <tr class="14-k" bgcolor="#FFFFFF" height="25" align="center">
+                <td>處理狀況</td>
+                <td align="left" colspan="5">
+                    <textarea name="ResponsStates" cols="80" rows="6"></textarea>
+                </td>
+            </tr>
+            <tr class="14-k" bgcolor="#FFFFFF" height="25" align="center">
+                <td width="90">結案日期</td>
+                <td width="180" align="left" colspan="2">
+                    <input type="text" class="datepickerTW" id="CloseDate" name="CloseDate" value="" placeholder="年 /月 /日" style="width:80px;">
+                </td>
+                <td width="90">結案狀態</td>
+                <td width="180" align="left" colspan="2">
+                    <select name="IsClose" id="IsClose">
+                        <option value="N" selected>尚未結案</option>
+                        <option value="Y">結案</option>
+                    </select>
+                </td>
+            </tr>
+            <tr class="14-k" bgcolor="#FFFFFF" height="35" align="center">
+                <td align="center" colspan="6">
+                    <input type="submit" value="確定送出">
+                </td>
+            </tr>
+        </table>
+    </form>
+</body>
+</html>
+<script>
+    let Params = new URLSearchParams(window.location.search);
+    let CompID = decryptParameter(Params.get('Comp_Id'));
+    let WebUser = decryptParameter(Params.get('User'));
+
+    let data = [];
+
+    dateTW();
+
+    document.getElementById("select_user_one").addEventListener("click", function () {
+        openUserOne('appUser');
+    });
+
+    $('.datepickerTW').datepickerTW({
+        changeYear: true,
+        changeMonth: true,
+        dateFormat: 'yy-mm-dd'
+    });
+
+    loadItemDropdown({
+        selectId: "RiskLevel",
+        itemCode: "RiskLevel"
+    });
+
+    loadItemDropdown({
+        selectId: "CompSou",
+        itemCode: "CompSou"
+    });
+
+    loadItemDropdown({
+        selectId: "ResponsBC",
+        itemCode: "branch_company"
+    });
+
+    if (CompID !== 'add') {
+        fetchData();
+    }
+
+    document.getElementById('myForm').addEventListener('submit', function (e) {
+        const form = this;
+        if (!form.checkValidity()) {
+            form.reportValidity(); // 顯示錯誤訊息
+            return;
+        }
+        e.preventDefault();
+        SaveData();
+    });
+
+    function SaveData() {
+        let url = '';
+
+        if (CompID == 'add') {
+            url = `${BASE_URL}/AE_HM/Complaint_Ins`;
+        } else {
+            url = `${BASE_URL}/AE_HM/Complaint_Upd`;
+        }
+       
+
+        const saveData = {
+            tbInfo: {
+                add_num: WebUser,
+                edit_num: WebUser
+            },
+            Comp_Id: CompID,
+            CS_name: document.getElementById('CS_name').value.trim(),
+            CS_PID: document.getElementById('CS_PID').value.trim(),
+            Sales_num: document.getElementById('U_num').value,
+            PassID: document.getElementById('PassID').value.trim(),
+            ContractID: document.getElementById('ContractID').value.trim(),
+            CompDate: document.getElementById('CompDate').value,
+            CompSou: document.getElementById('CompSou').value,
+            RiskLevel: document.getElementById('RiskLevel').value,
+            Complaint: document.getElementById('Complaint').value.trim(),
+            ResponsBC: document.getElementById('ResponsBC').value,
+            Remark: document.querySelector('textarea[name="Remark"]').value.trim(),
+            ResponsWay: document.querySelector('textarea[name="ResponsWay"]').value.trim(),
+            ResponsStates: document.querySelector('textarea[name="ResponsStates"]').value.trim(),
+            CloseDate: document.getElementById('CloseDate').value,
+            IsClose: document.getElementById('IsClose').value
+        };
+
+        $.ajax({
+            url: url,
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(saveData),
+            success: function (resData) {
+                alert(resData.resultMsg);
+            },
+            error: function (err) {
+                alert("失敗：" + err.responseText);
+            },
+            complete: function () {
+                if (window.opener) {
+                    window.opener.location.reload();
+                }
+                window.close();
+            }
+        });
+    }
+
+    function fetchData() {
+        const url = `${BASE_URL}/AE_HM/Complaint_SQuery?Comp_Id=${CompID}`;
+
+        $.ajax({
+            url: url,
+            type: 'GET',
+            contentType: 'application/json',
+            success: function (resData) {
+                data = JSON.parse(resData.objResult);
+                fillForm(data);
+            },
+            error: function (err) {
+                alert("失敗：" + err.responseText);
+            },
+            complete: function () {
+            }
+        });
+    }
+
+    function fillForm(data) {
+        document.getElementById('CS_name').value = data.CS_name ?? '';
+        document.getElementById('CS_PID').value = data.CS_PID ?? '';
+        document.getElementById('U_num').value = data.U_num ?? '';
+        document.getElementById('U_name').value = data.U_name ?? '';
+
+        document.getElementById('ContractID').value = data.ContractID ?? '';
+        document.getElementById('PassID').value = data.PassID ?? '';
+
+        document.getElementById('CompDate').value = data.CompDate;
+        setTimeout(() => {
+            document.getElementById('CompSou').value = data.CompSou ?? '';
+            document.getElementById('RiskLevel').value = data.RiskLevel ?? '';
+            document.getElementById('ResponsBC').value = data.ResponsBC ?? '';
+        }, 300);
+
+        document.getElementById('Complaint').value = data.Complaint ?? '';
+
+        document.querySelector('textarea[name="Remark"]').value = data.Remark ?? '';
+        document.querySelector('textarea[name="ResponsWay"]').value = data.ResponsWay ?? '';
+        document.querySelector('textarea[name="ResponsStates"]').value = data.ResponsStates ?? '';
+
+        document.getElementById('IsClose').value = data.IsClose ?? 'N';
+        document.getElementById('CloseDate').value = data.CloseDate;
+    }
+</script>
