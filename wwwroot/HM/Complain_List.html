@@ -54,7 +54,7 @@
         &nbsp;
         <input type="button" value="查詢" onclick="fetchData();" />
     </div>
-    <div style="display: flex; justify-content: space-between; align-items: center;">
+    <div style="display: flex; justify-content: space-between; align-items: center; ">
         <div>
             <input type="button" value="匯出明細表" onclick="ComplaintExcel();" />
             <label>客訴截止日:</label>
@@ -131,7 +131,7 @@
 
     dateTW();
     GetUserRnum();
-    
+    getROCDate();
 
     $('.datepickerTW').datepickerTW({
         changeYear: true,
@@ -159,7 +159,7 @@
                     } else if (RoleC.includes(Rnum)) {
                         RoleType = "RoleC";
                     } else {
-                        alert('角色辨別失敗，請稍後再試。');
+                        alert('無權限，請通知資訊人員。');
                         return; 
                     }
                     fetchData();
@@ -301,17 +301,24 @@
     }
 
     function ComplaintCloseExcel() {
-        let DeadlineDate = document.getElementById('DeadlineDate').value;
-        let url = `${BASE_URL}/AE_HM/Complaint_Close_Excel?DeadlineDate=${DeadlineDate}`;
+        const reqDate = {
+            RoleType: RoleType,
+            DeadlineDate: document.getElementById('DeadlineDate').value,
+            U_BC: WebBC,
+            User: WebUser
+        }
+
+        let url = `${BASE_URL}/AE_HM/Complaint_Close_Excel`;
 
         $('body').css('cursor', 'wait');
         $.ajax({
             url: url,
-            method: 'GET',
+            method: 'POST',
             xhrFields: {
                 responseType: 'blob'
             },
             contentType: 'application/json',
+            data: JSON.stringify(reqDate),
             success: function (response) {
                 const url = window.URL.createObjectURL(response);
                 const a = document.createElement('a');
@@ -329,5 +336,18 @@
                 $('body').css('cursor', 'default');
             }
         });
+    }
+
+    function getROCDate() {
+        const today = new Date();
+
+        const rocYear = today.getFullYear() - 1911;
+
+        const month = String(today.getMonth() + 1).padStart(2, '0');
+        const day = String(today.getDate()).padStart(2, '0');
+
+        const formatted = rocYear + "-" + month + "-" + day;
+
+        document.getElementById("DeadlineDate").value = formatted;
     }
 </script>

@@ -39,7 +39,6 @@ function getNgrokUrlSync() {
     return url;
 }
 
-
 function encryptParameter(value) {
     let base64 = btoa(value);
     return base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
@@ -621,3 +620,14 @@ function dateTW() {
     })();
 }
 
+//提供呈現yyyyMMdd
+function getCurrentDateTime() {
+    var currentDate = new Date();
+
+    var year = currentDate.getFullYear();
+    var month = ('0' + (currentDate.getMonth() + 1)).slice(-2);
+    var day = ('0' + currentDate.getDate()).slice(-2);
+
+    var formattedDateTime = year + month + day;
+    return formattedDateTime;
+}
