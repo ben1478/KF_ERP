@@ -243,19 +243,13 @@
                 }
             });
 
-            if (item.Close_show == '結案') {
-                const closeCell = document.createElement('td');
-                closeCell.textContent = '';
-                row.appendChild(closeCell);
-            } else {
-                row.appendChild(createButtonCell(
-                    "../images/edit.png",
-                    "修改",
-                    function () {
-                        window.open(`Complaint_Detail.html?Comp_Id=${encryptParameter(item.Comp_Id)}&User=${encryptParameter(WebUser)}`, '_blank', 'scrollbars=yes,resizable=yes,top=100,width=1280,height=800');
-                    }
-                ));
-            }
+            row.appendChild(createButtonCell(
+                "../images/edit.png",
+                "修改",
+                function () {
+                    window.open(`Complaint_Detail.html?Comp_Id=${encryptParameter(item.Comp_Id)}&User=${encryptParameter(WebUser)}`, '_blank', 'scrollbars=yes,resizable=yes,top=100,width=1280,height=800');
+                }
+            ));
             
             tbody.appendChild(row);
         });
