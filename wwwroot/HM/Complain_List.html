@@ -54,20 +54,20 @@
         &nbsp;
         <input type="button" value="查詢" onclick="fetchData();" />
     </div>
-    <div style="display: flex; justify-content: space-between; align-items: center; ">
-        <div>
+    <div style="display: flex; align-items: center; width: 1350px; margin-top: 3px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
             <input type="button" value="匯出明細表" onclick="ComplaintExcel();" />
             <label>客訴截止日:</label>
-            <input type="text" value="" name="DeadlineDate" id="DeadlineDate" class="datepickerTW" placeholder="年 /月 /日" style="width:80px;">
+            <input type="text" name="DeadlineDate" id="DeadlineDate" class="datepickerTW" placeholder="年 /月 /日" style="width:80px;">
             <input type="button" value="匯出結案檢核表" onclick="ComplaintCloseExcel();" />
         </div>
-        &nbsp;
-        <div>
+        <div style="margin-left: auto;">
             <input type="button" value="新增客訴資料" onclick="addComplaint();" />
         </div>
+
     </div>
    
-    <table width="1350px" id="MainTable" border="0" cellpadding="4" cellspacing="1" bgcolor="#666666">
+    <table width="1350px" id="MainTable" border="0" cellpadding="4" cellspacing="1" bgcolor="#666666" style="margin-top: 3px;">
         <thead>
             <tr align="center" bgcolor="#CCCCFF" class="TrHead">
                 <td width="3%">No.</td>
@@ -97,7 +97,7 @@
             </tr>
         </tfoot>
     </table>
-    <div id="pagination"></div>
+    <div id="pagination" style="margin-top: 3px;"></div>
 </body>
 </html>
 <script>
@@ -111,7 +111,7 @@
     let currentPage = 1;  
     let data = [];
 
-    const RoleA = ["1001", "1002", "1004", "1007", "1027"]; //全部
+    const RoleA = ["1001", "1002", "1003", "1007", "1011", "1027"]; //全部
     const RoleB = ["1009"]; //業務
     const RoleC = ["1008", "1010"]; //業務主管 業務助理
 
@@ -243,14 +243,20 @@
                 }
             });
 
-            row.appendChild(createButtonCell(
-                "../images/edit.png",
-                "修改",
-                function () {
-                    window.open(`Complaint_Detail.html?Comp_Id=${encryptParameter(item.Comp_Id)}&User=${encryptParameter(WebUser)}`, '_blank', 'scrollbars=yes,resizable=yes,top=100,width=1280,height=800');
-                }
-            ));
-            console.log(item.Comp_Id);
+            if (item.Close_show == '結案') {
+                const closeCell = document.createElement('td');
+                closeCell.textContent = '';
+                row.appendChild(closeCell);
+            } else {
+                row.appendChild(createButtonCell(
+                    "../images/edit.png",
+                    "修改",
+                    function () {
+                        window.open(`Complaint_Detail.html?Comp_Id=${encryptParameter(item.Comp_Id)}&User=${encryptParameter(WebUser)}`, '_blank', 'scrollbars=yes,resizable=yes,top=100,width=1280,height=800');
+                    }
+                ));
+            }
+            
             tbody.appendChild(row);
         });
     }
@@ -301,6 +307,8 @@
     }
 
     function ComplaintCloseExcel() {
+        const strDate = document.getElementById('DeadlineDate').value;
+
         const reqDate = {
             RoleType: RoleType,
             DeadlineDate: document.getElementById('DeadlineDate').value,
@@ -324,7 +332,7 @@
                 const a = document.createElement('a');
                 a.style.display = 'none';
                 a.href = url;
-                a.download = `結案檢核表-${DeadlineDate}.xlsx`;
+                a.download = `結案檢核表-${strDate}.xlsx`;
                 document.body.appendChild(a);
                 a.click();
                 window.URL.revokeObjectURL(url);
