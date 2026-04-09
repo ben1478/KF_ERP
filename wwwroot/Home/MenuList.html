@@ -187,7 +187,7 @@
                             </tr>
                             <tr>
                                 <td width="13%" align="center">
-                                    <input type="button" name="add" value="新鑫案件核對表" onclick="UploadUserList_LQuery();">
+                                    <input type="button" name="add" value="房貸專案報表" onclick="openHouseList();">
                                 </td>
                                 <td width="13%" align="center">
                                     <input type="button" name="add" value="機車專案報表" onclick="openMotoList();">
@@ -222,8 +222,12 @@
                                 <td width="13%" align="center">
                                     <input type="button" name="add" value="登出" onclick="openLogout();">
                                 </td>
-                                <td width="13%" align="center"></td>
-                                <td width="13%" align="center"></td>
+                                <td width="13%" align="center">
+                                    <input type="button" name="add" value="客戶客訴回報" onclick="Complaintback();">
+                                </td>
+                                <td width="13%" align="center">
+                                    <input type="button" name="add" value="新鑫案件核對表" onclick="UploadUserList_LQuery();">
+                                </td>
                             </tr>
                         </tbody>
                     </table>
@@ -413,6 +417,14 @@
     }
 
     function ClientPayback() {
-        window.open(`/HM/Client_Pay_List_New.html?User=${WebUser}&U_BC=${WebBC}`, 'list', 'scrollbars=yes,resizable=yes,width=1300,height=500,left=250,top=100')
+        window.open(`/HM/Client_Pay_List.html?User=${WebUser}&U_BC=${WebBC}`, 'list', 'scrollbars=yes,resizable=yes,width=1500,height=500,left=250,top=100')
+    }
+
+    function Complaintback() {
+        window.open(`/HM/Complain_List.html?User=${WebUser}&U_BC=${WebBC}`, 'list', 'scrollbars=yes,resizable=yes,width=1300,height=500,left=250,top=100')
+    }
+
+    function openHouseList() {
+        window.open(`/Rpt/House_H_Rpt.html?User=${WebUser}&U_BC=${WebBC}`, 'list', 'scrollbars=yes,resizable=yes,width=1000,height=500,left=250,top=100')
     }
 </script>
