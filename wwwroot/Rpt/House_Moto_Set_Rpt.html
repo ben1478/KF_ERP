@@ -1,0 +1,120 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script src="../Base.js"></script>
+    <title>作業平台</title>
+    <style>
+        body.loading {
+            cursor: wait;
+        }
+    </style>
+</head>
+<body>
+    <input type="button" id="btnCaseType" value="" onclick="openCaseList()" />
+    <br />
+    <label>清償年月:</label>
+    <select name="rocDate" id="rocDate" style="width:80px;"></select>
+    <input type="button" value="查詢" onclick="fetchData()" />
+</body>
+</html>
+<script>
+    let caseType = "";
+    let fetch_url = "";
+    let data = [];
+
+    window.onload = function () {
+        const urlParams = new URLSearchParams(window.location.search);
+        caseType = urlParams.get('caseType');
+        switch (caseType) {
+            case "1": //房貸
+                document.getElementById("btnCaseType").value = "房貸分期總表";
+                break;
+            case "2": //機車
+                document.getElementById("btnCaseType").value = "機車分期總表";
+                generateRocDateOptions(114, 10);
+                fetch_url = `${BASE_URL}/AE_RPT/GetMotoSettList`;
+                break;
+            case "3": //汽車
+                document.getElementById("btnCaseType").value = "汽車分期總表";
+                break;
+            default:
+                document.getElementById("btnCaseType").value = "未知類別";
+        }
+    };
+
+    function openCaseList() {
+        switch (caseType) {
+            case "1": //房貸
+                window.location.href = "House_H_Rpt.html";
+                break;
+            case "2": //機車
+                window.location.href = "House_Moto_Rpt.html";
+                break;
+            case "3": //汽車
+                window.location.href = "House_Car_Rpt.html";
+                break;
+        }
+    }
+
+    function fetchData() {
+        let parts = $("#rocDate").val().split('-');
+        let adYear = parseInt(parts[0], 10) + 1911;
+        let adMM = parseInt(parts[1], 10);
+        
+        var yyyyMM = adYear.toString() + adMM.toString().padStart(2, '0');
+        fetch_url = fetch_url + `?yyyyMM=${yyyyMM}`;
+        $.ajax({
+            url: fetch_url,
+            type: 'GET',
+            contentType: 'application/json',
+            success: function (resData) {
+                alert(yyyyMM);
+                //data = JSON.parse(resData.objResult);
+                //showPage(currentPage);
+                //createPagination();
+            },
+            error: function (err) {
+                alert("失敗：" + err.responseText);
+            },
+            complete: function () {
+            }
+        });
+    }
+
+    function generateRocDateOptions(startYear, startMonth) {
+        const select = document.getElementById("rocDate");
+        if (!select) return;
+
+        select.innerHTML = '';
+
+        const now = new Date();
+        const currentYear = now.getFullYear() - 1911; 
+        const currentMonth = now.getMonth() + 1;    
+
+        for (let y = startYear; y <= currentYear; y++) {
+            // 起始月份：只有在「第一年」才使用 startMonth，其餘年份從 1 月開始
+            let mStart = (y === startYear) ? startMonth : 1;
+
+            // 結束月份：只有在「最後一年(今年)」才跑至 currentMonth，其餘年份跑至 12 月
+            let mEnd = (y === currentYear) ? currentMonth : 12;
+
+            for (let m = mStart; m <= mEnd; m++) {
+                let monthStr = m.toString().padStart(2, '0');
+                let dateText = `${y}-${monthStr}`;
+
+                let opt = document.createElement('option');
+                opt.value = dateText;
+                opt.innerHTML = dateText;
+                select.appendChild(opt);
+            }
+        }
+
+        select.selectedIndex = select.options.length - 1;
+    }
+
+</script>

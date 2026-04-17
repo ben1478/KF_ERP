@@ -16,6 +16,7 @@
 </head>
 <body>
     <input type="button" value="匯出總表資訊" onclick="exportToExcel()" />
+    <input type="button" value="清償列表" onclick="openSettList()" />
     <br />
     <label>截止日期:</label>
     <input type="text" value="" name="checkDateS" class="datepickerTW" placeholder="年 /月 /日" style="width:80px;">~
@@ -478,5 +479,9 @@
             .catch(error => {
                 alert('API 請求失敗:', error);
             });
+    }
+
+    function openSettList() {
+        window.location.href = "House_Moto_Set_Rpt.html?caseType=2";
     }
 </script>

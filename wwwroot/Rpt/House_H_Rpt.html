@@ -46,6 +46,12 @@
         </thead>
         <tbody></tbody>
     </table>
+    <div style="display: flex; width: 1200px; justify-content: space-between;">
+        <span style="flex: 1;">總核准率:<label id="TolPassRate"></label></span>
+        <span style="flex: 1;">總動撥率:<label id="TolGetRate"></label></span>
+        <span style="flex: 1;">已撥款總額(扣除已清償+呆帳):<label id="TolAmout"></label></span>
+        <span style="flex: 1;">製表日:<label id="Today"></label></span>
+    </div>
 </body>
 </html>
 <script>
@@ -68,7 +74,7 @@
         var day = currentDate.getDate();
         var formattedDate = taiwanYear + '-' + (month < 10 ? '0' + month : month) + '-' + (day < 10 ? '0' + day : day);
         document.querySelector('input[name="checkDateE"]').value = formattedDate;
-        document.querySelector('input[name="checkDateS"]').value = '114-12-01'
+        document.querySelector('input[name="checkDateS"]').value = '107-10-01'
     }
 
     async function fetchDataAll() {
@@ -93,7 +99,6 @@
             const [res1, res2, res3] = await Promise.all([
                 fetchData(yyyymmdd_S, yyyymmdd_E)
             ]);
-            console.log(res1, res2, res3);
         } catch (err) {
             console.error('API 發生錯誤', err);
             alert('資料讀取失敗');
@@ -203,6 +208,20 @@
             `;
 
                 tbody.appendChild(totalTr);
+                
+                document.getElementById("TolPassRate").innerText = (total.PassCount / total.SendCount).toLocaleString('zh-TW', {
+                    style: 'percent',
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                });
+                document.getElementById("TolGetRate").innerText = (total.GetCount / total.PassCount).toLocaleString('zh-TW', {
+                    style: 'percent',
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                });
+
+                document.getElementById("TolAmout").innerText = (total.GetAmount - total.SettAmount - total.BadAmount) + "萬";
+                document.getElementById("Today").innerText = getCurrentDateTime();
             })
             .catch(error => {
                 alert('API 請求失敗:', error);
@@ -268,12 +287,13 @@
     function getCurrentDateTime() {
         var currentDate = new Date();
 
-        var year = currentDate.getFullYear();
-        var month = ('0' + (currentDate.getMonth() + 1)).slice(-2);
-        var day = ('0' + currentDate.getDate()).slice(-2);
+        var year = currentDate.getFullYear() - 1911;
+        var month = currentDate.getMonth() + 1;
+        var day = currentDate.getDate();
 
-        var formattedDateTime = year + month + day;
-        return formattedDateTime;
+        var formattedDate = year + "." + month + "." + day;
+
+        return formattedDate;
     }
 
 </script>
