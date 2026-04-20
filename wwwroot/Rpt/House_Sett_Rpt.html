@@ -29,7 +29,7 @@
                 <td width="7%">結清本金</td>
                 <td width="5%">手續費</td>
                 <td width="10%">利息</td>
-                <td width="7%">結清遲延金</td>
+                <td width="11%">結清遲延金</td>
                 <td width="13%">放款回收金額</td>
                 <td width="7%">清償日</td>
                 <td width="13%">回收金額</td>
@@ -92,12 +92,12 @@
         let parts = $("#rocDate").val().split('-');
         let adYear = parseInt(parts[0], 10) + 1911;
         let adMM = parseInt(parts[1], 10);
-        
+
         var yyyyMM = adYear.toString() + adMM.toString().padStart(2, '0');
-        fetch_url += `?yyyyMM=${yyyyMM}`;
+        let url = fetch_url + `?yyyyMM=${yyyyMM}`;
 
         $.ajax({
-            url: fetch_url,
+            url: url,
             type: 'GET',
             contentType: 'application/json',
             success: function (resData) {
@@ -127,7 +127,10 @@
         const tbody = document.querySelector('#MainTableMoto tbody');
         tbody.innerHTML = '';
 
-        for (var i = 0; i < data.length; i++) {
+        const columnOrder = ['CS_name', 'str_get_amount_date', 'capital_AMT', 'fee_total', 'Interest_total', 'Delay_AMT', 'get_amount', 'str_date_begin_settle'
+            , 'Sett_total', 'pj_name'];
+
+        data.forEach((item,index) => {
             const row = document.createElement('tr');
             row.setAttribute('align', 'center');
             row.className = 'c12-k';
@@ -135,15 +138,47 @@
             row.onmouseover = function () { this.style.background = '#FCFCC0'; };
             row.onmouseout = function () { this.style.background = '#FFFFFF'; };
 
-            const featData = data[i] || {};  // 避免超出 data.length
-            const serialCell = document.createElement('td');
-            serialCell.textContent = i + 1;
-            row.appendChild(serialCell);
+            const numberCell = document.createElement('td');
+            numberCell.textContent = index + 1;
+            row.appendChild(numberCell);
 
+            columnOrder.forEach(key => {
+                const cell = document.createElement('td');
+                switch (key) {
+                    case "capital_AMT":
+                    case "fee_total":
+                    case "Interest_total":
+                    case "Delay_AMT":
+                    case "Sett_total":
+                        cell.textContent = Number(item[key]).toLocaleString();
+                        break;
+                    case "get_amount":
+                        cell.textContent = item[key] + '萬';
+                        break;
+                    default:
+                        cell.textContent = item[key] != null ? item[key] : '';
+                }
+                row.appendChild(cell);
+            });
             tbody.appendChild(row);
-        }
+        });
 
-       
+    }
+
+    function createCell(i, featData) {
+        const cell = document.createElement('td');
+        const inputA = document.createElement('input');
+        inputA.type = 'text';
+        inputA.name = `item_int`;
+        inputA.size = 10;
+        inputA.style.width = '40px';
+        inputA.maxLength = 10;
+        inputA.classList.add('box');
+        inputA.value = featData.item_int;
+        const percent = document.createTextNode('%');
+        cell.appendChild(inputA);
+        cell.appendChild(percent);
+        return cell;
     }
 
     function generateRocDateOptions(startYear, startMonth) {
@@ -153,8 +188,8 @@
         select.innerHTML = '';
 
         const now = new Date();
-        const currentYear = now.getFullYear() - 1911; 
-        const currentMonth = now.getMonth() + 1;    
+        const currentYear = now.getFullYear() - 1911;
+        const currentMonth = now.getMonth() + 1;
 
         for (let y = startYear; y <= currentYear; y++) {
             // 起始月份：只有在「第一年」才使用 startMonth，其餘年份從 1 月開始
