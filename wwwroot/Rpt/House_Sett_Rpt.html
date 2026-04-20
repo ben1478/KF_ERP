@@ -20,6 +20,33 @@
     <label>清償年月:</label>
     <select name="rocDate" id="rocDate" style="width:80px;"></select>
     <input type="button" value="查詢" onclick="fetchData()" />
+    <table width="1150px" id="MainTableMoto" border="0" cellpadding="4" cellspacing="1" bgcolor="#666666" style="margin-top: 3px;">
+        <thead>
+            <tr align="center" bgcolor="#CCCCFF" class="TrHead">
+                <td width="3%">件數</td>
+                <td width="10%">借款人</td>
+                <td width="7%">撥款日</td>
+                <td width="7%">結清本金</td>
+                <td width="5%">手續費</td>
+                <td width="10%">利息</td>
+                <td width="7%">結清遲延金</td>
+                <td width="13%">放款回收金額</td>
+                <td width="7%">清償日</td>
+                <td width="13%">回收金額</td>
+                <td width="13%">專案</td>
+            </tr>
+        </thead>
+        <tbody></tbody>
+        <tfoot>
+            <tr align="center" height="11" bgcolor="#CCCCFF">
+                <td class="c12-k" colspan="11">
+                    <font color="#000080">
+                        <label id="CountRows"></label>
+                    </font>
+                </td>
+            </tr>
+        </tfoot>
+    </table>
 </body>
 </html>
 <script>
@@ -67,16 +94,26 @@
         let adMM = parseInt(parts[1], 10);
         
         var yyyyMM = adYear.toString() + adMM.toString().padStart(2, '0');
-        fetch_url = fetch_url + `?yyyyMM=${yyyyMM}`;
+        fetch_url += `?yyyyMM=${yyyyMM}`;
+
         $.ajax({
             url: fetch_url,
             type: 'GET',
             contentType: 'application/json',
             success: function (resData) {
-                alert(yyyyMM);
-                //data = JSON.parse(resData.objResult);
-                //showPage(currentPage);
-                //createPagination();
+                data = JSON.parse(resData.objResult);
+                switch (caseType) {
+                    case "1": //房貸
+                        showTableMoto();
+                        break;
+                    case "2": //機車
+                        showTableMoto();
+                        break;
+                    case "3": //汽車
+                        showTableMoto();
+                        break;
+                    default:
+                }
             },
             error: function (err) {
                 alert("失敗：" + err.responseText);
@@ -84,6 +121,29 @@
             complete: function () {
             }
         });
+    }
+
+    function showTableMoto() {
+        const tbody = document.querySelector('#MainTableMoto tbody');
+        tbody.innerHTML = '';
+
+        for (var i = 0; i < data.length; i++) {
+            const row = document.createElement('tr');
+            row.setAttribute('align', 'center');
+            row.className = 'c12-k';
+            row.style.backgroundColor = '#FFFFFF';
+            row.onmouseover = function () { this.style.background = '#FCFCC0'; };
+            row.onmouseout = function () { this.style.background = '#FFFFFF'; };
+
+            const featData = data[i] || {};  // 避免超出 data.length
+            const serialCell = document.createElement('td');
+            serialCell.textContent = i + 1;
+            row.appendChild(serialCell);
+
+            tbody.appendChild(row);
+        }
+
+       
     }
 
     function generateRocDateOptions(startYear, startMonth) {
