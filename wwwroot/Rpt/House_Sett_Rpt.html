@@ -20,6 +20,7 @@
     <label>清償年月:</label>
     <select name="rocDate" id="rocDate" style="width:80px;"></select>
     <input type="button" value="查詢" onclick="fetchData()" />
+    <input type="button" value="匯出清償資料" onclick="exportToExcel()" />
     <table width="1150px" id="MainTableMoto" border="0" cellpadding="4" cellspacing="1" bgcolor="#666666" style="margin-top: 3px;">
         <thead>
             <tr align="center" bgcolor="#CCCCFF" class="TrHead">
@@ -212,4 +213,55 @@
         select.selectedIndex = select.options.length - 1;
     }
 
+    function exportToExcel() {
+        let parts = $("#rocDate").val().split('-');
+        let adYear = parseInt(parts[0], 10) + 1911;
+        let adMM = parseInt(parts[1], 10);
+
+        var yyyyMM = adYear.toString() + adMM.toString().padStart(2, '0');
+
+        let excelUrl = "";
+        let fileName = "";
+        switch (caseType) {
+            case "1": //房貸
+                excelUrl = "";
+                break;
+            case "2": //機車
+                excelUrl = `${BASE_URL}/AE_RPT/GetMotoSettExcel?yyyyMM=${yyyyMM}`;
+                fileName = `機車清償清冊${yyyyMM}.xlsx`;
+                break;
+            case "3": //汽車
+                excelUrl = "";
+                break;
+            default:
+                alert("系統錯誤,請洽資訊人員");
+        }
+
+        $('body').css('cursor', 'wait');
+
+        $.ajax({
+            url: excelUrl,
+            method: 'GET',
+            xhrFields: {
+                responseType: 'blob'
+            },
+            contentType: 'application/json',
+            success: function (response) {
+                const url = window.URL.createObjectURL(response);
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = url;
+                a.download = fileName;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+            },
+            error: function (err) {
+                alert('Error generating file');
+            },
+            complete: function () {
+                $('body').css('cursor', 'default');
+            }
+        });
+    }
 </script>
