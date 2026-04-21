@@ -416,8 +416,6 @@
             CP_WIN_CK: ClientPay
         };
 
-        console.log(ClientData_req);
-
         $('body').css('cursor', 'wait');
 
         fetch(url, {
@@ -588,11 +586,12 @@
 
     function UpdWinInv() {
         const selectedData = [];
+        let errData = 0;
 
         document.querySelectorAll('.row-check:checked').forEach(chk => {
             const row = chk.closest('tr');
             const rowData = JSON.parse(row.dataset.rowData);
-
+            console.log(rowData);
             const model = {
                 HS_id: Number(rowData.HS_id),
                 RCD_id: Number(rowData.RCD_id),
@@ -615,12 +614,23 @@
                 CP_Pay_Amt: rowData.CP_Pay_Amt
             };
 
+            if (rowData.str_Pay_Date != rowData.roc_RC_date)
+            {
+                errData++;
+            }
             selectedData.push(model);
         });
 
         if (selectedData.length === 0) {
             alert("請至少勾選一筆資料");
             return;
+        }
+
+        if (errData > 0) {
+            const isConfirmed = confirm(`目前有 ${errData} 筆異常資料，確定要上傳嗎？`);
+            if (!isConfirmed) {
+                return;
+            }
         }
 
         const url = `${BASE_URL}/SendPaySelfForInv`;
@@ -645,8 +655,6 @@
                 $('body').css('cursor', 'default');
             }
         });
-
-        console.log(selectedData);
     }
 
     function showWinResTable() {

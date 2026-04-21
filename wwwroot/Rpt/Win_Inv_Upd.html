@@ -40,6 +40,9 @@
                 </td>
             </tr>
             <tr>
+                <td align="center" valign="top" valign="top"><h3 style="color:red">※若有紅色日期出現即表示應繳款日期與實際繳款日期不符，請確認是否正確</h3></td>
+            </tr>
+            <tr>
                 <td align="center" valign="top" valign="top" nowrap>
                     <table width="1100px" id="MainTable" border="0" cellpadding="4" cellspacing="1" bgcolor="#666666">
                         <thead>
@@ -168,6 +171,16 @@
                 } else {
 
                     switch (key) {
+                        case "roc_RC_date":
+                            let dateValue = item[key];
+                            // 檢查資料是否存在且包含分號
+                            if (dateValue && dateValue.includes(';')) {
+                                const formattedDate = dateValue.replace(/;/g, '<br>');
+                                cell.innerHTML = `<span style="color: red;">${formattedDate}</span>`;
+                            } else {
+                                cell.textContent = dateValue;
+                            }
+                            break;
                         case "amount_per_month":
                         case "interest":
                         case "Rmoney":
@@ -188,7 +201,7 @@
     }
 
     function UpdWinInv() {
-
+        let errData = 0;
         const selectedData = [];
 
         document.querySelectorAll('.row-check:checked').forEach(chk => {
@@ -218,6 +231,11 @@
                 User: WebUser
             };
 
+            if (rowData.roc_RC_date.includes(';'))
+            {
+                errData++;
+            }
+
             selectedData.push(model);
         });
 
@@ -226,6 +244,12 @@
             return;
         }
 
+        if (errData > 0) {
+            const isConfirmed = confirm(`目前有 ${errData} 筆異常資料，確定要上傳嗎？`);
+            if (!isConfirmed) {
+                return;
+            }
+        }
 
         const url = `${BASE_URL}/SendReceivableForInv`;
 
@@ -251,7 +275,5 @@
                 $('body').css('cursor', 'default');
             }
         });
-
-       /* console.log(selectedData);*/
     }
 </script>
