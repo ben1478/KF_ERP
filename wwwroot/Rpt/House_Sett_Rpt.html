@@ -19,8 +19,13 @@
     <br />
     <label>清償年月:</label>
     <select name="rocDate" id="rocDate" style="width:80px;"></select>
-    <input type="button" value="查詢" onclick="fetchData()" />
-    <input type="button" value="匯出清償資料" onclick="exportToExcel()" />
+    <input type="button" value="查詢(月)" onclick="fetchData('M')" />
+    <input type="button" value="查詢(年)" onclick="fetchData('Y')" />
+    <input type="button" value="匯出清償資料(月)" onclick="exportToExcel('M')" />
+    <input type="button" value="匯出清償資料(年)" onclick="exportToExcel('Y')" />
+    <!--<label>清償年:</label>
+    <select name="rocYYY" id="rocYYY" style="width:80px;"></select>
+    <input type="button" value="匯出當年清償資料" onclick="exportToExcel()" />-->
     <table width="1150px" id="MainTableMoto" border="0" cellpadding="4" cellspacing="1" bgcolor="#666666" style="margin-top: 3px;">
         <thead>
             <tr align="center" bgcolor="#CCCCFF" class="TrHead">
@@ -89,13 +94,13 @@
         }
     }
 
-    function fetchData() {
+    function fetchData(type) {
         let parts = $("#rocDate").val().split('-');
         let adYear = parseInt(parts[0], 10) + 1911;
         let adMM = parseInt(parts[1], 10);
 
         var yyyyMM = adYear.toString() + adMM.toString().padStart(2, '0');
-        let url = fetch_url + `?yyyyMM=${yyyyMM}`;
+        let url = fetch_url + `?yyyyMM=${yyyyMM}&type=${type}`;
 
         $.ajax({
             url: url,
@@ -129,7 +134,7 @@
         tbody.innerHTML = '';
 
         const columnOrder = ['CS_name', 'str_get_amount_date', 'capital_AMT', 'fee_total', 'Interest_total', 'Delay_AMT', 'get_amount', 'str_date_begin_settle'
-            , 'Sett_total', 'pj_name'];
+            , 'sett_AMT', 'pj_name'];
 
         data.forEach((item,index) => {
             const row = document.createElement('tr');
@@ -150,7 +155,7 @@
                     case "fee_total":
                     case "Interest_total":
                     case "Delay_AMT":
-                    case "Sett_total":
+                    case "sett_AMT":
                         cell.textContent = Number(item[key]).toLocaleString();
                         break;
                     case "get_amount":
@@ -213,7 +218,7 @@
         select.selectedIndex = select.options.length - 1;
     }
 
-    function exportToExcel() {
+    function exportToExcel(type) {
         let parts = $("#rocDate").val().split('-');
         let adYear = parseInt(parts[0], 10) + 1911;
         let adMM = parseInt(parts[1], 10);
@@ -227,8 +232,14 @@
                 excelUrl = "";
                 break;
             case "2": //機車
-                excelUrl = `${BASE_URL}/AE_RPT/GetMotoSettExcel?yyyyMM=${yyyyMM}`;
-                fileName = `機車清償清冊${yyyyMM}.xlsx`;
+                excelUrl = `${BASE_URL}/AE_RPT/GetMotoSettExcel?yyyyMM=${yyyyMM}&type=${type}`;
+                if (type == "M") {
+                    fileName = `機車清償清冊${yyyyMM}.xlsx`;
+                } else {
+                    let yyyy = Math.floor(yyyyMM / 100);
+                    fileName = `機車清償清冊${yyyy}.xlsx`;
+                }
+                
                 break;
             case "3": //汽車
                 excelUrl = "";
