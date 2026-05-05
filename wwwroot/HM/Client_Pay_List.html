@@ -93,31 +93,32 @@
     <table width="1480px" id="MainTableWin" border="0" cellpadding="4" cellspacing="1" bgcolor="#666666" style="display:none;">
         <thead>
             <tr align="center" bgcolor="#CCCCFF" class="TrHead">
-                <td width="3%">No.</td>
-                <td width="2%"> <input type="checkbox" id="select-all"></td>
-                <td width="4%" style="color:red">類型</td>
-                <td width="6%">客戶姓名</td>
-                <td width="5%">客戶ID</td>
-                <td width="3%">繳款期數</td>
-                <td width="7%">應繳款日期</td>
-                <td width="7%" style="color:red">繳款日期</td>
-                <td width="5%" style="color:red">月付金</td>
-                <td width="4%">利息</td>
-                <td width="5%">償還本金</td>
-                <td width="4%">手續費</td>
-                <td width="8%">本金餘額</td>
-                <td width="8%" style="color:red">客戶帳號後5碼</td>
-                <td width="7%">已繳款金額</td>
-                <td width="6%">備註</td>
-                <td width="5%">回傳結果</td>
-                <td width="6%">附件</td>
-                <td width="7%">上傳人員</td>
+                <td>No.</td>
+                <td><input type="checkbox" id="select-all"></td>
+                <td style="color:red">類型</td>
+                <td>客戶姓名</td>
+                <td>客戶ID</td>
+                <td>繳款期數</td>
+                <td>應繳款日期</td>
+                <td style="color:red">繳款日期</td>
+                <td style="color:red">月付金</td>
+                <td>利息</td>
+                <td>償還本金</td>
+                <td>手續費</td>
+                <td>本金餘額</td>
+                <td style="color:red">客戶帳號後5碼</td>
+                <td>已繳款金額</td>
+                <td>備註</td>
+                <td>回傳結果</td>
+                <td>附件</td>
+                <td>上傳人員</td>
+                <td>上傳時間</td>
             </tr>
         </thead>
         <tbody></tbody>
         <tfoot>
             <tr align="center" height="15" bgcolor="#CCCCFF">
-                <td class="c12-k" colspan="19">
+                <td class="c12-k" colspan="20">
                     <font color="#000080">
                         <label id="CountRows"></label>
                     </font>
@@ -125,7 +126,7 @@
             </tr>
         </tfoot>
         <tr align="center" height="40" bgcolor="#EEEEFF">
-            <td class="c12-k" colspan="19">
+            <td class="c12-k" colspan="20">
                 <input type="button" id="btnUpWin" value="上傳文中" onclick="UpdWinInv();" style="padding:5px 15px;">
                 <input type="button" id="btnDelete" value="刪除資料" onclick="DeleteCliePay();" style="padding: 5px 15px; float: right; color:red;">
             </td>
@@ -450,7 +451,7 @@
         tbody.innerHTML = '';
 
         const columnOrder = ['RCD_id','CaseType', 'CS_name', 'CS_PID', 'RC_count', 'roc_RC_date', 'str_Pay_Date', 'amount_per_month', 'interest', 'Rmoney', 'HFees', 'Ex_RemainingPrincipal',
-            'CP_account_last', 'CP_Pay_Amt', 'CP_bus_remark', 'Win_Msg', 'FileCount','U_Name'];
+            'CP_account_last', 'CP_Pay_Amt', 'CP_bus_remark', 'Win_Msg', 'FileCount','U_Name','str_add_date'];
         data.forEach((item, index) => {
             const row = document.createElement('tr');
             row.setAttribute('align', 'center');
