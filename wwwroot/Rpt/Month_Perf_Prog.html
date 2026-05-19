@@ -83,10 +83,10 @@
     const itemsPerPage = 20;  
     let currentPage = 1;  
     let data = [];  
-
-    window.onload = function () {
-        dateTW();
+	dateTW();
         convertToTaiwanDate();
+    window.onload = function () {
+        
         fetchData();
     }
 

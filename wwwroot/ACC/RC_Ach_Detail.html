@@ -1,0 +1,116 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script src="../Base.js"></script>
+    <title>作業平台</title>
+</head>
+<body>
+    <form id="myForm">
+        <table width="380" border="1" cellspacing="0" cellpadding="2" bgcolor="#6666FF">
+            <tr class="14-k" bgcolor="#FFFFFF" height="35" align="center">
+                <td colspan="2">分期明細ACH設定</td>
+            </tr>
+            <tr class="12-k" bgcolor="#FFFFFF" height="25" align="center">
+                <td width="130">客戶姓名</td>
+                <td align="left">
+                    <span id="CS_name"></span>
+                </td>
+            </tr>
+            <tr class="12-k" bgcolor="#FFFFFF" height="25" align="center">
+                <td width="130">ACH設定狀態</td>
+                <td align="left">
+                    <select  name="Ach_State" id="Ach_State" style="width: 160px;"></select>
+                </td>
+            </tr>
+            <tr class="12-k" bgcolor="#FFFFFF" height="25" align="center">
+                <td width="130">ACH備註</td>
+                <td align="left">
+                    <input type="text" name="Ach_Note" id="Ach_Note" style="width: 210px;"/>
+                </td>
+            </tr>
+            <tr class="14-k" bgcolor="#FFFFFF" height="35" align="center">
+                <td align="center" colspan="2">
+                    <input type="button" value="確定儲存" onclick="SaveData();">
+                </td>
+            </tr>
+        </table>
+    </form>
+</body>
+</html>
+<script>
+    let Params = new URLSearchParams(window.location.search);
+    let RcmId = Params.get('RCM_id');
+    let WebUser = decryptParameter(Params.get('User'));
+
+    loadItemDropdown({
+        selectId: "Ach_State",
+        itemCode: "Ach_State"
+    });
+
+    fetchData();
+
+    function fetchData() {
+        const url = `${BASE_URL}/AE_ACC/RC_Ach_SQuery?RCM_ID=${RcmId}`;
+
+        fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+            .then(response => response.json())
+            .then(responseData => {
+                let data = JSON.parse(responseData.objResult);
+                $('#CS_name').text(data[0].CS_name);
+                $('#Ach_State').val(data[0].Ach_State);
+                $('#Ach_Note').val(data[0].Ach_Note);
+            })
+            .catch(error => {
+                alert('請求失敗，請稍後再試。');
+            })
+    }
+
+    function SaveData() {
+        const url = `${BASE_URL}/AE_ACC/RC_Ach_Upd`;
+
+        const saveData = {
+            tbInfo: {
+                add_num: WebUser,
+                edit_num: WebUser
+            },
+            RCM_id: RcmId,
+            Ach_State: $('#Ach_State').val(),
+            Ach_Note: $('#Ach_Note').val()
+        };
+
+        $.ajax({
+            url: url,
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(saveData),
+            success: function (resData) {
+                alert(resData.resultMsg);
+            },
+            error: function (err) {
+                alert("失敗：" + err.responseText);
+            },
+            complete: function () {
+                if (window.opener) {
+                    window.opener.updateRow({
+                        RCM_id: RcmId,
+                        str_Ach_State: $('#Ach_State option:selected').text(),
+                        Ach_Note: $('#Ach_Note').val()
+                    });
+                }
+                window.close();
+            }
+        });
+    }
+
+
+</script>

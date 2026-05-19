@@ -1,0 +1,250 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script src="../Base.js"></script>
+    <title>作業平台</title>
+</head>
+<body>
+    <input type="radio" name="LoanType" id="House" value="House" checked>
+    <label for="House">房屋貸款</label>
+    <input type="radio" name="LoanType" id="Moto" value="Moto">
+    <label for="Moto">機車貸款</label>
+    <input type="radio" name="LoanType" id="Car" value="Car">
+    <label for="Car">汽車貸款</label>
+    <label>撥款年月:</label>
+    <select name="getDate" id="getDate" style="width:80px;"></select>
+    <input type="button" value="查詢(月)" onclick="fetchData('M')" />
+    <input type="button" value="查詢(年)" onclick="fetchData('Y')" />
+    <input type="button" value="匯出撥款資料(月)" onclick="exportToExcel('M')" />
+    <input type="button" value="匯出撥款資料(年)" onclick="exportToExcel('Y')" />
+    <input type="button" value="匯出全部撥款資料" onclick="exportToExcel('A')" />
+
+    <table width="1350px" id="MainTable" border="0" cellpadding="4" cellspacing="1" bgcolor="#666666" style="margin-top: 3px;">
+        <thead>
+            <tr align="center" bgcolor="#CCCCFF" class="TrHead">
+                <td width="3%">件數</td>
+                <td width="10%">案件編號</td>
+                <td width="7%">進件日期</td>
+                <td width="7%">申請人</td>
+                <td width="7%">經辦人</td>
+                <td width="10%">區域</td>
+                <td width="7%">撥款金額</td>
+                <td width="7%">撥款日期</td>
+                <td width="5%">利率</td>
+                <td width="16%">專案</td>
+                <td width="5%">期數</td>
+                <td width="5%">ACH</td>
+                <td width="8%">ACH備註</td>
+                <td width="7%">編輯</td>
+            </tr>
+        </thead>
+        <tbody></tbody>
+        <tfoot>
+            <tr align="center" height="11" bgcolor="#CCCCFF">
+                <td class="c12-k" colspan="14">
+                    <font color="#000080">
+                        <label id="CountRows"></label>
+                    </font>
+                </td>
+            </tr>
+        </tfoot>
+    </table>
+    <div id="pagination" style="margin-top: 3px;"></div>
+</body>
+</html>
+<script>
+    const Params = getQueryParams();
+    let WebUser = Params.WebUser;
+    let WebBC = Params.WebBC;
+
+    let data = [];
+    let currentPage = 1;  
+    const itemsPerPage = 20;
+
+    window.onload = function () {
+        generateGetDateOptions(107, 11);
+    };
+
+    function generateGetDateOptions(startYear, startMonth) {
+        const select = document.getElementById("getDate");
+        if (!select) return;
+
+        select.innerHTML = '';
+
+        const now = new Date();
+        const currentYear = now.getFullYear() - 1911;
+        const currentMonth = now.getMonth() + 1;
+
+        for (let y = startYear; y <= currentYear; y++) {
+            // 起始月份：只有在「第一年」才使用 startMonth，其餘年份從 1 月開始
+            let mStart = (y === startYear) ? startMonth : 1;
+
+            // 結束月份：只有在「最後一年(今年)」才跑至 currentMonth，其餘年份跑至 12 月
+            let mEnd = (y === currentYear) ? currentMonth : 12;
+
+            for (let m = mStart; m <= mEnd; m++) {
+                let monthStr = m.toString().padStart(2, '0');
+                let dateText = `${y}-${monthStr}`;
+
+                let opt = document.createElement('option');
+                opt.value = dateText;
+                opt.innerHTML = dateText;
+                select.appendChild(opt);
+            }
+        }
+
+        select.selectedIndex = select.options.length - 1;
+    }
+
+    function fetchData(type) {
+        const pjtype = document.querySelector('input[name="LoanType"]:checked').value;
+
+        let parts = $("#getDate").val().split('-');
+        let adYear = parseInt(parts[0], 10) + 1911;
+        let adMM = parseInt(parts[1], 10);
+
+        var yyyyMM = adYear.toString() + adMM.toString().padStart(2, '0');
+        let url = `${BASE_URL}/AE_ACC/GetHouseACH_LQuery?yyyyMM=${yyyyMM}&type=${type}&pjtype=${pjtype}`;
+
+        $.ajax({
+            url: url,
+            type: 'GET',
+            contentType: 'application/json',
+            success: function (resData) {
+                data = JSON.parse(resData.objResult);
+                showPage(currentPage);
+                createPagination();  
+            },
+            error: function (err) {
+                alert("失敗：" + err.responseText);
+            },
+            complete: function () {
+            }
+        });
+    }
+
+    function showPage(page) {
+        document.getElementById('CountRows').innerHTML = `筆數:${data.length}`;
+        const tbody = document.querySelector('#MainTable tbody');
+        tbody.innerHTML = '';
+
+        const startIndex = (page - 1) * itemsPerPage;
+        const endIndex = Math.min(startIndex + itemsPerPage, data.length);
+        const pageData = data.slice(startIndex, endIndex);
+
+        pageData.forEach((item, index) => {
+            const row = document.createElement('tr');
+            row.id = `row_${item.RCM_id}`;
+            row.setAttribute('align', 'center');
+            row.className = 'c12-k';
+            row.style.backgroundColor = '#FFFFFF';
+            row.onmouseover = function () { this.style.background = '#FCFCC0'; };
+            row.onmouseout = function () { this.style.background = '#FFFFFF'; };
+
+            const numberCell = document.createElement('td');
+            numberCell.textContent = index + 1;
+            row.appendChild(numberCell);
+
+            const keys = Object.keys(item);
+            keys.forEach(key => {
+                if (key !== 'RCM_id') {
+                    const cell = document.createElement('td');
+                    cell.textContent = item[key];
+                    row.appendChild(cell);
+                }
+            });
+
+            row.appendChild(createButtonCell(
+                "../images/edit.png",
+                "修改",
+                function () {
+                    window.open(`RC_Ach_Detail.html?RCM_id=${item.RCM_id}&User=${encryptParameter(WebUser)}`
+                        , '_blank', 'scrollbars=yes,resizable=yes,top=100,width=500,height=250');
+                }
+            ));
+            tbody.appendChild(row);
+        });
+    }
+
+    function updateRow(updatedData) {
+
+        // 找到原本 data
+        const target = data.find(x => x.RCM_id == updatedData.RCM_id);
+
+        if (target) {
+            target.str_Ach_State = updatedData.str_Ach_State;
+            target.Ach_Note = updatedData.Ach_Note;
+        }
+
+        // 找到畫面 row
+        const row = document.getElementById(`row_${updatedData.RCM_id}`);
+
+        if (row) {
+
+            row.cells[11].textContent = updatedData.str_Ach_State;
+            row.cells[12].textContent = updatedData.Ach_Note;
+        }
+    }
+
+    function exportToExcel(type) {
+        const pjtype = document.querySelector('input[name="LoanType"]:checked').value;
+
+        let parts = $("#getDate").val().split('-');
+        let adYear = parseInt(parts[0], 10) + 1911;
+        let adMM = parseInt(parts[1], 10);
+
+        var yyyyMM = adYear.toString() + adMM.toString().padStart(2, '0');
+
+        const excelUrl = `${BASE_URL}/AE_ACC/GetRcAchExcel?yyyyMM=${yyyyMM}&type=${type}&pjtype=${pjtype}`;
+
+        const pjMap = {
+            House: "房貸",
+            Moto: "機車貸",
+            Car: "汽車貸"
+        };
+
+        const typeMap = {
+            Y: `清冊${Math.floor(yyyyMM / 100)}.xlsx`,
+            M: `清冊${yyyyMM}.xlsx`,
+            A: "總清冊.xlsx"
+        };
+
+        const fileName = `${pjMap[pjtype]}撥款${typeMap[type]}`;
+
+        if (!pjMap[pjtype] || !typeMap[type]) {
+            alert("系統錯誤,請洽資訊人員");
+        }
+
+        $('body').css('cursor', 'wait');
+
+        $.ajax({
+            url: excelUrl,
+            method: 'GET',
+            xhrFields: {
+                responseType: 'blob'
+            },
+            contentType: 'application/json',
+            success: function (response) {
+                const url = window.URL.createObjectURL(response);
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = url;
+                a.download = fileName;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+            },
+            error: function (err) {
+                alert('Error generating file');
+            },
+            complete: function () {
+                $('body').css('cursor', 'default');
+            }
+        });
+    }
+</script>

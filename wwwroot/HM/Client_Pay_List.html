@@ -367,11 +367,16 @@
                 rowData.CP_bus_remark = row.querySelector('input[name="CP_bus_remark"]').value;
                 rowData.User = WebUser
                 updatedData.push(rowData);
-            }
+
+                if (rowData.CP_Pay_Amt < rowData.amount_per_month) {
+                    alert("繳款金額需大於月付金金額才能開發票，請再確認詳細金額");
+                }
+            } 
         });
 
         if (updatedData.length === 0) {
             alert("至少要有一筆資料，再確認繳款日期跟已繳款金額是否都有輸入");
+            isSubmitting = false; 
             return;
         }
 
@@ -612,7 +617,8 @@
                 User: WebUser,
                 CP_account_last: rowData.CP_account_last,
                 CP_bus_remark: row.querySelector('input[name="CP_bus_remark"]').value,
-                CP_Pay_Amt: rowData.CP_Pay_Amt
+                CP_Pay_Amt: rowData.CP_Pay_Amt,
+                str_add_date: rowData.str_add_date
             };
 
             if (rowData.str_Pay_Date != rowData.roc_RC_date)

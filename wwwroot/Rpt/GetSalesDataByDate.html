@@ -1,0 +1,279 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+	<script type="text/javascript" src="../tool_js/jquery-ui.js" ></script>
+	<script type="text/javascript" src="../tool_js/jquery.blockUI.js" ></script>
+    <script src="../Base.js"></script>
+    <title>作業平台</title>
+</head>
+<body>
+    <table border="0" width="100%">
+        <tbody>
+            <tr class="c12-k">
+                <td width="86%">
+				<P>業務件數預估還比表</P>
+                    基準日：
+                    <input type="text" name="BaseDate" id="BaseDate" size="10" maxlength="10" class="datepickerTW" value="">
+                    <input type="button" value="查詢" onclick="fetchData();" />
+					<input type="button" value="匯出Excel"  id="btnExcel_New" onclick="toAjaxExcel()">
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table width="800" border="0" cellspacing="0" cellpadding="0">
+        <tbody>
+            <tr>
+                <td valign="top"> </td>
+                <td align="center" valign="top">
+				<div id="filterArea" style="margin-bottom: 10px; text-align: left; padding-left: 10px;">
+    <input type="radio" name="rptType" value="House" id="btnHouse" checked onclick="switchTable('House')">
+    <label for="btnHouse">房貸</label>
+    <input type="radio" name="rptType" value="Engine" id="btnEngine" onclick="switchTable('Engine')">
+    <label for="btnEngine">機車貸</label>
+    <input type="radio" name="rptType" value="Car" id="btnCar" onclick="switchTable('Car')">
+    <label for="btnCar">汽車貸</label>
+</div>
+                    <Div id="divMain" width="1200" border="0" cellpadding="4" cellspacing="1" bgcolor="#666666">
+                       
+                    </div>
+                    <div id="pagination"></div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</body>
+</html>
+<script>
+	let data = [];
+	dateTW();
+	convertToTaiwanDate();
+
+	window.onload = function () {
+        fetchData();
+    }
+	 function convertToTaiwanDate() {
+        var currentDate = new Date();
+        var westernYear = currentDate.getFullYear();
+        var taiwanYear = westernYear - 1911;
+        var month = currentDate.getMonth() + 1;
+        var day = currentDate.getDate();
+        var formattedDate = taiwanYear + '-' + (month < 10 ? '0' + month : month) + '-' + (day < 10 ? '0' + day : day);
+        $("#BaseDate").val(formattedDate);
+    }
+	
+    $('.datepickerTW').datepickerTW({
+        changeYear: true,
+        changeMonth: true,
+        dateFormat: 'yy-mm-dd'
+    });
+	
+	
+	function fetchData() {
+       const yyyymmdd = $("#BaseDate").val().replace(/\-/g, '/');
+	   if(yyyymmdd=="")
+	   {
+			alert("請輸入日期");
+			return false;
+	   }
+        const url = `${BASE_URL}/AE_RPT/GetSalesDataByDate?BaseDate=${yyyymmdd}`;
+
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include'
+        })
+            .then(response => response.json())
+            .then(responseData => {
+                if (responseData.resultCode == "000") {
+                    data = JSON.parse(responseData.objResult);
+                    showPage(data);
+                } else {
+                    alert(responseData.resultMsg);
+                }
+            })
+            .catch(error => {
+                alert('API 请求失败:', error);
+            });
+    }
+	
+	var globalData = []; // 儲存查詢結果
+
+function showPage(data) {
+	$("#btnHouse").prop('checked', true);
+    globalData = data;
+    const divMain = $("#divMain");
+    divMain.empty();
+
+    // 定義三種貸款的配置
+    const configs = [
+        { id: 'House', title: '房貸', prefix: '' },
+        { id: 'Engine', title: '機車貸', prefix: 'Engine_' },
+        { id: 'Car', title: '汽車貸', prefix: 'Car_' }
+    ];
+
+    configs.forEach(config => {
+        const tableHtml = generateTypeTable(config, data);
+        const wrapper = $(`<div id="container_${config.id}" class="rpt-container" style="${config.id === 'House' ? '' : 'display:none'}"></div>`);
+        wrapper.append(tableHtml);
+        divMain.append(wrapper);
+    });
+}
+
+function generateTypeTable(config, data) {
+    const prefix = config.prefix;
+    // 計算全區加總
+    const total = {
+        UC_Na: '全區',
+        curr: calculateSum(data, prefix),
+        pre: calculateSum(data, prefix, true)
+    };
+
+    let html = `<table width="100%" border="0" cellpadding="4" cellspacing="1" bgcolor="#666666" style="margin-bottom:20px;">`;
+    
+    // 渲染全區
+    html += renderRegionRows(total, true);
+
+    // 渲染各別地區
+    data.forEach(item => {
+        const regionData = {
+            UC_Na: item.UC_Na,
+            curr: getRowValues(item, prefix, false),
+            pre: getRowValues(item, prefix, true)
+        };
+        html += renderRegionRows(regionData, false);
+    });
+
+    html += `</table>`;
+    return html;
+}
+
+// 切換顯示的 Table
+function switchTable(type) {
+    $(".rpt-container").hide();
+    $(`#container_${type}`).show();
+}
+
+// 輔助函式：渲染地區區塊（含標題與兩行數據）
+function renderRegionRows(data, isTotal) {
+    const headerBg = "#CCCCFF";
+    const baseDate = $("#BaseDate").val(); // 使用者輸入的日期
+    
+    // 計算前一個月日期 (簡單邏輯)
+    let d = new Date(baseDate.replace(/-/g, '/'));
+    d.setMonth(d.getMonth() - 1);
+    const preDate = d.getFullYear() + "-" + ("0" + (d.getMonth() + 1)).slice(-2) + "-" + ("0" + d.getDate()).slice(-2);
+
+    let h = `
+        <tr bgcolor="${headerBg}">
+            <td colspan="6" style="font-weight:bold;">${data.UC_Na}</td>
+        </tr>
+        <tr  bgcolor="#CCCCFF" style="text-align:center; font-size:16px;">
+            <td width="15%">日期</td><td width="17%">估價</td><td width="17%">進件</td>
+            <td width="17%">撥款件數</td><td width="17%">已撥金額(萬)</td><td width="17%">未撥金額(萬)</td>
+        </tr>
+        <tr bgcolor="#ffffff" style="text-align:right;">
+            <td align="center">${baseDate}</td>
+            <td>${numberFormat(data.curr.Rate)}</td><td>${numberFormat(data.curr.Incase)}</td>
+            <td>${numberFormat(data.curr.GetNum)}</td><td>${numberFormat(data.curr.GetAmt)}</td>
+            <td>${numberFormat(data.curr.PassAmt)}</td>
+        </tr>
+        <tr bgcolor="#ffffff" style="text-align:right;">
+            <td align="center">${preDate}</td>
+            <td>${numberFormat(data.pre.Rate)}</td><td>${numberFormat(data.pre.Incase)}</td>
+            <td>${numberFormat(data.pre.GetNum)}</td><td>${numberFormat(data.pre.GetAmt)}</td>
+            <td>${numberFormat(data.pre.PassAmt)}</td>
+        </tr>
+        <tr bgcolor="#ffffff"><td colspan="6" style="height:10px;"></td></tr>
+    `;
+    return h;
+}
+
+// 輔助函式：加總計算
+function calculateSum(data, prefix, isPre = false) {
+    const suffix = isPre ? "Pre_" : "";
+    const p = prefix;
+    
+    // 注意：如果是房貸(prefix="")，欄位名稱為 Pre_Rate；如果是機車(prefix="Engine_")，欄位名稱為 Engine_Pre_Rate
+    const getF = (f) => isPre ? (p === "" ? "Pre_" + f : p + "Pre_" + f) : p + f;
+
+    return {
+        Rate: data.reduce((s, c) => s + (parseFloat(c[getF("Rate")]) || 0), 0),
+        Incase: data.reduce((s, c) => s + (parseFloat(c[getF("month_incase")]) || 0), 0),
+        GetNum: data.reduce((s, c) => s + (parseFloat(c[getF("month_get_amount_num")]) || 0), 0),
+        GetAmt: data.reduce((s, c) => s + (parseFloat(c[getF("month_get_amount")]) || 0), 0),
+        PassAmt: data.reduce((s, c) => s + (parseFloat(c[getF("month_pass_amount")]) || 0), 0)
+    };
+}
+
+// 輔助函式：取得單列數值
+function getRowValues(item, prefix, isPre) {
+    const p = prefix;
+    const getF = (f) => isPre ? (p === "" ? "Pre_" + f : p + "Pre_" + f) : p + f;
+    
+    return {
+        Rate: item[getF("Rate")] || 0,
+        Incase: item[getF("month_incase")] || 0,
+        GetNum: item[getF("month_get_amount_num")] || 0,
+        GetAmt: item[getF("month_get_amount")] || 0,
+        PassAmt: item[getF("month_pass_amount")] || 0
+    };
+}
+
+function numberFormat(val) {
+    if (val === null || val === undefined) return "0";
+    return val.toLocaleString();
+}
+
+function toAjaxExcel()
+{  
+	const yyyymmdd = $("#BaseDate").val().replace(/\-/g, '/');
+	if(yyyymmdd=="")
+	   {
+			alert("請輸入日期");
+			return false;
+	   }
+	
+	$.blockUI({  message: '<img src="../gif/loading_1.gif" style="width:50%; height:50%;" />'});
+	 const apiUrl = `${BASE_URL}/AE_RPT/GetSalesDataToExcel?BaseDate=${yyyymmdd}`;
+    
+	document.body.style.cursor = 'wait';
+
+    $.ajax({
+        url: apiUrl,
+        type: 'POST',
+        data: {},
+        contentType: 'application/json',
+        xhrFields: {
+            responseType: 'blob' 
+        },
+        success: function(blob, status, xhr) {
+            var url = window.URL.createObjectURL(blob);
+            var a = document.createElement('a');
+            a.href = url;
+
+            var filename = '業務件數預估還比表_' + $("#BaseDate").val() + '.xlsx';
+            a.download = filename;
+
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            window.URL.revokeObjectURL(url);
+			$.unblockUI();
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+            alert('Error: ' + textStatus);
+        },
+		 complete: function() {
+            document.body.style.cursor = 'default';
+        }
+    });
+}
+	
+</script>

@@ -24,7 +24,36 @@
     <input type="button" value="匯出清償資料(月)" onclick="exportToExcel('M')" />
     <input type="button" value="匯出清償資料(年)" onclick="exportToExcel('Y')" />
     <input type="button" value="匯出全部清償資料" onclick="exportToExcel('A')" />
-    <table width="1150px" id="MainTableMoto" border="0" cellpadding="4" cellspacing="1" bgcolor="#666666" style="margin-top: 3px;">
+    <input type="checkbox" id="chkSale"/>是否法拍
+    <table width="1550px" id="MainTableHouse" border="0" cellpadding="4" cellspacing="1" bgcolor="#666666" style="margin-top: 3px; display: none;">
+        <thead>
+            <tr align="center" bgcolor="#CCCCFF" class="TrHead">
+                <td>件數</td>
+                <td>借款人</td>
+                <td>撥款日</td>
+                <td>結清本金</td>
+                <td>違約金/手續費</td>
+                <td>結清利息</td>
+                <td>結清遲延金</td>
+                <td>清償日</td>
+                <td>放款回收金額</td>
+                <td>成數</td>
+                <td>區</td>
+                <td>擔保品地址</td>
+            </tr>
+        </thead>
+        <tbody></tbody>
+        <tfoot>
+            <tr align="center" height="11" bgcolor="#CCCCFF">
+                <td class="c12-k" colspan="12">
+                    <font color="#000080">
+                        <label id="CountRows"></label>
+                    </font>
+                </td>
+            </tr>
+        </tfoot>
+    </table>
+    <table width="1150px" id="MainTableMoto" border="0" cellpadding="4" cellspacing="1" bgcolor="#666666" style="margin-top: 3px; display: none;">
         <thead>
             <tr align="center" bgcolor="#CCCCFF" class="TrHead">
                 <td width="3%">件數</td>
@@ -61,12 +90,20 @@
     window.onload = function () {
         const urlParams = new URLSearchParams(window.location.search);
         caseType = urlParams.get('caseType');
+
+        document.querySelector('#MainTableMoto').style.display = "none";
+        document.querySelector('#MainTableHouse').style.display = "none";
+
         switch (caseType) {
             case "1": //房貸
                 document.getElementById("btnCaseType").value = "房貸分期總表";
+                document.querySelector('#MainTableHouse').style.display = "table";
+                generateRocDateOptions(108, 4);
+                fetch_url = `${BASE_URL}/AE_RPT/GetHouseSettList`;
                 break;
             case "2": //機車
                 document.getElementById("btnCaseType").value = "機車分期總表";
+                document.querySelector('#MainTableMoto').style.display = "table";
                 generateRocDateOptions(114, 10);
                 fetch_url = `${BASE_URL}/AE_RPT/GetMotoSettList`;
                 break;
@@ -100,6 +137,10 @@
         var yyyyMM = adYear.toString() + adMM.toString().padStart(2, '0');
         let url = fetch_url + `?yyyyMM=${yyyyMM}&type=${type}`;
 
+        if ($("#chkSale").is(":checked")) {
+            url = fetch_url + `?yyyyMM=${yyyyMM}&type=${type}&chkSale=1`;
+        }
+
         $.ajax({
             url: url,
             type: 'GET',
@@ -108,13 +149,13 @@
                 data = JSON.parse(resData.objResult);
                 switch (caseType) {
                     case "1": //房貸
-                        showTableMoto();
+                        showTableHouse();
                         break;
                     case "2": //機車
                         showTableMoto();
                         break;
                     case "3": //汽車
-                        showTableMoto();
+                        showTableCar();
                         break;
                     default:
                 }
@@ -167,6 +208,55 @@
             tbody.appendChild(row);
         });
 
+    }
+
+    function showTableHouse() {
+        const tbody = document.querySelector('#MainTableHouse tbody');
+        tbody.innerHTML = '';
+
+        const columnOrder = ['CS_name', 'str_get_amount_date', 'capital_AMT', 'Break_AMT', 'Interest_total', 'Delay_AMT', 'str_date_begin_settle', 'get_amount'
+            , 'Loan_rate', 'all_pre_addCity', 'all_pre_addresses'];
+
+        data.forEach((item, index) => {
+            const row = document.createElement('tr');
+            row.setAttribute('align', 'center');
+            row.className = 'c12-k';
+            row.style.backgroundColor = '#FFFFFF';
+            row.onmouseover = function () { this.style.background = '#FCFCC0'; };
+            row.onmouseout = function () { this.style.background = '#FFFFFF'; };
+
+            const numberCell = document.createElement('td');
+            numberCell.textContent = index + 1;
+            row.appendChild(numberCell);
+
+            columnOrder.forEach(key => {
+                const cell = document.createElement('td');
+                switch (key) {
+                    case "capital_AMT":
+                    case "Interest_total":
+                    case "Delay_AMT":
+                    case "Break_AMT":
+                        cell.textContent = Number(item[key]).toLocaleString();
+                        break;
+                    case "get_amount":
+                        cell.textContent = item[key] + '萬';
+                        break;
+                    case "all_pre_addCity":
+                    case "all_pre_addresses":
+                        if (item[key]) {
+                            // 將分號取代為 <br>，並使用 innerHTML 渲染
+                            cell.innerHTML = item[key].toString().replace(/;/g, '<br>');
+                        } else {
+                            cell.textContent = '';
+                        }
+                        break;
+                    default:
+                        cell.textContent = item[key] != null ? item[key] : '';
+                }
+                row.appendChild(cell);
+            });
+            tbody.appendChild(row);
+        });
     }
 
     function createCell(i, featData) {
@@ -222,28 +312,65 @@
         let adMM = parseInt(parts[1], 10);
 
         var yyyyMM = adYear.toString() + adMM.toString().padStart(2, '0');
-
+        const yyyy = Math.floor(yyyyMM / 100);
+        const isSale = $("#chkSale").is(":checked");
         let excelUrl = "";
         let fileName = "";
-        switch (caseType) {
-            case "1": //房貸
-                excelUrl = "";
+
+        const reportConfig = {
+            "1": {
+                name: "房貸",
+                totalName: "房貸總清償清冊",
+                api: isSale ? "GetHouseChkExcel" : "GetHouseSettExcel"
+            },
+            "2": {
+                name: "機車",
+                totalName: "機車貸總清償清冊",
+                api: "GetMotoSettExcel"
+            },
+            "3": {
+                name: "汽車",
+                totalName: "汽車貸總清償清冊",
+                api: ""
+            }
+        };
+
+        const config = reportConfig[caseType];
+
+        if (!config) {
+            alert("系統錯誤,請洽資訊人員");
+            return;
+        }
+
+        switch (type) {
+            case "M":
+                fileName = `${config.name}清償清冊${yyyyMM}`;
                 break;
-            case "2": //機車
-                excelUrl = `${BASE_URL}/AE_RPT/GetMotoSettExcel?yyyyMM=${yyyyMM}&type=${type}`;
-                if (type == "M") {
-                    fileName = `機車清償清冊${yyyyMM}.xlsx`;
-                } else {
-                    let yyyy = Math.floor(yyyyMM / 100);
-                    fileName = `機車清償清冊${yyyy}.xlsx`;
-                }
-                
+
+            case "Y":
+                fileName = `${config.name}清償清冊${yyyy}`;
                 break;
-            case "3": //汽車
-                excelUrl = "";
-                break;
+
             default:
-                alert("系統錯誤,請洽資訊人員");
+                fileName = config.totalName;
+                break;
+        }
+
+        // 法拍前綴
+        if (isSale) {
+            fileName = `法拍${fileName}`;
+        }
+
+        // 副檔名
+        fileName += ".xlsx";
+
+        // API URL
+        if (config.api) {
+            excelUrl = `${BASE_URL}/AE_RPT/${config.api}?yyyyMM=${yyyyMM}&type=${type}`;
+
+            if (isSale) {
+                excelUrl += "&chkSale=1";
+            }
         }
 
         $('body').css('cursor', 'wait');
