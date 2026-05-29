@@ -27,26 +27,28 @@
     <table width="1350px" id="MainTable" border="0" cellpadding="4" cellspacing="1" bgcolor="#666666" style="margin-top: 3px;">
         <thead>
             <tr align="center" bgcolor="#CCCCFF" class="TrHead">
-                <td width="3%">件數</td>
-                <td width="10%">案件編號</td>
-                <td width="7%">進件日期</td>
-                <td width="7%">申請人</td>
-                <td width="7%">經辦人</td>
-                <td width="10%">區域</td>
-                <td width="7%">撥款金額</td>
-                <td width="7%">撥款日期</td>
-                <td width="5%">利率</td>
-                <td width="16%">專案</td>
-                <td width="5%">期數</td>
-                <td width="5%">ACH</td>
-                <td width="8%">ACH備註</td>
-                <td width="7%">編輯</td>
+                <td>件數</td>
+                <td>案件編號</td>
+                <td>進件日期</td>
+                <td>申請人</td>
+                <td>經辦人</td>
+                <td>區域</td>
+                <td>撥款金額</td>
+                <td>撥款日期</td>
+                <td>利率</td>
+                <td>專案</td>
+                <td>期數</td>
+                <td>成數</td>
+                <td>ACH</td>
+                <td>ACH備註</td>
+                <!--<td>ACH附件</td>-->
+                <td>編輯</td>
             </tr>
         </thead>
         <tbody></tbody>
         <tfoot>
             <tr align="center" height="11" bgcolor="#CCCCFF">
-                <td class="c12-k" colspan="14">
+                <td class="c12-k" colspan="15">
                     <font color="#000080">
                         <label id="CountRows"></label>
                     </font>
@@ -109,7 +111,7 @@
         let adMM = parseInt(parts[1], 10);
 
         var yyyyMM = adYear.toString() + adMM.toString().padStart(2, '0');
-        let url = `${BASE_URL}/AE_ACC/GetHouseACH_LQuery?yyyyMM=${yyyyMM}&type=${type}&pjtype=${pjtype}`;
+        let url = `${BASE_URL}/AE_ACC/GetRcACH_LQuery?yyyyMM=${yyyyMM}&type=${type}&pjtype=${pjtype}`;
 
         $.ajax({
             url: url,
@@ -152,12 +154,16 @@
 
             const keys = Object.keys(item);
             keys.forEach(key => {
-                if (key !== 'RCM_id') {
+                if (key !== 'RCM_id' && key !== 'FileCount' && key !== 'RCM_cknum') {
                     const cell = document.createElement('td');
                     cell.textContent = item[key];
                     row.appendChild(cell);
                 }
             });
+
+            //const cell = document.createElement('td');
+            //cell.innerHTML = `<input type="button" value="附加檔案(${item.FileCount})" onclick="OpenUpload('${item.RCM_cknum}','Upload')">`;
+            //row.appendChild(cell);
 
             row.appendChild(createButtonCell(
                 "../images/edit.png",
@@ -246,5 +252,10 @@
                 $('body').css('cursor', 'default');
             }
         });
+    }
+
+    function OpenUpload(File_ID, File_Type) {
+        var url = "../UpLoad/Upload_List.html?cknum=" + File_ID
+        window.open(url, "_file_list", "scrollbars=yes,resizable=no,width=725,height=400,top=300,left=150");
     }
 </script>

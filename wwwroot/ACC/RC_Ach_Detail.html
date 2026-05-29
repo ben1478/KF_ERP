@@ -24,18 +24,23 @@
             <tr class="12-k" bgcolor="#FFFFFF" height="25" align="center">
                 <td width="130">ACH設定狀態</td>
                 <td align="left">
-                    <select  name="Ach_State" id="Ach_State" style="width: 160px;"></select>
+                    <select name="Ach_State" id="Ach_State" style="width: 160px;"></select>
                 </td>
             </tr>
             <tr class="12-k" bgcolor="#FFFFFF" height="25" align="center">
                 <td width="130">ACH備註</td>
                 <td align="left">
-                    <input type="text" name="Ach_Note" id="Ach_Note" style="width: 210px;"/>
+                    <input type="text" name="Ach_Note" id="Ach_Note" style="width: 210px;" />
+                </td>
+            </tr>
+            <tr class="12-k" bgcolor="#FFFFFF" height="25" align="center">
+                <td width="130">附件上傳</td>
+                <td align="left" id="upload-td">
                 </td>
             </tr>
             <tr class="14-k" bgcolor="#FFFFFF" height="35" align="center">
                 <td align="center" colspan="2">
-                    <input type="button" value="確定儲存" onclick="SaveData();">
+                    <input type="button" value="確定儲存" onclick="saveData();">
                 </td>
             </tr>
         </table>
@@ -69,13 +74,16 @@
                 $('#CS_name').text(data[0].CS_name);
                 $('#Ach_State').val(data[0].Ach_State);
                 $('#Ach_Note').val(data[0].Ach_Note);
+
+                const buttonHtml = `<input type="button" value="附加檔案(${data[0].FileCount})" onclick="OpenUpload('${data[0].RCM_cknum}','Upload')">`;
+                $('#upload-td').html(buttonHtml);
             })
             .catch(error => {
                 alert('請求失敗，請稍後再試。');
             })
     }
 
-    function SaveData() {
+    function saveData() {
         const url = `${BASE_URL}/AE_ACC/RC_Ach_Upd`;
 
         const saveData = {
@@ -112,5 +120,8 @@
         });
     }
 
-
+    function OpenUpload(File_ID, File_Type) {
+        var url = "../UpLoad/Upload_List.html?cknum=" + File_ID
+        window.open(url, "_file_list", "scrollbars=yes,resizable=no,width=725,height=400,top=300,left=150");
+    }
 </script>

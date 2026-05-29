@@ -36,7 +36,7 @@
             <tr align="center" height="15" bgcolor="#CCCCFF">
                 <td class="c12-k" colspan="3">
                     <font color="#000080">
-                        <input type="button" value="確認修改" />
+                        <input type="button" value="確認修改" onclick="saveData();"/>
                     </font>
                 </td>
             </tr>
@@ -52,7 +52,7 @@
     fetchData();
 
     function openNFRList() {
-        window.open(`/Feat/Feat_NM_List.html?User=${WebUser}&U_BC=${WebBC}`, 'list', 'scrollbars=yes,resizable=yes,width=1300,height=500,left=250,top=100')
+        window.open(`${BASE_WEB}/Feat/Feat_NM_List.html?User=${encryptParameter(WebUser)}&U_BC=${encryptParameter(WebBC)}`, 'list', 'scrollbars=yes,resizable=yes,width=1300,height=500,left=250,top=100')
     }
 
     function fetchData() {
@@ -129,5 +129,53 @@
         cell.appendChild(inputA);
         cell.appendChild(percent);
         return cell;
+    }
+
+    function saveData() {
+
+        const rows = document.querySelectorAll('#MainTable tbody tr');
+        const payload = [];
+
+        rows.forEach(row => {
+            const serialCell = row.querySelector('td[data-item-id]');
+            const inputElement = row.querySelector('input[name="item_int"]');
+           
+            if (serialCell && inputElement) {
+                const itemId = serialCell.getAttribute('data-item-id');
+                const itemInt = inputElement.value; 
+
+                if (itemInt.trim() !== '') {
+                    payload.push({
+                        item_id: itemId,
+                        item_int: itemInt,
+                        tbInfo: {
+                            add_num: WebUser,
+                            edit_num: WebUser
+                        }
+                    });
+                }
+            }
+        });
+
+        const url = `${BASE_URL}/AE_FT/Feat_KF_Ins`;
+
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
+        })
+            .then(response => response.json())
+            .then(responseData => {
+                if (responseData.resultCode === '000') {
+                    alert(responseData.resultMsg);
+                } else {
+                    alert(responseData.resultMsg);
+                }
+                window.location.reload();
+            }).catch(error => {
+                alert('儲存失敗，請稍後再試。');
+            });
     }
 </script>

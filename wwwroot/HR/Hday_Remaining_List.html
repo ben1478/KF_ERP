@@ -1,0 +1,161 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script src="../Base.js"></script>
+    <title>作業平台</title>
+    <style>
+        a.btn {
+            cursor: pointer;
+            padding: 3px;
+            text-decoration-line: none;
+            border: 2px solid orange;
+        }
+    </style>
+</head>
+<body>
+    <table width="1200" border="0" cellspacing="0" cellpadding="0">
+        <tbody>
+            <tr>
+                <td width="40"> </td>
+                <td height="24" colspan="2">
+                    <span class="c14k"><strong>年假管理</strong></span>
+                </td>
+            </tr>
+            <tr>
+                <td width="40"> </td>
+                <td height="24" colspan="2">
+                    <span>員編／姓名：<input type="text" name="queryword" id="queryword" size="10" value="" class="c12-k"></span><span>(模糊比對)</span>&nbsp;&nbsp;&nbsp;&nbsp;
+                    <span>公司別：<select name="U_BC" id="U_BC" class=""></select></span>&nbsp;&nbsp;
+                    <select name="job_status" id="job_status" style="width:80px">
+                        <option value="Y">在職</option>
+                        <option value="N">離職</option>
+                    </select>
+                    &nbsp;&nbsp;
+                    <input type="button" name="query" class="" value="查詢" onclick="fetchData();">
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <table width="950px" id="MainTable" border="0" cellpadding="4" cellspacing="1" bgcolor="#666666" style="margin-top: 3px;">
+        <thead>
+            <tr align="center" bgcolor="#CCCCFF" class="TrHead">
+                <td>No.</td>
+                <td>員編</td>
+                <td>姓名</td>
+                <td>到職日</td>
+                <td>上上年度期間</td>
+                <td>剩餘</td>
+                <td>上年度期間</td>
+                <td>剩餘</td>
+                <td>本年度期間</td>
+                <td>剩餘</td>
+            </tr>
+        </thead>
+        <tbody></tbody>
+        <tfoot>
+            <tr align="center" height="15" bgcolor="#CCCCFF">
+                <td class="c12-k" colspan="10">
+                    <font color="#000080">
+                        <label id="CountRows"></label>
+                    </font>
+                </td>
+            </tr>
+        </tfoot>
+    </table>
+    <div id="pagination" style="margin-top: 3px;"></div>
+</body>
+</html>
+<script>
+    const Params = getQueryParams();
+    let WebUser = Params.WebUser;
+    let WebBC = Params.WebBC;
+
+    const itemsPerPage = 20;
+    let currentPage = 1;
+    let data = [];
+
+    loadItemDropdown({
+        selectId: "U_BC",
+        itemCode: "branch_company"
+    });
+    fetchData();
+
+    function fetchData() {
+        let url = `${BASE_URL}/AE_HR/User_Hday_LQuery`;
+
+        const reqDate = {
+            U_Num_Name: document.getElementById('queryword').value, 
+            U_BC: document.getElementById('U_BC').value,
+            Job_Status: document.getElementById('job_status').value
+        }
+
+        $.ajax({
+            url: url,
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(reqDate),
+            success: function (resData) {
+                data = JSON.parse(resData.objResult);
+                showPage(currentPage);
+                createPagination();
+            },
+            error: function (err) {
+                alert("失敗：" + err.responseText);
+            },
+            complete: function () {
+            }
+        });
+    }
+
+    function showPage(page) {
+        document.getElementById('CountRows').innerHTML = `筆數:${data.length}`;
+        const tbody = document.querySelector('#MainTable tbody');
+        tbody.innerHTML = '';
+
+        const startIndex = (page - 1) * itemsPerPage;
+        const endIndex = Math.min(startIndex + itemsPerPage, data.length);
+        const pageData = data.slice(startIndex, endIndex);
+
+        pageData.forEach((item, index) => {
+            const row = document.createElement('tr');
+            row.setAttribute('align', 'center');
+            row.className = 'c12-k';
+            row.style.backgroundColor = '#FFFFFF';
+            row.onmouseover = function () { this.style.background = '#FCFCC0'; };
+            row.onmouseout = function () { this.style.background = '#FFFFFF'; };
+
+            const numberCell = document.createElement('td');
+            numberCell.textContent = index + 1;
+            row.appendChild(numberCell);
+
+            const keys = Object.keys(item);
+            keys.forEach(key => {
+                const cell = document.createElement('td');
+                if (["rem2", "rem1", "rem0"].includes(key) && item[key] != 0) {
+                    cell.innerHTML = `
+                    <a class="btn"
+                       href="#"
+                       onclick="window.open(
+                           '/HR/Hday.html?User=${encryptParameter(WebUser)}&U_num=${encryptParameter(item.U_num)}',
+                           '_blank',
+                           'scrollbars=yes,resizable=yes,width=1000,height=500,left=250,top=100'
+                       )">
+                       ${item[key]}
+                    </a>`;
+                }
+                else {
+                    cell.textContent = item[key];
+                }
+                row.appendChild(cell);
+            });
+
+            tbody.appendChild(row);
+        });
+    }
+</script>

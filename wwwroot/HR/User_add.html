@@ -227,6 +227,12 @@
                     <input type="text" value="" name="str_U_leave_date" class="datepickerTW" placeholder="年 /月 /日" style="width:80px;">
                 </td>
             </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td align="right" bgcolor="#CCCCFF">備註</td>
+                <td align="left">
+                    <input type="text" id="U_note" name="U_note" size="20" maxlength="50" class="box" value="">
+                </td>
+            </tr>
             <tr class="c12-k" bgcolor="#CCCCFF" height="30">
                 <td colspan="2" align="center">
                     <input type="button" class="btn" value="確定新增" onclick="SaveUser();">
@@ -296,6 +302,7 @@
             U_address_live: document.querySelector('input[name="U_address_live"]').value,
             str_U_arrive_date: document.querySelector('input[name="str_U_arrive_date"]').value,
             str_U_leave_date: document.querySelector('input[name="str_U_leave_date"]').value,
+            U_note: document.querySelector('input[name="U_note"]').value,
             User: WebUser
         };
 

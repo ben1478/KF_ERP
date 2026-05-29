@@ -50,7 +50,7 @@
     </td>
     <td width="200" align="right">
 	
-			<input type="button" name="new" class="btn_red_1" value="檔案上傳" style="cursor: pointer;" onclick="uploadFile();">&nbsp;&nbsp;
+			<input type="button" name="new" id="btnUpload" class="btn_red_1" value="檔案上傳" style="cursor: pointer;" onclick="uploadFile();">&nbsp;&nbsp;
 		
     </td>
   </tr>	<input type="hidden" size="30" maxlength="30" id="hidCknum" name="cknum" value="">
@@ -63,7 +63,7 @@
 		  <td width="270">檔案名稱</td>
 		  <td width="40">開啟</td>
 		  <td width="180">上傳日期</td>
-		  <td width="180">刪除</td>
+		  <td id="tdDEL" width="180">刪除</td>
 		</tr>
         
         <tbody></tbody>
@@ -77,11 +77,20 @@
 	const PID = Params.get('pid');
 	const ChkType = Params.get('ChkType');
 	const ftpUpload = Params.get('ftpUpload');
+	const isLike = Params.get('isLike');
+
 
 $(document).ready(function() {
 	$("#spCknum").html(cknum)
 	$("#hidCknum").val(cknum)
 	GetFilesByKeyID()
+	if(LockFile=="Y")
+	{
+		$("#btnUpload").hide();
+		$("#tdDEL").hide();
+		
+	}
+	
 });
 
 
@@ -90,10 +99,23 @@ let objFiles=null;
 function GetFilesByKeyID()
 {
 	var KeyID=$("#hidCknum").val()
-	const Type="Upload";
-    const url = `${BASE_URL}/AE/GetFilesByKeyID`;
+	var Type="Upload";
+	if(ChkType!=null&&ChkType!="FEE")
+	{
+		Type=ChkType;
+	}
+    var url = `${BASE_URL}/AE/GetFilesByKeyID`+'?KeyID='+KeyID+'&Type='+Type;
+	if (isLike==='Y')
+	{
+		url+='&isLike=Y'
+	}
+	else
+	{
+		url+='&isLike=N'
+	}
+	
     $.ajax({
-		 url: url+'?KeyID='+KeyID+'&Type='+Type,
+		 url: url,
          type: 'POST',
          data: {},
          contentType: 'application/json; charset=utf-8',
@@ -101,7 +123,7 @@ function GetFilesByKeyID()
          if(result.resultCode=="000")
          {
 			objFiles=result.objResult;
-			BindingDataTable(KeyID,Type,objFiles);
+			BindingDataTable(KeyID,Type,objFiles,isLike);
          }
          else
          {
@@ -145,19 +167,27 @@ function DeleteFile(KeyID,Type,file_index)
 
 
 
-function BindingDataTable(KeyID,Type,objFiles)
+function BindingDataTable(KeyID,Type,objFiles,isLike)
 {
 	let table = $('#MainTable')
 	let m_html="";
-	jQuery.each(objFiles, function(index, item) {
+	jQuery.each(objFiles, function(index, item) 
+	{
+			var m_KeyID=item.keyID
 			m_html+='<tr height="30" align="center"  class="c12-k" bgcolor="#FFFFFF" >'
 			m_html+='<td>'+(index+1)+'</td>'
 			m_html+='<td>'+item.file_name+'</td>'
 			m_html+='<td> <img src="../images/view.png" width="16" height="18" border="0" alt="開啟檔案" style="cursor: pointer;" '
-			m_html+=' onclick="GetFileBySeq(\''+ item.file_index+'\',\''+ Type+'\')"></td>'
+			m_html+=' onclick="GetFileBySeq(\''+ m_KeyID+'\',\''+ item.file_index+'\',\''+ Type+'\')"></td>'
 			m_html+='<td>'+item.add_date+'</td>'
-			m_html+='<td> <img src="../images/delete.png" width="16" height="18" border="0" alt="刪除" style="cursor: pointer;" '
-			m_html+=' onclick="DeleteFile(\''+ KeyID+'\',\''+ Type+'\',\''+ item.file_index+'\')"></td>'
+
+			if(LockFile!="Y")
+			{
+				m_html+='<td> <img src="../images/delete.png" width="16" height="18" border="0" alt="刪除" style="cursor: pointer;" '
+			    m_html+=' onclick="DeleteFile(\''+ m_KeyID+'\',\''+ Type+'\',\''+ item.file_index+'\')"></td>'
+			}
+			
+			
 			
 			m_html+='</tr >'
 	});
@@ -169,16 +199,20 @@ function BindingDataTable(KeyID,Type,objFiles)
 
 
 
- function GetFileBySeq(Index) {
-    var KeyID = $("#hidCknum").val();
-    const Type = "Upload";
-    const url = `${BASE_URL}/AE/GetFileBySeq`;
-
+ function GetFileBySeq(KeyID,Index) {
+    //var KeyID = $("#hidCknum").val();
+    var Type = "Upload";
+	if(ChkType!=null&&ChkType!="FEE")
+	{
+		Type=ChkType;
+	}
+	const url = `${BASE_URL}/AE/GetFileBySeq`+'?KeyID='+KeyID+'&Type='+Type+ '&Index=' + Index;
+	
     // 顯示遮罩
     $("#loading-mask").show();
 
     $.ajax({
-        url: url + '?KeyID=' + KeyID + '&Type=' + Type + '&Index=' + Index,
+        url: url ,
         type: 'POST',
         data: {},
         contentType: 'application/json; charset=utf-8',
@@ -206,10 +240,11 @@ function BindingDataTable(KeyID,Type,objFiles)
     });
 }
 
-function processFileStream(base64, fileName, contentType,KeyID) {
+
+function processFileStream(base64, fileName, contentType, KeyID) {
     const ext = fileName.split('.').pop().toLowerCase();
     
-    // Base64 解碼 (這部分最吃效能)
+    // 1. Base64 解碼
     const byteCharacters = atob(base64);
     const byteNumbers = new Array(byteCharacters.length);
     for (let i = 0; i < byteCharacters.length; i++) {
@@ -224,28 +259,40 @@ function processFileStream(base64, fileName, contentType,KeyID) {
         'mp4': 'video/mp4', 'mov': 'video/quicktime'
     };
 
-    const targetMime = mimeMap[ext] || contentType;
-    const blob = new Blob([byteArray], { type: targetMime });
+    let targetMime = mimeMap[ext] || contentType;
+    let blobData = [byteArray];
+
+    // --- 關鍵修正：解決 txt 亂碼並強制轉為 UTF-8 ---
+    if (ext === 'txt') {
+        targetMime = 'text/plain;charset=utf-8';
+        // 加上 UTF-8 BOM，確保 Excel 或記事本開啟不亂碼
+        const BOM = new Uint8Array([0xEF, 0xBB, 0xBF]);
+        blobData = [BOM, byteArray];
+    }
+
+    const blob = new Blob(blobData, { type: targetMime });
     const fileURL = window.URL.createObjectURL(blob);
 
-    const previewExtensions = ['pdf', 'jpg', 'jpeg', 'png', 'txt', 'mp4', 'mov'];
+    // --- 修改處：將 'txt' 從預覽清單中移除 ---
+    // 移除 'txt' 後，文字檔會直接觸發下載 (另存新檔)
+    const previewExtensions = ['pdf', 'jpg', 'jpeg', 'png', 'mp4', 'mov'];
 
     if (previewExtensions.includes(ext)) {
-       // window.open(fileURL, '_blank');
-		window.open(fileURL,'_UpLoad_'+ KeyID,'scrollbars=yes,resizable=no,width=725,height=480,top=300,left=150');
-
+        // 圖片、PDF、影片 繼續用視窗預覽
+        window.open(fileURL, '_UpLoad_' + KeyID, 'scrollbars=yes,resizable=no,width=725,height=480,top=300,left=150');
     } else {
+        // 文字檔 (txt) 或其他格式，執行另存新檔
         const link = document.createElement('a');
         link.href = fileURL;
-        link.download = fileName;
+        link.download = fileName; // 設定下載檔名
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
     }
 
+    // 釋放記憶體
     setTimeout(() => window.URL.revokeObjectURL(fileURL), 10000);
-}  
-
+}
 
 
 

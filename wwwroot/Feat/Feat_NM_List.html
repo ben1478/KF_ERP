@@ -229,6 +229,6 @@
     }
 
     function openKFRList() {
-        window.open(`/Feat/Feat_KF_Detail.html?User=${WebUser}&U_BC=${WebBC}`, 'list', 'scrollbars=yes,resizable=yes,width=1300,height=500,left=250,top=100')
+        window.open(`${BASE_WEB}/Feat/Feat_KF_Detail.html?User=${encryptParameter(WebUser)}&U_BC=${encryptParameter(WebBC)}`, 'list', 'scrollbars=yes,resizable=yes,width=1300,height=500,left=250,top=100')
     }
 </script>

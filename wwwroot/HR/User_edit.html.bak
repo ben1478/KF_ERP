@@ -234,19 +234,10 @@
                 </td>
             </tr>
             <tr class="c12-k" bgcolor="#FFFFFF">
-                <td align="right" bgcolor="#CCCCFF">留停(育嬰)區間1</td>
+                <td align="right" bgcolor="#CCCCFF">留停(育嬰)生效日</td>
                 <td align="left">
                     民國
                     <input type="text" value="" name="str_U_susp_date" class="datepickerTW" placeholder="年 /月 /日" style="width:80px;">
-					<input type="text" value="" name="str_U_susp_end_date" class="datepickerTW" placeholder="年 /月 /日" style="width:80px;">
-                </td>
-            </tr>
-			 <tr class="c12-k" bgcolor="#FFFFFF">
-                <td align="right" bgcolor="#CCCCFF">留停(育嬰)區間2</td>
-                <td align="left">
-                    民國
-                    <input type="text" value="" name="str_U_susp_date2" class="datepickerTW" placeholder="年 /月 /日" style="width:80px;">
-					<input type="text" value="" name="str_U_susp_end_date2" class="datepickerTW" placeholder="年 /月 /日" style="width:80px;">
                 </td>
             </tr>
             <tr class="c12-k" bgcolor="#FFFFFF">
@@ -383,28 +374,6 @@
                     } else {
                         document.querySelector('input[name="str_U_susp_date"]').value = '';
                     }
-					document.querySelector('input[name="str_U_susp_end_date"]').value = convertToROCDate(user.U_susp_end_date);
-					if (user.U_susp_end_date) {
-                        document.querySelector('input[name="str_U_susp_end_date"]').value = convertToROCDate(user.U_susp_end_date);
-                    } else {
-                        document.querySelector('input[name="str_U_susp_end_date"]').value = '';
-                    }
-					
-					document.querySelector('input[name="str_U_susp_date2"]').value = convertToROCDate(user.U_susp_date2);
-                    if (user.U_susp_date2) {
-                        document.querySelector('input[name="str_U_susp_date2"]').value = convertToROCDate(user.U_susp_date2);
-                    } else {
-                        document.querySelector('input[name="str_U_susp_date2"]').value = '';
-                    }
-					
-					document.querySelector('input[name="str_U_susp_end_date2"]').value = convertToROCDate(user.U_susp_end_date2);
-					if (user.U_susp_end_date2) {
-                        document.querySelector('input[name="str_U_susp_end_date2"]').value = convertToROCDate(user.U_susp_end_date2);
-                    } else {
-                        document.querySelector('input[name="str_U_susp_end_date2"]').value = '';
-                    }
-					
-					
                 } else {
                     console.error('API 回傳資料格式錯誤');
                 }
@@ -490,9 +459,6 @@
             User: WebUser,
             is_susp: document.querySelector('input[name="is_susp"]:checked')?.value || '',
             str_U_susp_date: document.querySelector('input[name="str_U_susp_date"]').value,
-			str_U_susp_end_date: document.querySelector('input[name="str_U_susp_end_date"]').value,
-			str_U_susp_date2: document.querySelector('input[name="str_U_susp_date2"]').value,
-            str_U_susp_end_date2: document.querySelector('input[name="str_U_susp_end_date2"]').value,
             U_note: document.querySelector('input[name="U_note"]').value
         };
         const url = `${BASE_URL}/AE_HR/User_M_SUpd`;
