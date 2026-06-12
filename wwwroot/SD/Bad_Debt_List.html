@@ -65,6 +65,7 @@
 <script>
     let Params = new URLSearchParams(window.location.search);
     let SpeID = Params.get('Spe');
+    let strType = Params.get('strType');
     let currentPage = 1;
     let data = [];
 
@@ -74,10 +75,10 @@
     }else {
         document.getElementById("specSection").style.display = "block";
     }
-
+    
 
     function fetchData() {
-        const url = `${BASE_URL}/AE_SD/Fina_BDebt_LQuery`;
+        const url = `${BASE_URL}/AE_SD/Fina_BDebt_LQuery?strType=${strType}`;
 
         fetch(url, {
             method: 'GET',
