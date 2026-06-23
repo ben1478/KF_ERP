@@ -1,0 +1,147 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script src="../Base.js"></script>
+    <title>作業平台</title>
+    <style>
+        .main-panel {
+            background: #fff;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,.08);
+        }
+
+        /* 日期區塊置中 */
+        .date-container {
+            display: flex;
+            justify-content: center; /* 水平置中 */
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .date-label {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .date-input {
+            width: 120px;
+            padding: 8px 12px;
+            border: 1px solid #d0d7de;
+            border-radius: 10px;
+            font-size: 14px;
+        }
+
+        .button-container {
+            display: flex;
+            justify-content: space-between; /* 左中右平均分散 */
+            gap: 20px; /* 按鈕間距 */
+            padding: 20px;
+        }
+
+        .btn {
+            flex: 1; /* 三個按鈕平均寬度 */
+            padding: 12px;
+            font-size: 12px;
+            border: none;
+            border-radius: 10px;
+            background: #4a90e2;
+            color: white;
+            cursor: pointer;
+        }
+
+            .btn:hover {
+                background: #357abd;
+            }
+    </style>
+</head>
+<body>
+    <div class="main-panel">
+
+        <div class="date-container">
+            <label class="date-label">截止日期:</label>
+            <input type="text" name="checkDateE" id="checkDateE" class="datepickerTW date-input" placeholder="年 / 月 / 日">
+        </div>
+
+        <div class="button-container">
+            <button class="btn" onclick="exportToExcel(1);">分期未清償總表</button>
+            <button class="btn" onclick="exportToExcel(2);">帳齡分析</button>
+           
+        </div>
+
+    </div>
+</body>
+</html>
+<script>
+    dateTW();
+
+    $('.datepickerTW').datepickerTW({
+        changeYear: true,
+        changeMonth: true,
+        dateFormat: 'yy-mm-dd'
+    });
+
+    function exportToExcel(type) {
+        let checkDateE = $("#checkDateE").val();
+        if (!checkDateE) {
+            alert("請選擇截止日期");
+            return;
+        }
+
+        let excelUrl = "";
+        let parts = checkDateE.split('-');
+        let westernYear = parseInt(parts[0], 10) + 1911;
+        let month = parts[1].padStart(2, '0');
+        let day = parts[2].padStart(2, '0');
+        let formattedDate = `${westernYear}/${month}/${day}`;
+
+        $('body').css('cursor', 'wait');
+
+        switch (type) {
+            case 1:
+                excelUrl = `${BASE_URL}/AE_RPT/GetAccountReceivableExcel?YMD=${formattedDate}`;
+                fileName = `未清償總表${formattedDate}`;
+                break;
+
+            case 2:
+                excelUrl = `${BASE_URL}/AE_RPT/GetAccountOverdueExcel?YMD=${formattedDate}`;
+                fileName = `帳齡分析${formattedDate}`;
+                break;
+        }
+
+        // 副檔名
+        fileName += ".xlsx";
+
+        $.ajax({
+            url: excelUrl,
+            method: 'GET',
+            xhrFields: {
+                responseType: 'blob'
+            },
+            contentType: 'application/json',
+            success: function (response) {
+                const url = window.URL.createObjectURL(response);
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = url;
+                a.download = fileName;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+            },
+            error: function (err) {
+                alert('Error generating file');
+            },
+            complete: function () {
+                $('body').css('cursor', 'default');
+            }
+        });
+    }
+</script>

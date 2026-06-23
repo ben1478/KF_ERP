@@ -157,7 +157,6 @@
                                     <input type="button" name="add" value="應收帳款-逾放比" onclick="openRC_Over_Rel_LQuery();">
                                 </td>
                                 <td width="13%" align="center">
-                                    <input type="button" name="add" value="呆帳催繳紀錄清單" onclick="openStagnationDebt();">
                                 </td>
                                 <td width="13%" align="center">
                                     <input type="button" name="add" value="應收帳款-本金餘額表" onclick="openRC_Repay_LQuery();">
@@ -234,6 +233,29 @@
                                     <input type="button" name="add" value="年假管理" onclick="openHdayRemaining();">
                                 </td>
                                 <td width="13%" align="center">
+                                    <input type="button" name="add" value="會計報表" onclick="openAccount();">
+                                </td>
+                                <td width="13%" align="center">
+                                </td>
+                            </tr>
+                            <tr>
+                                <td width="13%" align="center">
+                                    <input type="button" name="add" value="房貸呆帳催繳紀錄清單" onclick="openStagnationDebt();">
+                                </td>
+                                <td width="13%" align="center">
+                                    <input type="button" name="add" value="機車貸呆帳催繳紀錄清單" onclick="openStagnationDebtMoto();">
+                                </td>
+                                <td width="13%" align="center">
+                                    <input type="button" name="add" value="汽車貸呆帳催繳紀錄清單" onclick="openStagnationDebtCar();">
+                                </td>
+
+                            </tr>
+                            <tr>
+                                <td width="13%" align="center">
+                                    <input type="button" name="add" value="個人出勤紀錄" onclick="openAttendanceD();">
+                                </td>
+                                <td width="13%" align="center">
+                                    <input type="button" name="add" value="出勤紀錄查詢" onclick="openAttendanceM();">
                                 </td>
                                 <td width="13%" align="center">
                                 </td>
@@ -452,5 +474,25 @@
 
     function openHdayRemaining() {
         window.open(`/HR/Hday_Remaining_List.html?User=${WebUser}&U_BC=${WebBC}`, 'list', 'scrollbars=yes,resizable=yes,width=1000,height=500,left=250,top=100')
+    }
+
+    function openStagnationDebtMoto() {
+        window.open(`/SD/SD_Moto_List.html?User=${WebUser}&U_BC=${WebBC}`, 'list', 'scrollbars=yes,resizable=yes,width=1300,height=500,left=250,top=100')
+    }
+
+    function openStagnationDebtCar() {
+        window.open(`/SD/SD_Car_List.html?User=${WebUser}&U_BC=${WebBC}`, 'list', 'scrollbars=yes,resizable=yes,width=1300,height=500,left=250,top=100')
+    }
+
+    function openAttendanceD() {
+        window.open(`/HR/Attendance_D_List.html?User=${WebUser}&U_BC=${WebBC}`, 'list', 'scrollbars=yes,resizable=yes,width=1300,height=500,left=250,top=100')
+    }
+
+    function openAttendanceM() {
+        window.open(`/HR/Attendance_M_List.html?User=${WebUser}&U_BC=${WebBC}`, 'list', 'scrollbars=yes,resizable=yes,width=1300,height=500,left=250,top=100')
+    }
+
+    function openAccount() {
+        window.open(`/RPT/AccountRPT_List.html?User=${WebUser}&U_BC=${WebBC}`, 'list', 'scrollbars=yes,resizable=yes,width=1300,height=500,left=250,top=100')
     }
 </script>
