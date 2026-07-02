@@ -1,0 +1,56 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script src="../Base.js"></script>
+    <title>作業平台</title>
+</head>
+<body>
+    <table width="1200" border="0" cellspacing="0" cellpadding="0">
+        <tbody>
+            <tr>
+                <td width="40"> </td>
+                <td height="24" colspan="2">
+                    <span class="c14k"><strong>個人出勤紀錄</strong></span>
+                </td>
+            </tr>
+            <tr>
+                <td width="40"> </td>
+                <td width="1000">
+                    <span>年月:</span>
+                    <select>
+                    </select>
+                    <span>出勤狀態:</span>
+                    <select>
+                    </select>
+                    <input type="button" value="查詢" />
+                    <input type="button" value="匯出EXCEL" />
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table id="MainTable" width="1100" border="0" cellpadding="4" cellspacing="1" bgcolor="#666666" style="font-size:13px;">
+        <thead>
+            <tr align="center" bgcolor="#CCCCFF" class="c12-k">
+                <td>序號</td>
+                <td>公司別</td>
+                <td>員編</td>
+                <td>姓名</td>
+                <td>日期</td>
+                <td>上班刷卡</td>
+                <td>狀態</td>
+                <td>遲到</td>
+                <td>下班刷卡	</td>
+                <td>狀態</td>
+                <td>早退</td>
+                <td>請假資訊</td>
+                <td>請假時數</td>
+            </tr>
+        </thead>
+    </table>
+</body>
+</html>
