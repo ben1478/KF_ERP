@@ -9,7 +9,6 @@ let BASE_WEB = 'http://localhost:7135';
 /*測試區*/
 //const BASE_URL = 'http://192.168.1.243/KF_WebAPI';
 //const BASE_WEB = 'http://192.168.1.240:8081/KF_ERP';
-const BASE_AE_WEB = 'http://192.168.1.240:8081';
 
 if(this.location.protocol=="https:")  
 {
