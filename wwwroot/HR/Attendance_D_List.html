@@ -1,0 +1,235 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script src="../Base.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <title>作業平台</title>
+</head>
+<body>
+    <table width="1200" border="0" cellspacing="0" cellpadding="0">
+        <tbody>
+            <tr>
+                <td width="40"> </td>
+                <td height="24" colspan="2">
+                    <span class="c14k"><strong>個人出勤紀錄</strong></span>
+                </td>
+            </tr>
+            <tr>
+                <td width="40"> </td>
+                <td width="1000">
+                    <span>年月:</span>
+                    <select name="DATE_YM" id="DATE_YM">
+                    </select>
+                    <span>出勤狀態:</span>
+                    <select name="AttStatus" id="AttStatus">
+                        <option value="">全部</option>
+                        <option value="1">異常(遲到、早退、未刷卡)</option>
+                        <option value="2">異常未請假</option>
+                        <option value="3">異常已請假</option>
+                        <option value="4">遲到</option>
+                        <option value="5">早退</option>
+                        <option value="6">假日加班</option>
+                    </select>
+                    <input type="button" value="查詢" onclick="fetchData();" />
+                    <input type="button" value="匯出EXCEL" onclick="exportToExcel();" />
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table id="MainTable" width="1100" border="0" cellpadding="4" cellspacing="1" bgcolor="#666666" style="font-size:13px;">
+        <thead>
+            <tr align="center" bgcolor="#CCCCFF" class="c12-k">
+                <td>序號</td>
+                <td>公司別</td>
+                <td>員編</td>
+                <td>姓名</td>
+                <td>日期</td>
+                <td>上班刷卡</td>
+                <td>狀態</td>
+                <td>遲到</td>
+                <td>下班刷卡	</td>
+                <td>狀態</td>
+                <td>早退</td>
+                <td>請假資訊</td>
+                <td>請假時數</td>
+            </tr>
+        </thead>
+        <tbody></tbody>
+        <tfoot>
+            <tr align="center" height="15" bgcolor="#CCCCFF">
+                <td class="c12-k" colspan="13">
+                    <font color="#000080">
+                        <label id="CountRows"></label>
+                    </font>
+                </td>
+            </tr>
+        </tfoot>
+    </table>
+</body>
+</html>
+<script>
+    const Params = getQueryParams();
+    let WebUser = Params.WebUser;
+    let WebBC = Params.WebBC;
+
+    let data = [];
+
+    GetDateSelect();
+
+    function GetDateSelect() {
+        const url = `${BASE_URL}/AE_HR/GetAttYMList`;
+        fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include'
+        })
+            .then(response => response.json())
+            .then(responseData => {
+                const data = JSON.parse(responseData.objResult);
+                data.forEach(function (item) {
+                    $('#DATE_YM').append($('<option>', {
+                        value: item.yyyymm,
+                        text: item.yyyymm
+                    }));
+                });
+                fetchData();
+            })
+            .catch(error => {
+                alert('API 請求失敗，請稍後再試。');
+            });
+    }
+
+    function fetchData() {
+        let DATE_YM = document.querySelector('select[name="DATE_YM"]').value;
+        let AttStatus = document.querySelector('select[name="AttStatus"]').value;
+
+        $('body').css('cursor', 'wait');
+
+        const url = `${BASE_URL}/AE_HR/Attendance_SQuery?YM=${DATE_YM}&AttStatus=${AttStatus}&User_Num=${WebUser}`;
+
+        $.ajax({
+            url: url,
+            type: 'GET',
+            contentType: 'application/json',
+            success: function (resData) {
+                data = JSON.parse(resData.objResult);
+                showTable();
+            },
+            error: function (err) {
+                alert("失敗：" + err.responseText);
+            },
+            complete: function () {
+                $('body').css('cursor', 'default');
+            }
+        });
+    }
+
+    function showTable() {
+        let checkDate = '';
+        let beginDate = '';
+        let endDate = '';
+
+        document.getElementById('CountRows').innerHTML = `筆數:${data.length}`;
+
+        const tbody = document.querySelector('#MainTable tbody');
+        tbody.innerHTML = '';
+
+        const columnOrder = ['U_Na', 'userID', 'user_name', 'attendance_date', 'work_time', 'work_status', 'Late', 'getoffwork_time', 'offwork_status', 'early'];
+
+        data.forEach((item, index) => {
+
+            const row = document.createElement('tr');
+            row.setAttribute('align', 'center');
+            row.className = 'c12-k';
+            row.style.backgroundColor = '#FFFFFF';
+            row.onmouseover = function () { this.style.background = '#FCFCC0'; };
+            row.onmouseout = function () { this.style.background = '#FFFFFF'; };
+
+            const numberCell = document.createElement('td');
+            numberCell.textContent = index + 1;
+            row.appendChild(numberCell);
+
+            columnOrder.forEach(key => {
+                const cell = document.createElement('td');
+                cell.textContent = item[key] != null ? item[key] : '';
+                if (key === 'getoffwork_time' && item['EarlyMin'] > 0) {
+                    cell.style.backgroundColor = '#FFCCCC'; // 淡紅色
+                    item.early = Math.max(0, (item.early || 0) - (item.EarlyMin || 0));
+                    if (item.early >= 0) {
+                        item['offwork_status'] = "";
+                    }
+                }
+                row.appendChild(cell);
+            });
+
+            //flowCell
+            checkDate = new Date(item.attendance_date.replace(/\//g, '-'));
+            const flowCell = document.createElement('td');
+            const flowCell_2 = document.createElement('td');
+
+            //讓 td 支援 \n 換行符號
+            flowCell.style.whiteSpace = 'pre-line';
+            flowCell.style.textAlign = 'left';
+            flowCell_2.style.whiteSpace = 'pre-line';
+
+            if (item.offwork_status || item.work_status || item.attendance_Flows) {
+                if (item.attendance_Flows && item.attendance_Flows.length > 0) {
+
+                    const firstFlow = item.attendance_Flows[0];
+                    const lastFlow = item.attendance_Flows[item.attendance_Flows.length - 1];
+
+                    beginDate = new Date(firstFlow.FR_date_begin.split(' ')[0]);
+                    endDate = new Date(lastFlow.FR_date_end.split(' ')[0]);        
+
+                    flowCell.textContent = item.attendance_Flows.map(flow =>
+                        `假別:${flow.FR_kind_show};${flow.FR_date_begin}~${flow.FR_date_end};狀態:${flow.FR_sign_type_name_desc}`
+                    ).join('\n');
+
+                    flowCell_2.textContent = item.attendance_Flows.map(flow =>
+                        `${flow.FR_total_hour}`
+                    ).join('\n');
+
+                } else {
+                    if (checkDate >= beginDate && checkDate <= endDate) {
+                        flowCell.textContent = '';
+                        flowCell_2.textContent = '';
+                    } else {
+                        const button = document.createElement('button');
+                        button.textContent = '填寫假單';
+                        button.className = 'action-button';
+                        button.style.padding = '5px 10px';
+                        button.style.cursor = 'pointer';
+                        button.addEventListener('click', function () {
+                            window.open(`${BASE_AE_WEB}/Flow_rest/Flow_rest_V201803_add.asp?FR_version=V201803&OffDate=${item.attendance_date}`, 'list', 'scrollbars=yes,resizable=yes,width=1300,height=500,left=250,top=100')
+                        });
+                        flowCell.style.textAlign = 'center';
+                        flowCell.appendChild(button);
+                        flowCell_2.textContent = '';
+                    }
+                    
+                }
+            } else {
+                flowCell.textContent = '';
+                flowCell_2.textContent = '';
+            }
+
+            row.appendChild(flowCell);
+            row.appendChild(flowCell_2);
+
+            tbody.appendChild(row);
+        });
+    }
+
+    function exportToExcel() {
+        const table = document.getElementById('MainTable');
+        const workbook = XLSX.utils.table_to_book(table, { sheet: "考勤紀錄" });
+        XLSX.writeFile(workbook, `請假單報表_${new Date().toISOString().slice(0, 10)}.xlsx`);
+    }
+</script>
