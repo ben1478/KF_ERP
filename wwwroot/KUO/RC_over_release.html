@@ -24,6 +24,25 @@
         .grid-section {
             margin-bottom: 24px;
         }
+
+        .container {
+            width: 100%;
+            padding: 15px;
+            box-sizing: border-box;
+        }
+
+        .filter-bar {
+            text-align: center; /* 讓裡面的文字與按鈕水平居中 */
+            margin-bottom: 15px; /* 與下方表格保持適當距離 */
+        }
+
+        .tables-wrapper {
+            display: flex; /* 啟用彈性佈局，讓子元素（表格）橫向並排 */
+            justify-content: center; /* 表格居中對齊（或改用 space-between / space-around） */
+            gap: 10px; /* 表格之間的間距 */
+            width: 100%;
+            overflow-x: auto; /* 螢幕過窄時出現水平滾動條，防止破版 */
+        }
     </style>
     <table border="0" width="100%">
         <tbody>
@@ -43,7 +62,7 @@
                                 逾放天數：
                                 <select name="overDay" id="overDay" class="">
                                     <option value="30" selected="">30天以上</option>
-                                    <option value="60" >60天以上</option>
+                                    <option value="60">60天以上</option>
                                     <option value="90">90天以上</option>
                                 </select>
                                 金額基準：
@@ -219,6 +238,275 @@
     <div id="report-container" style="display: none;">
         <!-- 報表內容將由 JavaScript 動態生成並填入此處 -->
     </div>
+
+    <div class="container">
+        <!-- 1. 金額基準與操作按鈕區（最上方，獨立一列） -->
+        <div class="filter-bar">
+            基準日：
+            <input type="text" value="" name="checkDateE" class="datepickerTW" placeholder="年 /月 /日" style="width:80px;">
+            <input type="button" value="查詢" onclick="fetchThrData();" />
+        </div>
+
+        <div class="tables-wrapper">
+            <!-- 房貸表格 -->
+            <table border="0" cellpadding="4" cellspacing="1" bgcolor="#666666">
+                <thead>
+                    <tr align="center" bgcolor="#CCCCFF" class="c12-k">
+                        <td colspan="6">房貸總覽</td>
+                    </tr>
+                    <tr align="center" bgcolor="#FFFFFF" class="c12-k">
+                        <td>類別</td>
+                        <td>庫存撥款總額(萬)</td>
+                        <td>逾放比</td>
+                        <td>撥款總額(萬)</td>
+                        <td>逾放金額(萬)</td>
+                        <td>逾放比</td>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr align="center" bgcolor="#FFFFFF" class="c12-k">
+                        <td></td>
+                        <td id="stockAmount_H"></td>
+                        <td></td>
+                        <td id="totalGetAmount_H"></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                    <tr align="center" bgcolor="#FFFFFF" class="c12-k">
+                        <td>M3</td>
+                        <td></td>
+                        <td id="M3Rate1_H"></td>
+                        <td></td>
+                        <td id="M3Amount_H"></td>
+                        <td id="M3Rate2_H"></td>
+                    </tr>
+                    <tr align="center" bgcolor="#FFFFFF" class="c12-k">
+                        <td>M2</td>
+                        <td></td>
+                        <td id="M2Rate1_H"></td>
+                        <td></td>
+                        <td id="M2Amount_H"></td>
+                        <td id="M2Rate2_H"></td>
+                    </tr>
+                    <tr align="center" bgcolor="#FFFFFF" class="c12-k">
+                        <td>M1</td>
+                        <td></td>
+                        <td id="M1Rate1_H"></td>
+                        <td></td>
+                        <td id="M1Amount_H"></td>
+                        <td id="M1Rate2_H"></td>
+                    </tr>
+                    <tr align="center" bgcolor="#FFFFFF" class="c12-k">
+                        <td colspan="6"></td>
+                    </tr>
+                    <tr align="center" bgcolor="#FFFFFF" class="c12-k">
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td>拍賣執行中</td>
+                        <td></td>
+                    </tr>
+                    <tr align="center" bgcolor="#FFFFFF" class="c12-k">
+                        <td></td>
+                        <td></td>
+                        <td id="DuringRate1_H"></td>
+                        <td></td>
+                        <td id="DuringAmount_H"></td>
+                        <td id="DuringRate2_H"></td>
+                    </tr>
+                    <tr align="center" bgcolor="#FFFFFF" class="c12-k">
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td>本票裁定</td>
+                        <td></td>
+                    </tr>
+                    <tr align="center" bgcolor="#FFFFFF" class="c12-k">
+                        <td></td>
+                        <td></td>
+                        <td id="RulingRate1_H"></td>
+                        <td></td>
+                        <td id="RulingAmount_H"></td>
+                        <td id="RulingRate2_H"></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <!-- 機車貸表格 -->
+            <table border="0" cellpadding="4" cellspacing="1" bgcolor="#666666">
+                <thead>
+                    <tr align="center" bgcolor="#CCCCFF" class="c12-k">
+                        <td colspan="6">機車貸總覽</td>
+                    </tr>
+                    <tr align="center" bgcolor="#FFFFFF" class="c12-k">
+                        <td>類別</td>
+                        <td>庫存撥款總額(萬)</td>
+                        <td>逾放比</td>
+                        <td>撥款總額(萬)</td>
+                        <td>逾放金額(萬)</td>
+                        <td>逾放比</td>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr align="center" bgcolor="#FFFFFF" class="c12-k">
+                        <td></td>
+                        <td id="stockAmount_M"></td>
+                        <td></td>
+                        <td id="totalGetAmount_M"></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                    <tr align="center" bgcolor="#FFFFFF" class="c12-k">
+                        <td>M3</td>
+                        <td></td>
+                        <td id="M3Rate1_M"></td>
+                        <td></td>
+                        <td id="M3Amount_M"></td>
+                        <td id="M3Rate2_M"></td>
+                    </tr>
+                    <tr align="center" bgcolor="#FFFFFF" class="c12-k">
+                        <td>M2</td>
+                        <td></td>
+                        <td id="M2Rate1_M"></td>
+                        <td></td>
+                        <td id="M2Amount_M"></td>
+                        <td id="M2Rate2_M"></td>
+                    </tr>
+                    <tr align="center" bgcolor="#FFFFFF" class="c12-k">
+                        <td>M1</td>
+                        <td></td>
+                        <td id="M1Rate1_M"></td>
+                        <td></td>
+                        <td id="M1Amount_M"></td>
+                        <td id="M1Rate2_M"></td>
+                    </tr>
+                    <tr align="center" bgcolor="#FFFFFF" class="c12-k">
+                        <td colspan="6"></td>
+                    </tr>
+                    <tr align="center" bgcolor="#FFFFFF" class="c12-k">
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td>拍賣執行中</td>
+                        <td></td>
+                    </tr>
+                    <tr align="center" bgcolor="#FFFFFF" class="c12-k">
+                        <td></td>
+                        <td></td>
+                        <td id="DuringRate1_M"></td>
+                        <td></td>
+                        <td id="DuringAmount_M"></td>
+                        <td id="DuringRate2_M"></td>
+                    </tr>
+                    <tr align="center" bgcolor="#FFFFFF" class="c12-k">
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td>本票裁定</td>
+                        <td></td>
+                    </tr>
+                    <tr align="center" bgcolor="#FFFFFF" class="c12-k">
+                        <td></td>
+                        <td></td>
+                        <td id="RulingRate1_M"></td>
+                        <td></td>
+                        <td id="RulingAmount_M"></td>
+                        <td id="RulingRate2_M"></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <!-- 汽車貸表格 -->
+            <table border="0" cellpadding="4" cellspacing="1" bgcolor="#666666">
+                <thead>
+                    <tr align="center" bgcolor="#CCCCFF" class="c12-k">
+                        <td colspan="6">汽車貸總覽</td>
+                    </tr>
+                    <tr align="center" bgcolor="#FFFFFF" class="c12-k">
+                        <td>類別</td>
+                        <td>庫存撥款總額(萬)</td>
+                        <td>逾放比</td>
+                        <td>撥款總額(萬)</td>
+                        <td>逾放金額(萬)</td>
+                        <td>逾放比</td>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr align="center" bgcolor="#FFFFFF" class="c12-k">
+                        <td></td>
+                        <td id="stockAmount_C"></td>
+                        <td></td>
+                        <td id="totalGetAmount_C"></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                    <tr align="center" bgcolor="#FFFFFF" class="c12-k">
+                        <td>M3</td>
+                        <td></td>
+                        <td id="M3Rate1_C"></td>
+                        <td></td>
+                        <td id="M3Amount_C"></td>
+                        <td id="M3Rate2_C"></td>
+                    </tr>
+                    <tr align="center" bgcolor="#FFFFFF" class="c12-k">
+                        <td>M2</td>
+                        <td></td>
+                        <td id="M2Rate1_C"></td>
+                        <td></td>
+                        <td id="M2Amount_C"></td>
+                        <td id="M2Rate2_C"></td>
+                    </tr>
+                    <tr align="center" bgcolor="#FFFFFF" class="c12-k">
+                        <td>M1</td>
+                        <td></td>
+                        <td id="M1Rate1_C"></td>
+                        <td></td>
+                        <td id="M1Amount_C"></td>
+                        <td id="M1Rate2_C"></td>
+                    </tr>
+                    <tr align="center" bgcolor="#FFFFFF" class="c12-k">
+                        <td colspan="6"></td>
+                    </tr>
+                    <tr align="center" bgcolor="#FFFFFF" class="c12-k">
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td>拍賣執行中</td>
+                        <td></td>
+                    </tr>
+                    <tr align="center" bgcolor="#FFFFFF" class="c12-k">
+                        <td></td>
+                        <td></td>
+                        <td id="DuringRate1_C"></td>
+                        <td></td>
+                        <td id="DuringAmount_C"></td>
+                        <td id="DuringRate2_C"></td>
+                    </tr>
+                    <tr align="center" bgcolor="#FFFFFF" class="c12-k">
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td>本票裁定</td>
+                        <td></td>
+                    </tr>
+                    <tr align="center" bgcolor="#FFFFFF" class="c12-k">
+                        <td></td>
+                        <td></td>
+                        <td id="RulingRate1_C"></td>
+                        <td></td>
+                        <td id="RulingAmount_C"></td>
+                        <td id="RulingRate2_C"></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
 </body>
 </html>
 <script>
@@ -229,8 +517,29 @@
     const itemsPerPage = 30;
     let currentPage = 1;
     let data = [];
+    let dateE = "";
 
     getData();
+    dateTW();
+    convertToTaiwanDate();
+    fetchThrData();
+
+    $('.datepickerTW').datepickerTW({
+        changeYear: true,
+        changeMonth: true,
+        dateFormat: 'yy-mm-dd'
+    });
+
+    // 當DOM完全載入後，初始化應用程式並綁定事件
+    document.addEventListener('DOMContentLoaded', () => {
+        $('#showReportLink').on('click', function (e) {
+            e.preventDefault();
+            let overDay = document.getElementById('overDay').value;
+            const url = `RC_over_release_class.html?overDay=${overDay}`;
+            const windowFeatures = 'width=1200,height=800,scrollbars=yes,resizable=yes';
+            window.open(url, '_blank', windowFeatures);
+        });
+    });
 
     function getData()
     {
@@ -607,7 +916,6 @@
                 console.error('載入選項時出錯:', error);
             });
     }
-
     function OpenOVCount(data) {
         var m_width = "450PX;";
         var m_height = "200px;";
@@ -657,18 +965,6 @@
             message: m_Html
         });
     }
-
-    // 當DOM完全載入後，初始化應用程式並綁定事件
-    document.addEventListener('DOMContentLoaded', () => {
-        $('#showReportLink').on('click', function(e) {
-            e.preventDefault();
-            let overDay = document.getElementById('overDay').value;
-            const url = `RC_over_release_class.html?overDay=${overDay}`;
-            const windowFeatures = 'width=1200,height=800,scrollbars=yes,resizable=yes';
-            window.open(url, '_blank', windowFeatures);
-        });       
-    });
-
     function GetBadDebt(planNum) {
         const url = `${BASE_URL}/AE_SD/SD_Plnum_LQuery?planNum=${planNum}`;
 
@@ -689,7 +985,6 @@
                 console.error('載入選項時出錯:', error);
             });
     }
-
     function OpenBadCount(data) {
         var m_width = "450PX;";
         var m_height = "200px;";
@@ -734,5 +1029,151 @@
             message: m_Html
         });
     }
+    function convertToTaiwanDate() {
+        var currentDate = new Date();
+        var westernYear = currentDate.getFullYear();
+        var taiwanYear = westernYear - 1911;
+        var month = currentDate.getMonth() + 1;
+        var day = currentDate.getDate();
+        var formattedDate = taiwanYear + '-' + (month < 10 ? '0' + month : month) + '-' + (day < 10 ? '0' + day : day);
+        document.querySelector('input[name="checkDateE"]').value = formattedDate;
+    }
+    function fetchThrData() {
+        westernDate();
+        fetchThrData_House();
+        fetchThrData_Moto();
+        fetchThrData_Car();
+    }
+    function westernDate() {
+        const parts_E = document.querySelector('input[name="checkDateE"]').value.split('-');
+        const taiwanYear_E = parseInt(parts_E[0], 10);
+        const month_E = parseInt(parts_E[1], 10);
+        const day_E = parseInt(parts_E[2], 10);
+        const westernYear_E = taiwanYear_E + 1911;
+        const yyyymmdd_E = `${westernYear_E}-${String(month_E).padStart(2, '0')}-${String(day_E).padStart(2, '0')}`;
+        dateE = yyyymmdd_E;
+    }
+    function fetchThrData_House() {
+        $('body').css('cursor', 'wait');
+        const url = `${BASE_URL}/AE_ACC/RC_Over_H_Thr_LQuery?dateE=${dateE}`;
 
+        $.ajax({
+            url: url,
+            type: 'GET',
+            contentType: 'application/json',
+            success: function (resData) {
+                const dataR = JSON.parse(resData.objResult);
+                const stockAmount = dataR.totalGetAmount - dataR.totalSettAmount - dataR.totalBadAmount;
+                document.getElementById('totalGetAmount_H').textContent = dataR.totalGetAmount.toLocaleString();
+                document.getElementById('stockAmount_H').textContent = stockAmount.toLocaleString();
+                document.getElementById('M3Rate1_H').textContent = ((dataR.M3Amount / stockAmount) * 100).toFixed(2) + '%';
+                document.getElementById('M3Amount_H').textContent = dataR.M3Amount.toLocaleString();
+                document.getElementById('M3Rate2_H').textContent = ((dataR.M3Amount / dataR.totalGetAmount) * 100).toFixed(2) + '%';
+
+                document.getElementById('M2Rate1_H').textContent = ((dataR.M2Amount / stockAmount) * 100).toFixed(2) + '%';
+                document.getElementById('M2Amount_H').textContent = dataR.M2Amount.toLocaleString();
+                document.getElementById('M2Rate2_H').textContent = ((dataR.M2Amount / dataR.totalGetAmount) * 100).toFixed(2) + '%';
+
+                document.getElementById('M1Rate1_H').textContent = ((dataR.M1Amount / stockAmount) * 100).toFixed(2) + '%';
+                document.getElementById('M1Amount_H').textContent = dataR.M1Amount.toLocaleString();
+                document.getElementById('M1Rate2_H').textContent = ((dataR.M1Amount / dataR.totalGetAmount) * 100).toFixed(2) + '%';
+
+                document.getElementById('DuringRate1_H').textContent = ((dataR.DuringAmount / stockAmount) * 100).toFixed(2) + '%';
+                document.getElementById('DuringAmount_H').textContent = dataR.DuringAmount.toLocaleString();
+                document.getElementById('DuringRate2_H').textContent = ((dataR.DuringAmount / dataR.totalGetAmount) * 100).toFixed(2) + '%';
+
+                document.getElementById('RulingRate1_H').textContent = ((dataR.RulingAmount / stockAmount) * 100).toFixed(2) + '%';
+                document.getElementById('RulingAmount_H').textContent = dataR.RulingAmount.toLocaleString();
+                document.getElementById('RulingRate2_H').textContent = ((dataR.RulingAmount / dataR.totalGetAmount) * 100).toFixed(2) + '%';
+            },
+            error: function (err) {
+                alert("失敗：" + err.responseText);
+            },
+            complete: function () {
+                $('body').css('cursor', 'default');
+            }
+        });
+    }
+    function fetchThrData_Moto() {
+        $('body').css('cursor', 'wait');
+        const url = `${BASE_URL}/AE_ACC/RC_Over_M_Thr_LQuery?dateE=${dateE}`;
+
+        $.ajax({
+            url: url,
+            type: 'GET',
+            contentType: 'application/json',
+            success: function (resData) {
+                const dataR = JSON.parse(resData.objResult);
+                const stockAmount = dataR.totalGetAmount - dataR.totalSettAmount - dataR.totalBadAmount;
+                document.getElementById('totalGetAmount_M').textContent = dataR.totalGetAmount.toLocaleString();
+                document.getElementById('stockAmount_M').textContent = stockAmount.toLocaleString();
+                document.getElementById('M3Rate1_M').textContent = ((dataR.M3Amount / stockAmount) * 100).toFixed(2) + '%';
+                document.getElementById('M3Amount_M').textContent = dataR.M3Amount.toLocaleString();
+                document.getElementById('M3Rate2_M').textContent = ((dataR.M3Amount / dataR.totalGetAmount) * 100).toFixed(2) + '%';
+
+                document.getElementById('M2Rate1_M').textContent = ((dataR.M2Amount / stockAmount) * 100).toFixed(2) + '%';
+                document.getElementById('M2Amount_M').textContent = dataR.M2Amount.toLocaleString();
+                document.getElementById('M2Rate2_M').textContent = ((dataR.M2Amount / dataR.totalGetAmount) * 100).toFixed(2) + '%';
+
+                document.getElementById('M1Rate1_M').textContent = ((dataR.M1Amount / stockAmount) * 100).toFixed(2) + '%';
+                document.getElementById('M1Amount_M').textContent = dataR.M1Amount.toLocaleString();
+                document.getElementById('M1Rate2_M').textContent = ((dataR.M1Amount / dataR.totalGetAmount) * 100).toFixed(2) + '%';
+
+                document.getElementById('DuringRate1_M').textContent = ((dataR.DuringAmount / stockAmount) * 100).toFixed(2) + '%';
+                document.getElementById('DuringAmount_M').textContent = dataR.DuringAmount.toLocaleString();
+                document.getElementById('DuringRate2_M').textContent = ((dataR.DuringAmount / dataR.totalGetAmount) * 100).toFixed(2) + '%';
+
+                document.getElementById('RulingRate1_M').textContent = ((dataR.RulingAmount / stockAmount) * 100).toFixed(2) + '%';
+                document.getElementById('RulingAmount_M').textContent = dataR.RulingAmount.toLocaleString();
+                document.getElementById('RulingRate2_M').textContent = ((dataR.RulingAmount / dataR.totalGetAmount) * 100).toFixed(2) + '%';
+            },
+            error: function (err) {
+                alert("失敗：" + err.responseText);
+            },
+            complete: function () {
+                $('body').css('cursor', 'default');
+            }
+        });
+    }
+    function fetchThrData_Car() {
+        $('body').css('cursor', 'wait');
+        const url = `${BASE_URL}/AE_ACC/RC_Over_C_Thr_LQuery?dateE=${dateE}`;
+
+        $.ajax({
+            url: url,
+            type: 'GET',
+            contentType: 'application/json',
+            success: function (resData) {
+                const dataR = JSON.parse(resData.objResult);
+                const stockAmount = dataR.totalGetAmount - dataR.totalSettAmount - dataR.totalBadAmount;
+                document.getElementById('totalGetAmount_C').textContent = dataR.totalGetAmount.toLocaleString();
+                document.getElementById('stockAmount_C').textContent = stockAmount.toLocaleString();
+                document.getElementById('M3Rate1_C').textContent = ((dataR.M3Amount / stockAmount) * 100).toFixed(2) + '%';
+                document.getElementById('M3Amount_C').textContent = dataR.M3Amount.toLocaleString();
+                document.getElementById('M3Rate2_C').textContent = ((dataR.M3Amount / dataR.totalGetAmount) * 100).toFixed(2) + '%';
+
+                document.getElementById('M2Rate1_C').textContent = ((dataR.M2Amount / stockAmount) * 100).toFixed(2) + '%';
+                document.getElementById('M2Amount_C').textContent = dataR.M2Amount.toLocaleString();
+                document.getElementById('M2Rate2_C').textContent = ((dataR.M2Amount / dataR.totalGetAmount) * 100).toFixed(2) + '%';
+
+                document.getElementById('M1Rate1_C').textContent = ((dataR.M1Amount / stockAmount) * 100).toFixed(2) + '%';
+                document.getElementById('M1Amount_C').textContent = dataR.M1Amount.toLocaleString();
+                document.getElementById('M1Rate2_C').textContent = ((dataR.M1Amount / dataR.totalGetAmount) * 100).toFixed(2) + '%';
+
+                document.getElementById('DuringRate1_C').textContent = ((dataR.DuringAmount / stockAmount) * 100).toFixed(2) + '%';
+                document.getElementById('DuringAmount_C').textContent = dataR.DuringAmount.toLocaleString();
+                document.getElementById('DuringRate2_C').textContent = ((dataR.DuringAmount / dataR.totalGetAmount) * 100).toFixed(2) + '%';
+
+                document.getElementById('RulingRate1_C').textContent = ((dataR.RulingAmount / stockAmount) * 100).toFixed(2) + '%';
+                document.getElementById('RulingAmount_C').textContent = dataR.RulingAmount.toLocaleString();
+                document.getElementById('RulingRate2_C').textContent = ((dataR.RulingAmount / dataR.totalGetAmount) * 100).toFixed(2) + '%';
+            },
+            error: function (err) {
+                alert("失敗：" + err.responseText);
+            },
+            complete: function () {
+                $('body').css('cursor', 'default');
+            }
+        });
+    }
 </script>

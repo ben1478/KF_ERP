@@ -8,6 +8,10 @@
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
     <script src="../Base.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script type="text/javascript" src="../tool_js/Jquery.js"></script>
+    <script type="text/javascript" src="../tool_js/jquery-ui.js"></script>
+    <script type="text/javascript" src="../tool_js/jquery.blockUI.js"></script>
+    <script type="text/javascript" src="../tool_js/jquery.table2excel.js"></script>
     <title>作業平台</title>
 </head>
 <body>
@@ -44,8 +48,7 @@
                     </select>
                     <input type="button" value="查詢" onclick="fetchData();" />
                     <input type="button" value="匯出EXCEL" onclick="exportToExcel();" />
-                    <input type="button" value="出缺勤報表" onclick="" />
-                    <input type="button" value="出缺勤報表(湧立)" onclick="" />
+                    <input type="button" value="出缺勤報表" name="btnExcel" onclick="SetDateRag()">
                 </td>
             </tr>
         </tbody>
@@ -80,6 +83,11 @@
             </tr>
         </tfoot>
     </table>
+
+    <div id="divDateRag" style=" display:none; width:550px">
+        <input type="button" value="產生報表" id="btnExcelDtl" onclick="Attendance_Excel_AllDay()">
+        日期區間：<input type="text" size=12 id="Date_S" value=""> ～ <input type="text" size=12 id="Date_E" value="">
+    </div>
 </body>
 </html>
 <script>
@@ -89,12 +97,39 @@
 
     let data = [];
 
+    loadSpcItemDropdown();
     GetDateSelect();
-    loadItemDropdown({
-        selectId: "U_BC",
-        itemCode: "branch_company"
-    });
-    
+    SetDate();
+
+    function loadSpcItemDropdown() {
+        $('#U_BC').empty();
+        $('#U_BC').append($('<option>', {
+            value: '',
+            text: '-- 請選擇 --'
+        }));
+        const url = `${BASE_URL}/AE_HR/GetSpcCompany?User_Num=${WebUser}`;
+
+        fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include'
+        })
+            .then(response => response.json())
+            .then(responseData => {
+                const options = JSON.parse(responseData.objResult);
+                options.forEach(function (item) {
+                    $('#U_BC').append($('<option>', {
+                        value: item.item_D_code,
+                        text: item.item_D_name
+                    }));
+                });
+            })
+            .catch(error => {
+                alert('API 請求失敗，請稍後再試。');
+            });
+    }
 
     function GetDateSelect() {
         const url = `${BASE_URL}/AE_HR/GetAttYMList`;
@@ -125,14 +160,15 @@
         let DATE_YM = document.querySelector('select[name="DATE_YM"]').value;
         let AttStatus = document.querySelector('select[name="AttStatus"]').value;
         let U_BC = document.querySelector('select[name="U_BC"]').value;
+        let User_Num = document.getElementById('U_num').value;
 
         if (U_BC === "") {
-            U_BC = "BC0100";
+            U_BC = WebBC;
         }
 
         $('body').css('cursor', 'wait');
 
-        const url = `${BASE_URL}/AE_HR/Attendance_Query?YM=${DATE_YM}&AttStatus=${AttStatus}&User_Num=${WebUser}&U_BC=${U_BC}`;
+        const url = `${BASE_URL}/AE_HR/Attendance_Query?YM=${DATE_YM}&AttStatus=${AttStatus}&User_Num=${User_Num}&U_BC=${U_BC}`;
 
         $.ajax({
             url: url,
@@ -209,5 +245,125 @@
         const table = document.getElementById('MainTable');
         const workbook = XLSX.utils.table_to_book(table, { sheet: "考勤紀錄" });
         XLSX.writeFile(workbook, `請假單報表_${new Date().toISOString().slice(0, 10)}.xlsx`);
+    }
+
+    function SetDateRag() {
+        var m_width = "450PX";
+        var Title = "報表日期區間";
+
+
+        var OpenWidth = parseInt(m_width.toUpperCase().replace("PX", "")) + 50 + "px";
+        var m_themedCSS = {
+            width: OpenWidth,
+            top: '20%',
+            left: '60%',
+        };
+        $.blockUI({
+            onOverlayClick: $.unblockUI,
+            overlayCSS: { backgroundColor: "#FFF", opacity: 0.5, cursor: "default" },
+            theme: true,
+            title: Title,
+            themedCSS: m_themedCSS,
+            message: $("#divDateRag")
+        });
+
+        $("#btnExcelDtl").focus();
+
+    }
+
+    function SetDate() {
+        var g_optTW = {
+            dayNamesMin: ["日", "一", "二", "三", "四", "五", "六"],
+            monthNamesShort: ["一月", "二月", "三月", "四月", "五月", "六月", "七月", "八月", "九月", "十月", "十一月", "十二月"],
+            prevText: "上月",
+            nextText: "次月",
+            weekHeader: "週",
+            changeMonth: true,
+            changeYear: true,
+            showMonthAfterYear: true,
+            dateFormat: "yy/mm/dd", showButtonPanel: true, yearRange: 'c-70:'
+        };
+
+        $("#Date_S").datepicker(g_optTW);
+        $("#Date_E").datepicker(g_optTW);
+
+        //自動計算預設日期
+        var today = new Date();
+        var currentDay = today.getDate();
+
+        var startTarget = new Date();
+        var endTarget = new Date();
+
+        if (currentDay > 25) {
+            // 如果今天大於 25 號：當月 26 號 ~ 下個月 25 號
+            startTarget.setMonth(today.getMonth());
+            endTarget.setMonth(today.getMonth() + 1);
+        } else {
+            // 如果今天小於等於 25 號：上上個月 26 號 ~ 上個月 25 號
+            startTarget.setMonth(today.getMonth() - 2);
+            endTarget.setMonth(today.getMonth() - 1);
+        }
+
+        // 固定設定日期為 26 號與 25 號
+        startTarget.setDate(26);
+        endTarget.setDate(25);
+
+        var startDateStr = formatDate(startTarget);
+        var endDateStr = formatDate(endTarget);
+
+        $("#Date_S").val(startDateStr);
+        $("#Date_E").val(endDateStr);
+    }
+
+    function formatDate(date) {
+        var yyyy = date.getFullYear();
+        var mm = String(date.getMonth() + 1).padStart(2, '0'); // 月份從 0 開始所以要 +1
+        var dd = String(date.getDate()).padStart(2, '0');
+        return yyyy + '/' + mm + '/' + dd;
+    }
+
+    function Attendance_Excel_AllDay() {
+        var apiUrl = `${BASE_URL}/AE_HR/Attendance_Excel_AllDay`;
+
+        var postData = {
+            yyyymm: $('#DATE_YM').val(),
+            yyyymmdd_s: $('#Date_S').val(),
+            yyyymmdd_e: $('#Date_E').val(),
+            attStatus: '0',
+            u_num: '',
+            u_BC: '',
+            u_name: ''
+        };
+
+        document.body.style.cursor = 'wait';
+
+        $.ajax({
+            url: apiUrl,
+            type: 'POST',
+            data: JSON.stringify(postData),
+            contentType: 'application/json',
+            xhrFields: {
+                responseType: 'blob'
+            },
+            success: function (blob, status, xhr) {
+                var url = window.URL.createObjectURL(blob);
+                var a = document.createElement('a');
+                a.href = url;
+
+                var filename = '出缺勤報表_' + $('#selYear').val() + '.xlsx';
+                a.download = filename;
+
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                window.URL.revokeObjectURL(url);
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                alert('Error: ' + textStatus);
+            },
+            complete: function () {
+                document.body.style.cursor = 'default';
+            }
+        });
     }
 </script>
