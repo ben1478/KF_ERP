@@ -1038,12 +1038,6 @@
         var formattedDate = taiwanYear + '-' + (month < 10 ? '0' + month : month) + '-' + (day < 10 ? '0' + day : day);
         document.querySelector('input[name="checkDateE"]').value = formattedDate;
     }
-    function fetchThrData() {
-        westernDate();
-        fetchThrData_House();
-        fetchThrData_Moto();
-        fetchThrData_Car();
-    }
     function westernDate() {
         const parts_E = document.querySelector('input[name="checkDateE"]').value.split('-');
         const taiwanYear_E = parseInt(parts_E[0], 10);
@@ -1053,127 +1047,51 @@
         const yyyymmdd_E = `${westernYear_E}-${String(month_E).padStart(2, '0')}-${String(day_E).padStart(2, '0')}`;
         dateE = yyyymmdd_E;
     }
-    function fetchThrData_House() {
+    function fetchThrData() {
+        westernDate();
+
         $('body').css('cursor', 'wait');
-        const url = `${BASE_URL}/AE_ACC/RC_Over_H_Thr_LQuery?dateE=${dateE}`;
 
-        $.ajax({
-            url: url,
-            type: 'GET',
-            contentType: 'application/json',
-            success: function (resData) {
-                const dataR = JSON.parse(resData.objResult);
-                const stockAmount = dataR.totalGetAmount - dataR.totalSettAmount - dataR.totalBadAmount;
-                document.getElementById('totalGetAmount_H').textContent = dataR.totalGetAmount.toLocaleString();
-                document.getElementById('stockAmount_H').textContent = stockAmount.toLocaleString();
-                document.getElementById('M3Rate1_H').textContent = ((dataR.M3Amount / stockAmount) * 100).toFixed(2) + '%';
-                document.getElementById('M3Amount_H').textContent = dataR.M3Amount.toLocaleString();
-                document.getElementById('M3Rate2_H').textContent = ((dataR.M3Amount / dataR.totalGetAmount) * 100).toFixed(2) + '%';
-
-                document.getElementById('M2Rate1_H').textContent = ((dataR.M2Amount / stockAmount) * 100).toFixed(2) + '%';
-                document.getElementById('M2Amount_H').textContent = dataR.M2Amount.toLocaleString();
-                document.getElementById('M2Rate2_H').textContent = ((dataR.M2Amount / dataR.totalGetAmount) * 100).toFixed(2) + '%';
-
-                document.getElementById('M1Rate1_H').textContent = ((dataR.M1Amount / stockAmount) * 100).toFixed(2) + '%';
-                document.getElementById('M1Amount_H').textContent = dataR.M1Amount.toLocaleString();
-                document.getElementById('M1Rate2_H').textContent = ((dataR.M1Amount / dataR.totalGetAmount) * 100).toFixed(2) + '%';
-
-                document.getElementById('DuringRate1_H').textContent = ((dataR.DuringAmount / stockAmount) * 100).toFixed(2) + '%';
-                document.getElementById('DuringAmount_H').textContent = dataR.DuringAmount.toLocaleString();
-                document.getElementById('DuringRate2_H').textContent = ((dataR.DuringAmount / dataR.totalGetAmount) * 100).toFixed(2) + '%';
-
-                document.getElementById('RulingRate1_H').textContent = ((dataR.RulingAmount / stockAmount) * 100).toFixed(2) + '%';
-                document.getElementById('RulingAmount_H').textContent = dataR.RulingAmount.toLocaleString();
-                document.getElementById('RulingRate2_H').textContent = ((dataR.RulingAmount / dataR.totalGetAmount) * 100).toFixed(2) + '%';
-            },
-            error: function (err) {
-                alert("失敗：" + err.responseText);
-            },
-            complete: function () {
-                $('body').css('cursor', 'default');
-            }
+        Promise.all([
+            fetchThrCategoryData('H'),
+            fetchThrCategoryData('M'),
+            fetchThrCategoryData('C')
+        ]).catch(err => {
+            alert("失敗：" + err);
+        }).finally(() => {
+            $('body').css('cursor', 'default');
         });
     }
-    function fetchThrData_Moto() {
-        $('body').css('cursor', 'wait');
-        const url = `${BASE_URL}/AE_ACC/RC_Over_M_Thr_LQuery?dateE=${dateE}`;
 
-        $.ajax({
+    function fetchThrCategoryData(type) {
+        const typeMapping = { 'H': 'H', 'M': 'M', 'C': 'C' };
+        const url = `${BASE_URL}/AE_ACC/RC_Over_${typeMapping[type]}_Thr_LQuery?dateE=${dateE}`;
+
+        return $.ajax({
             url: url,
             type: 'GET',
-            contentType: 'application/json',
-            success: function (resData) {
-                const dataR = JSON.parse(resData.objResult);
-                const stockAmount = dataR.totalGetAmount - dataR.totalSettAmount - dataR.totalBadAmount;
-                document.getElementById('totalGetAmount_M').textContent = dataR.totalGetAmount.toLocaleString();
-                document.getElementById('stockAmount_M').textContent = stockAmount.toLocaleString();
-                document.getElementById('M3Rate1_M').textContent = ((dataR.M3Amount / stockAmount) * 100).toFixed(2) + '%';
-                document.getElementById('M3Amount_M').textContent = dataR.M3Amount.toLocaleString();
-                document.getElementById('M3Rate2_M').textContent = ((dataR.M3Amount / dataR.totalGetAmount) * 100).toFixed(2) + '%';
+            contentType: 'application/json'
+        }).then(resData => {
+            const dataR = JSON.parse(resData.objResult);
+            const stockAmount = dataR.totalGetAmount - dataR.totalSettAmount - dataR.totalBadAmount;
 
-                document.getElementById('M2Rate1_M').textContent = ((dataR.M2Amount / stockAmount) * 100).toFixed(2) + '%';
-                document.getElementById('M2Amount_M').textContent = dataR.M2Amount.toLocaleString();
-                document.getElementById('M2Rate2_M').textContent = ((dataR.M2Amount / dataR.totalGetAmount) * 100).toFixed(2) + '%';
+            const updateText = (id, val) => {
+                const el = document.getElementById(`${id}_${type}`);
+                if (el) el.textContent = val;
+            };
 
-                document.getElementById('M1Rate1_M').textContent = ((dataR.M1Amount / stockAmount) * 100).toFixed(2) + '%';
-                document.getElementById('M1Amount_M').textContent = dataR.M1Amount.toLocaleString();
-                document.getElementById('M1Rate2_M').textContent = ((dataR.M1Amount / dataR.totalGetAmount) * 100).toFixed(2) + '%';
+            const calcRate = (amt, base) => base ? ((amt / base) * 100).toFixed(2) + '%' : '0.00%';
 
-                document.getElementById('DuringRate1_M').textContent = ((dataR.DuringAmount / stockAmount) * 100).toFixed(2) + '%';
-                document.getElementById('DuringAmount_M').textContent = dataR.DuringAmount.toLocaleString();
-                document.getElementById('DuringRate2_M').textContent = ((dataR.DuringAmount / dataR.totalGetAmount) * 100).toFixed(2) + '%';
+            updateText('totalGetAmount', dataR.totalGetAmount.toLocaleString());
+            updateText('stockAmount', stockAmount.toLocaleString());
 
-                document.getElementById('RulingRate1_M').textContent = ((dataR.RulingAmount / stockAmount) * 100).toFixed(2) + '%';
-                document.getElementById('RulingAmount_M').textContent = dataR.RulingAmount.toLocaleString();
-                document.getElementById('RulingRate2_M').textContent = ((dataR.RulingAmount / dataR.totalGetAmount) * 100).toFixed(2) + '%';
-            },
-            error: function (err) {
-                alert("失敗：" + err.responseText);
-            },
-            complete: function () {
-                $('body').css('cursor', 'default');
-            }
-        });
-    }
-    function fetchThrData_Car() {
-        $('body').css('cursor', 'wait');
-        const url = `${BASE_URL}/AE_ACC/RC_Over_C_Thr_LQuery?dateE=${dateE}`;
-
-        $.ajax({
-            url: url,
-            type: 'GET',
-            contentType: 'application/json',
-            success: function (resData) {
-                const dataR = JSON.parse(resData.objResult);
-                const stockAmount = dataR.totalGetAmount - dataR.totalSettAmount - dataR.totalBadAmount;
-                document.getElementById('totalGetAmount_C').textContent = dataR.totalGetAmount.toLocaleString();
-                document.getElementById('stockAmount_C').textContent = stockAmount.toLocaleString();
-                document.getElementById('M3Rate1_C').textContent = ((dataR.M3Amount / stockAmount) * 100).toFixed(2) + '%';
-                document.getElementById('M3Amount_C').textContent = dataR.M3Amount.toLocaleString();
-                document.getElementById('M3Rate2_C').textContent = ((dataR.M3Amount / dataR.totalGetAmount) * 100).toFixed(2) + '%';
-
-                document.getElementById('M2Rate1_C').textContent = ((dataR.M2Amount / stockAmount) * 100).toFixed(2) + '%';
-                document.getElementById('M2Amount_C').textContent = dataR.M2Amount.toLocaleString();
-                document.getElementById('M2Rate2_C').textContent = ((dataR.M2Amount / dataR.totalGetAmount) * 100).toFixed(2) + '%';
-
-                document.getElementById('M1Rate1_C').textContent = ((dataR.M1Amount / stockAmount) * 100).toFixed(2) + '%';
-                document.getElementById('M1Amount_C').textContent = dataR.M1Amount.toLocaleString();
-                document.getElementById('M1Rate2_C').textContent = ((dataR.M1Amount / dataR.totalGetAmount) * 100).toFixed(2) + '%';
-
-                document.getElementById('DuringRate1_C').textContent = ((dataR.DuringAmount / stockAmount) * 100).toFixed(2) + '%';
-                document.getElementById('DuringAmount_C').textContent = dataR.DuringAmount.toLocaleString();
-                document.getElementById('DuringRate2_C').textContent = ((dataR.DuringAmount / dataR.totalGetAmount) * 100).toFixed(2) + '%';
-
-                document.getElementById('RulingRate1_C').textContent = ((dataR.RulingAmount / stockAmount) * 100).toFixed(2) + '%';
-                document.getElementById('RulingAmount_C').textContent = dataR.RulingAmount.toLocaleString();
-                document.getElementById('RulingRate2_C').textContent = ((dataR.RulingAmount / dataR.totalGetAmount) * 100).toFixed(2) + '%';
-            },
-            error: function (err) {
-                alert("失敗：" + err.responseText);
-            },
-            complete: function () {
-                $('body').css('cursor', 'default');
-            }
+            const metrics = ['M3', 'M2', 'M1', 'During', 'Ruling'];
+            metrics.forEach(m => {
+                const amount = dataR[`${m}Amount`];
+                updateText(`${m}Amount`, amount.toLocaleString());
+                updateText(`${m}Rate1`, calcRate(amount, stockAmount));
+                updateText(`${m}Rate2`, calcRate(amount, dataR.totalGetAmount));
+            });
         });
     }
 </script>
