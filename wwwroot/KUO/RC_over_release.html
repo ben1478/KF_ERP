@@ -241,11 +241,11 @@
 
     <div class="container">
         <!-- 1. 金額基準與操作按鈕區（最上方，獨立一列） -->
-        <div class="filter-bar">
+        <!--<div class="filter-bar">
             基準日：
             <input type="text" value="" name="checkDateE" class="datepickerTW" placeholder="年 /月 /日" style="width:80px;">
             <input type="button" value="查詢" onclick="fetchThrData();" />
-        </div>
+        </div>-->
 
         <div class="tables-wrapper">
             <!-- 房貸表格 -->
@@ -304,7 +304,7 @@
                         <td></td>
                         <td></td>
                         <td></td>
-                        <td>拍賣執行中</td>
+                        <td>強制執行</td>
                         <td></td>
                     </tr>
                     <tr align="center" bgcolor="#FFFFFF" class="c12-k">
@@ -390,7 +390,7 @@
                         <td></td>
                         <td></td>
                         <td></td>
-                        <td>拍賣執行中</td>
+                        <td>強制執行</td>
                         <td></td>
                     </tr>
                     <tr align="center" bgcolor="#FFFFFF" class="c12-k">
@@ -476,7 +476,7 @@
                         <td></td>
                         <td></td>
                         <td></td>
-                        <td>拍賣執行中</td>
+                        <td>強制執行</td>
                         <td></td>
                     </tr>
                     <tr align="center" bgcolor="#FFFFFF" class="c12-k">
@@ -520,8 +520,6 @@
     let dateE = "";
 
     getData();
-    dateTW();
-    convertToTaiwanDate();
     fetchThrData();
 
     $('.datepickerTW').datepickerTW({
@@ -1029,22 +1027,14 @@
             message: m_Html
         });
     }
-    function convertToTaiwanDate() {
-        var currentDate = new Date();
-        var westernYear = currentDate.getFullYear();
-        var taiwanYear = westernYear - 1911;
-        var month = currentDate.getMonth() + 1;
-        var day = currentDate.getDate();
-        var formattedDate = taiwanYear + '-' + (month < 10 ? '0' + month : month) + '-' + (day < 10 ? '0' + day : day);
-        document.querySelector('input[name="checkDateE"]').value = formattedDate;
-    }
     function westernDate() {
-        const parts_E = document.querySelector('input[name="checkDateE"]').value.split('-');
-        const taiwanYear_E = parseInt(parts_E[0], 10);
-        const month_E = parseInt(parts_E[1], 10);
-        const day_E = parseInt(parts_E[2], 10);
-        const westernYear_E = taiwanYear_E + 1911;
+        const today = new Date();
+        const westernYear_E = today.getFullYear();
+        const month_E = today.getMonth() + 1; 
+        const day_E = today.getDate();
+
         const yyyymmdd_E = `${westernYear_E}-${String(month_E).padStart(2, '0')}-${String(day_E).padStart(2, '0')}`;
+
         dateE = yyyymmdd_E;
     }
     function fetchThrData() {
