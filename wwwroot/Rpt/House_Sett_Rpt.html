@@ -56,17 +56,17 @@
     <table width="1150px" id="MainTableMoto" border="0" cellpadding="4" cellspacing="1" bgcolor="#666666" style="margin-top: 3px; display: none;">
         <thead>
             <tr align="center" bgcolor="#CCCCFF" class="TrHead">
-                <td width="3%">件數</td>
-                <td width="10%">借款人</td>
-                <td width="7%">撥款日</td>
-                <td width="7%">結清本金</td>
-                <td width="5%">手續費</td>
-                <td width="10%">利息</td>
-                <td width="11%">結清遲延金</td>
-                <td width="13%">放款回收金額</td>
-                <td width="7%">清償日</td>
-                <td width="13%">回收金額</td>
-                <td width="13%">專案</td>
+                <td>件數</td>
+                <td>借款人</td>
+                <td>撥款日</td>
+                <td>結清本金</td>
+                <td>手續費</td>
+                <td>利息</td>
+                <td>結清遲延金</td>
+                <td>放款回收金額</td>
+                <td>清償日</td>
+                <td>回收金額</td>
+                <td>專案</td>
             </tr>
         </thead>
         <tbody></tbody>
@@ -175,7 +175,23 @@
         const columnOrder = ['CS_name', 'str_get_amount_date', 'capital_AMT', 'fee_total', 'Interest_total', 'Delay_AMT', 'get_amount', 'str_date_begin_settle'
             , 'sett_AMT', 'pj_name'];
 
-        data.forEach((item,index) => {
+        const totals = {
+            capital_AMT: 0,
+            Break_AMT: 0,
+            Interest_total: 0,
+            Delay_AMT: 0,
+            get_amount: 0,
+            sett_AMT: 0
+        };
+
+        data.forEach((item, index) => {
+            totals.capital_AMT += Number(item.capital_AMT) || 0;
+            totals.Break_AMT += Number(item.Break_AMT) || 0;
+            totals.Interest_total += Number(item.Interest_total) || 0;
+            totals.Delay_AMT += Number(item.Delay_AMT) || 0;
+            totals.get_amount += Number(item.get_amount) || 0;
+            totals.sett_AMT += Number(item.sett_AMT) || 0;
+
             const row = document.createElement('tr');
             row.setAttribute('align', 'center');
             row.className = 'c12-k';
@@ -208,6 +224,29 @@
             tbody.appendChild(row);
         });
 
+        //合計
+        const totalRow = document.createElement('tr');
+        totalRow.setAttribute('align', 'center');
+        totalRow.style.backgroundColor = '#EFEFEF';
+        totalRow.style.fontWeight = 'bold';
+
+        const totalLabelCell = document.createElement('td');
+        totalLabelCell.textContent = '合計';
+        totalRow.appendChild(totalLabelCell);
+
+        columnOrder.forEach(key => {
+            const cell = document.createElement('td');
+
+            if (['capital_AMT', 'Break_AMT', 'Interest_total', 'Delay_AMT','sett_AMT'].includes(key)) {
+                cell.textContent = totals[key].toLocaleString();
+            } else if (key === 'get_amount') {
+                cell.textContent = totals[key] + '萬';
+            } else {
+                cell.textContent = '';
+            }
+            totalRow.appendChild(cell);
+        });
+        tbody.appendChild(totalRow);
     }
 
     function showTableHouse() {
@@ -217,7 +256,21 @@
         const columnOrder = ['CS_name', 'str_get_amount_date', 'capital_AMT', 'Break_AMT', 'Interest_total', 'Delay_AMT', 'str_date_begin_settle', 'get_amount'
             , 'Loan_rate', 'all_pre_addCity', 'all_pre_addresses'];
 
+        const totals = {
+            capital_AMT: 0,
+            Break_AMT: 0,
+            Interest_total: 0,
+            Delay_AMT: 0,
+            get_amount: 0
+        };
+
         data.forEach((item, index) => {
+            totals.capital_AMT += Number(item.capital_AMT) || 0;
+            totals.Break_AMT += Number(item.Break_AMT) || 0;
+            totals.Interest_total += Number(item.Interest_total) || 0;
+            totals.Delay_AMT += Number(item.Delay_AMT) || 0;
+            totals.get_amount += Number(item.get_amount) || 0;
+
             const row = document.createElement('tr');
             row.setAttribute('align', 'center');
             row.className = 'c12-k';
@@ -257,6 +310,30 @@
             });
             tbody.appendChild(row);
         });
+
+        //合計
+        const totalRow = document.createElement('tr');
+        totalRow.setAttribute('align', 'center');
+        totalRow.style.backgroundColor = '#EFEFEF'; 
+        totalRow.style.fontWeight = 'bold';        
+
+        const totalLabelCell = document.createElement('td');
+        totalLabelCell.textContent = '合計';
+        totalRow.appendChild(totalLabelCell);
+
+        columnOrder.forEach(key => {
+            const cell = document.createElement('td');
+
+            if (['capital_AMT', 'Break_AMT', 'Interest_total', 'Delay_AMT'].includes(key)) {
+                cell.textContent = totals[key].toLocaleString();
+            } else if (key === 'get_amount') {
+                cell.textContent = totals[key] + '萬';
+            } else {
+                cell.textContent = '';
+            }
+            totalRow.appendChild(cell);
+        });
+        tbody.appendChild(totalRow);
     }
 
     function createCell(i, featData) {
