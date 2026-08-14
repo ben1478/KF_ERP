@@ -1,0 +1,95 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script type="text/javascript" src="../tool_js/jquery.table2excel.js"></script>
+    <link href="../_include/main.css" rel="stylesheet" type="text/css">
+    <script src="../Base.js"></script>
+    <title>作業平台</title>
+</head>
+<body>
+    <div>
+        <span>
+            <label>申請人:</label>
+            <input type="text" value="" name="CS_Name" style="width:80px" />
+            &nbsp;&nbsp;
+        </span>
+        <span>
+            <label>指派人員:</label>
+            <input type="hidden" name="U_num" id="U_num" value="">
+            <input type="text" name="U_name" id="U_name" size="10" maxlength="10" class="box" value="" readonly="">
+            <input type="button" value="..." id="select_user_one">
+        </span>
+        &nbsp;&nbsp;
+        <span>
+            <label>指派日期:</label>
+            <input type="text" value="" name="checkPayDateS" class="datepickerTW" placeholder="年 /月 /日" style="width:80px;">
+            ~
+            <input type="text" value="" name="checkPayDateE" class="datepickerTW" placeholder="年 /月 /日" style="width:80px;">
+            &nbsp;&nbsp;
+        </span>
+        <input type="button" value="查詢" onclick="fetchData();" />
+    </div>
+    <br />
+    <table width="1050" border="0" cellspacing="0" cellpadding="0">
+        <tbody>
+            <tr>
+                <td valign="top"> </td>
+                <td align="center" valign="top">
+                    <table id="MainTable" width="1050" border="0" cellpadding="4" cellspacing="1" bgcolor="#666666">
+                        <thead>
+                            <tr align="center" bgcolor="#CCCCFF" class="c12-k">
+                                <td>序號</td>
+                                <td></td>
+                                <td>申請人</td>
+                                <td>申請人ID</td>
+                                <td>行動電話</td>
+                                <td>指派人員</td>
+                                <td>指派日期</td>
+                                <td>撥打狀態</td>
+                                <td>狀態確認</td>
+                                <td>回收時間</td>
+                                <td>撥打明細</td>
+                                <td>客戶明細</td>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr align="center" class="c12-k" bgcolor="#FFFFFF" onmouseover="this.style.background='#FFFF66';" onmouseout="this.style.background='#FFFFFF'; " style="background: rgb(255, 255, 255);">
+                            </tr>
+                            <tr align="center" class="c12-k" bgcolor="#FFFFFF" onmouseover="this.style.background='#FFFF66';" onmouseout="this.style.background='#FFFFFF'; " style="background: rgb(255, 255, 255);">
+                            </tr>
+                            <tr align="center" height="30" bgcolor="#CCCCFF">
+                                <td class="c12-k" colspan="12">
+                                </td>
+                            </tr>
+                        </tbody>
+                        <tfoot>
+                            <tr align="center" height="15" bgcolor="#CCCCFF">
+                                <td class="c12-k" colspan="12">
+                                    <font color="#000080">
+                                        <label id="CountRows"></label>
+                                    </font>
+                                </td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                    <div id="pagination"></div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</body>
+</html>
+<script>
+    const Params = getQueryParams();
+    let WebUser = Params.WebUser;
+    let WebBC = Params.WebBC;
+
+    const itemsPerPage = 100;
+    let currentPage = 1;
+    let data = []; 
+</script>

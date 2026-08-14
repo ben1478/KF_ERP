@@ -259,6 +259,7 @@
                                     <input type="button" name="add" value="出勤紀錄查詢" onclick="openAttendanceM();">
                                 </td>
                                 <td width="13%" align="center">
+                                    <input type="button" name="add" value="電銷回收作業" onclick="openRecycleM();">
                                 </td>
                             </tr>
                             <tr>
@@ -499,5 +500,9 @@
 
     function openCourtSettle() {
         window.open(`/ACC/RcSettle_Court_list.html?User=${WebUser}&U_BC=${WebBC}`, 'list', 'scrollbars=yes,resizable=yes,width=1000,height=500,left=250,top=100')
+    }
+
+    function openRecycleM() {
+        window.open(`/CCN/Recycle_M_List.html?User=${WebUser}&U_BC=${WebBC}`, 'list', 'scrollbars=yes,resizable=yes,width=1200,height=500,left=250,top=100')
     }
 </script>
