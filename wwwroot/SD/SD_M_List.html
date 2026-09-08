@@ -12,12 +12,12 @@
 <body>
     &nbsp;&nbsp; &nbsp;&nbsp;&nbsp;<span class="c14k"><strong>呆帳催繳清單紀錄</strong></span><br />
     &nbsp;&nbsp; &nbsp;&nbsp;&nbsp;<input type="button" name="add" value="新增呆帳催繳" onclick="addStagnationDebt(); "><br />
-    <table width="1100" border="0" cellspacing="0" cellpadding="0">
+    <table width="1350" border="0" cellspacing="0" cellpadding="0">
         <tbody>
             <tr>
                 <td valign="top"> </td>
                 <td align="center" valign="top">
-                    <table id="MainTable" width="1050" border="0" cellpadding="4" cellspacing="1" bgcolor="#666666">
+                    <table id="MainTable" width="1250" border="0" cellpadding="4" cellspacing="1" bgcolor="#666666">
                         <thead>
                             <tr align="center" height="30" bgcolor="#CCCCFF" class="c12-k">
                                 <td>序號</td>
@@ -27,6 +27,7 @@
                                 <td>貸款總金額</td>
                                 <td>本金餘額</td>
                                 <td>呆帳總金額</td>
+                                <td>提列呆帳日期</td>
                                 <td>備註</td>
                                 <td>近期催繳日期</td>
                                 <td>是否結清</td>
@@ -37,7 +38,7 @@
                         <tbody></tbody>
                         <tfoot>
                             <tr align="center" height="15" bgcolor="#CCCCFF">
-                                <td class="c12-k" colspan="12">
+                                <td class="c12-k" colspan="13">
                                     <font color="#000080">
                                         <label id="CountRows"></label>
                                     </font>
@@ -90,7 +91,7 @@
         const tbody = document.querySelector('#MainTable tbody');
         tbody.innerHTML = '';
 
-        const columnOrder = ['MUpd', 'CS_name', 'CS_PID', 'str_amount_total', 'str_RemainingPrincipal', 'str_total_bad_debt', 'remarks', 'collection_date_roc', 'str_close','Upd','del'];
+        const columnOrder = ['MUpd', 'CS_name', 'CS_PID', 'str_amount_total', 'str_RemainingPrincipal', 'str_total_bad_debt','OutDebtDate', 'remarks', 'collection_date_roc', 'str_close','Upd','del'];
 
         
 
