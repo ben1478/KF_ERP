@@ -1,0 +1,109 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <script type="text/javascript" src="../tool_js/jquery.blockUI.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <link href="../_include/main.css" rel="stylesheet" type="text/css">
+    <script src="../Base.js"></script>
+    <script src="../_include/exceljs.min.js"></script>
+    <script src="../_include/filesaver.min.js"></script>
+    <title>作業平台</title>
+</head>
+<body>
+    <table width="880px" id="MainTable" border="0" cellpadding="4" cellspacing="1" bgcolor="#666666">
+        <thead>
+            <tr align="center" bgcolor="#CCCCFF" class="TrHead">
+                <td>No.</td>
+                <td>客戶姓名</td>
+                <td>客戶ID</td>
+                <td>總金額</td>
+                <td>期數</td>
+                <td>第幾期</td>
+                <td>應繳款日期</td>
+                <td>月付金</td>
+                <td>沖銷日期</td>
+                <td>發票號碼</td>
+                <td>發票日期</td>
+            </tr>
+        </thead>
+        <tbody></tbody>
+        <tfoot>
+            <tr align="center" height="15" bgcolor="#CCCCFF">
+                <td class="c12-k" colspan="11">
+                    <font color="#000080">
+                        <label id="CountRows"></label>
+                    </font>
+                </td>
+            </tr>
+        </tfoot>
+    </table>
+</body>
+</html>
+<script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const rcmId = urlParams.get('RCM_id');
+
+    fetchData();
+
+    function fetchData() {
+        const url = `${BASE_URL}/AE_ACC/CPay_SQuery?rcmID=${rcmId}`;
+
+        $('body').css('cursor', 'wait');
+
+        fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include'
+        })
+            .then(response => response.json())
+            .then(responseData => {
+                if (responseData.resultCode == "000") {
+                    data = JSON.parse(responseData.objResult);
+                    showTable();
+                } else {
+                    alert(responseData.resultMsg);
+                }
+            })
+            .catch(error => {
+                alert('API 請求失敗:', error);
+            })
+            .finally(
+                $('body').css('cursor', 'default')
+            );
+    }
+
+    function showTable() {
+        document.getElementById('CountRows').innerHTML = `筆數:${data.length}`;
+        const tbody = document.querySelector('#MainTable tbody');
+        tbody.innerHTML = '';
+
+        const columnOrder = ['CS_name', 'CS_PID', 'amount_total', 'month_total', 'RC_count', 'rc_date', 'amount_per_month', 'check_pay_date',
+            'invoice_no', 'invoice_date'];
+
+        data.forEach((item, index) => {
+            const row = document.createElement('tr');
+            row.setAttribute('align', 'center');
+            row.className = 'c12-k';
+            row.style.backgroundColor = '#FFFFFF';
+            row.onmouseover = function () { this.style.background = '#FCFCC0'; };
+            row.onmouseout = function () { this.style.background = '#FFFFFF'; };
+
+            const serialCell = document.createElement('td');
+            serialCell.textContent = index + 1;  // 序號
+            row.appendChild(serialCell);
+
+            columnOrder.forEach(key => {
+                const cell = document.createElement('td');
+                cell.textContent = item[key];
+                row.appendChild(cell);
+            });
+            tbody.appendChild(row);
+        });
+    }
+</script>

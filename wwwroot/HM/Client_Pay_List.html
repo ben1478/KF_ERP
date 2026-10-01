@@ -144,9 +144,9 @@
     let Rnum;
     let isSubmitting = false;
 
-    const RoleA = ["1001", "1003", "1007", "1011"]; //全部
+    const RoleA = ["1001", "1003", "1007", "1011", "1032", "1033"]; //全部
     const RoleB = ["1004", "1005"]; //財務端
-    const RoleC = ["1008", "1009", "1010","1023","1017","1018"]; //業務端
+    const RoleC = ["1008", "1009", "1010", "1023", "1017", "1018", "1014"]; //業務端
 
     document.addEventListener("change", function (e) {
         if (e.target.id === "select-all") {
@@ -226,7 +226,7 @@
             CliePayLQuery();
         }
         else if (RoleC.includes(Rnum)) {
-            if (Rnum === '1009'||Rnum === '1017') {
+            if (Rnum === '1009' || Rnum === '1017') {
                 RecPayLQuery(3);
             } else {
                 RecPayLQuery(2);
@@ -284,8 +284,8 @@
         const tbody = document.querySelector('#MainTableRec tbody');
         tbody.innerHTML = '';
 
-        const columnOrder = ['CS_name','CS_PID', 'RC_count', 'roc_RC_date', 'amount_per_month', 'interest', 'Rmoney', 'HFees',
-            'Ex_RemainingPrincipal', 'CP_pay_date', 'CP_account_last','CP_Pay_Amt', 'CP_bus_remark','FileCount'];
+        const columnOrder = ['CS_name', 'CS_PID', 'RC_count', 'roc_RC_date', 'amount_per_month', 'interest', 'Rmoney', 'HFees',
+            'Ex_RemainingPrincipal', 'CP_pay_date', 'CP_account_last', 'CP_Pay_Amt', 'CP_bus_remark', 'FileCount'];
         data.forEach((item, index) => {
             const row = document.createElement('tr');
             row.setAttribute('align', 'center');
@@ -371,12 +371,12 @@
                 if (rowData.CP_Pay_Amt < rowData.amount_per_month) {
                     alert("繳款金額需大於月付金金額才能開發票，請再確認詳細金額");
                 }
-            } 
+            }
         });
 
         if (updatedData.length === 0) {
             alert("至少要有一筆資料，再確認繳款日期跟已繳款金額是否都有輸入");
-            isSubmitting = false; 
+            isSubmitting = false;
             return;
         }
 
@@ -397,7 +397,7 @@
             },
             complete: function () {
                 $('body').css('cursor', 'default');
-                isSubmitting = false; 
+                isSubmitting = false;
                 fetchData();
             }
         });
@@ -446,7 +446,7 @@
             })
             .finally(
                 $('body').css('cursor', 'default')
-        );
+            );
     }
 
     function showCliePayTable() {
@@ -455,8 +455,8 @@
         const tbody = document.querySelector('#MainTableWin tbody');
         tbody.innerHTML = '';
 
-        const columnOrder = ['RCD_id','CaseType', 'CS_name', 'CS_PID', 'RC_count', 'roc_RC_date', 'str_Pay_Date', 'amount_per_month', 'interest', 'Rmoney', 'HFees', 'Ex_RemainingPrincipal',
-            'CP_account_last', 'CP_Pay_Amt', 'CP_bus_remark', 'Win_Msg', 'FileCount','U_Name','str_add_date'];
+        const columnOrder = ['RCD_id', 'CaseType', 'CS_name', 'CS_PID', 'RC_count', 'roc_RC_date', 'str_Pay_Date', 'amount_per_month', 'interest', 'Rmoney', 'HFees', 'Ex_RemainingPrincipal',
+            'CP_account_last', 'CP_Pay_Amt', 'CP_bus_remark', 'Win_Msg', 'FileCount', 'U_Name', 'str_add_date'];
         data.forEach((item, index) => {
             const row = document.createElement('tr');
             row.setAttribute('align', 'center');
@@ -516,7 +516,7 @@
                 }
             });
             tbody.appendChild(row);
-           
+
         });
         appendTotalChild(tbody, columnOrder, data);
     }
@@ -550,10 +550,10 @@
             const cell = document.createElement('td');
 
             switch (index) {
-                case 0: 
+                case 0:
                     cell.textContent = '總計';
                     break;
-                case 1: 
+                case 1:
                     cell.textContent = '';
                     break;
                 case 8: // 月付金
@@ -576,7 +576,7 @@
                     cell.textContent = totals.CP_Pay_Amt.toLocaleString();
                     cell.style.textAlign = 'right';
                     break;
-                default: 
+                default:
                     cell.textContent = '';
                     break;
             }
@@ -622,8 +622,7 @@
                 Vehicle: rowData.Vehicle
             };
 
-            if (rowData.str_Pay_Date != rowData.roc_RC_date)
-            {
+            if (rowData.str_Pay_Date != rowData.roc_RC_date) {
                 errData++;
             }
             selectedData.push(model);

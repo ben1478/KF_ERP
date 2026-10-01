@@ -81,7 +81,6 @@
                     console.log("選項已找到，執行鎖定。");
                     uBcDropdown.value = u_bc_param;
                     uBcDropdown.disabled = true;
-                    queryButton.disabled = true;
                     fetchData(u_bc_param); // 直接用鎖定的分公司代碼獲取資料
                 } else if (attempt < maxRetries) {
                     attempt++;

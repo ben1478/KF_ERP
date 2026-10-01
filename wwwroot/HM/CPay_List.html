@@ -1,0 +1,238 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <script type="text/javascript" src="../tool_js/jquery.blockUI.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <link href="../_include/main.css" rel="stylesheet" type="text/css">
+    <script src="../Base.js"></script>
+    <script src="../_include/exceljs.min.js"></script>
+    <script src="../_include/filesaver.min.js"></script>
+    <title>作業平台</title>
+</head>
+<body>
+    <div>
+        <span id="showBC" style="display: none;">
+            <label>公司別:</label>
+            <select name="U_BC" id="U_BC" style="width:80px">
+            </select>
+        </span>
+        <span>
+            <label>客戶姓名:</label>
+            <input type="text" value="" name="CS_Name" style="width:80px" />
+            &nbsp;&nbsp;
+            <label>客戶身分證:</label>
+            <input type="text" value="" name="CS_PID" style="width:80px" />
+            &nbsp;&nbsp;
+        </span>
+        <span id="showPlan" style="display: none;">
+            <label>業務:</label>
+            <input type="text" name="U_name" id="U_name" size="10" maxlength="10" class="box" value="">
+        </span>
+        <input type="button" value="查詢" onclick="fetchData();" />
+    </div>
+    <br />
+    <table width="1480px" id="MainTable" border="0" cellpadding="4" cellspacing="1" bgcolor="#666666">
+        <thead>
+            <tr align="center" bgcolor="#CCCCFF" class="TrHead">
+                <td>No.</td>
+                <td>客戶姓名</td>
+                <td>客戶ID</td>
+                <td>總金額</td>
+                <td>期數</td>
+                <td>第幾期</td>
+                <td>最新應繳款日期</td>
+                <td>月付金</td>
+                <td>最新沖銷日期</td>
+                <td>發票號碼</td>
+                <td>發票日期</td>
+                <td>業務</td>
+            </tr>
+        </thead>
+        <tbody></tbody>
+        <tfoot>
+            <tr align="center" height="15" bgcolor="#CCCCFF">
+                <td class="c12-k" colspan="12">
+                    <font color="#000080">
+                        <label id="CountRows"></label>
+                    </font>
+                </td>
+            </tr>
+        </tfoot>
+    </table>
+</body>
+</html>
+<script>
+    const Params = getQueryParams();
+    let WebUser = Params.WebUser;
+    let WebBC = Params.WebBC;
+
+    let data = [];
+    let roleType = "";
+
+    const RoleB = ["1001","1008", "1010", "1018", "1014"]; //開發者,業務主管,業務助理
+    const RoleC = ["1009", "1023", "1017"]; //業務
+
+    GetUserRnum();
+
+    function GetUserRnum() {
+        const url = `${BASE_URL}/AE/GetUserRole?User=${WebUser}`;
+    
+        fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+            .then(response => response.json())
+            .then(responseData => {
+                Rnum = responseData.objResult;
+                if (RoleB.includes(Rnum)) {
+                    document.querySelector('#showBC').style.display = "";
+                    document.querySelector('#showPlan').style.display = "";
+                    roleType = "B";
+                };
+                if (RoleC.includes(Rnum)) {
+                    roleType = "C";
+                };
+                loadBCDropdown();
+            })
+            .catch(error => {
+                alert('角色辨別失敗，請稍後再試。');
+            });
+    }
+
+    function loadBCDropdown() {
+        const url = `${BASE_URL}/AE/GetCheckBCList?user=${WebUser}`;
+        fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                if (data.resultCode === "000") {
+                    const selectElement = document.getElementById('U_BC');
+                    const options = JSON.parse(data.objResult);
+
+                    selectElement.innerHTML = '';
+
+                    options.forEach((option, index) => {
+                        const optionElement = document.createElement('option');
+                        optionElement.value = option.U_BC;
+                        optionElement.textContent = option.U_BC_Name;
+
+                        if (index === 0) {
+                            optionElement.selected = true;
+                        }
+
+                        selectElement.appendChild(optionElement);
+                    });
+
+                    fetchData();
+                } else {
+                    alert('錯誤: ' + (data.resultMsg || '未知錯誤'));
+                }
+            })
+            .catch(error => {
+                console.error('載入選項時出錯:', error);
+                alert('無法載入資料，請稍後再試。');
+            });
+    }
+
+    function fetchData() {
+        const url = `${BASE_URL}/AE_HM/CPay_LQuery`;
+
+        const CPay_req = {
+            tbInfo: {
+                add_num: WebUser,
+                edit_num: WebUser
+            },
+            CS_Name: document.querySelector('input[name="CS_Name"]').value,
+            CS_PID: document.querySelector('input[name="CS_PID"]').value,
+            U_BC: document.getElementById("U_BC").value,
+            U_name: document.querySelector('input[name="U_name"]').value,
+            roleType: roleType
+        };
+
+        $('body').css('cursor', 'wait');
+
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include',
+            body: JSON.stringify(CPay_req)
+        })
+            .then(response => response.json())
+            .then(responseData => {
+                if (responseData.resultCode == "000") {
+                    data = JSON.parse(responseData.objResult);
+                    showTable();
+                } else {
+                    alert(responseData.resultMsg);
+                }
+            })
+            .catch(error => {
+                alert('API 請求失敗:', error);
+            })
+            .finally(
+                $('body').css('cursor', 'default')
+            );
+    }
+
+    function showTable() {
+        document.getElementById('CountRows').innerHTML = `筆數:${data.length}`;
+        const tbody = document.querySelector('#MainTable tbody');
+        tbody.innerHTML = '';
+
+        const columnOrder = ['CS_name', 'CS_PID', 'amount_total', 'month_total', 'max_RC_count', 'rc_date', 'amount_per_month', 'check_pay_date',
+            'invoice_no', 'invoice_date', 'U_name'];
+
+        data.forEach((item, index) => {
+            const row = document.createElement('tr');
+            row.setAttribute('align', 'center');
+            row.className = 'c12-k';
+            row.style.backgroundColor = '#FFFFFF';
+            row.onmouseover = function () { this.style.background = '#FCFCC0'; };
+            row.onmouseout = function () { this.style.background = '#FFFFFF'; };
+
+            const serialCell = document.createElement('td');
+            serialCell.textContent = index + 1;  // 序號
+            row.appendChild(serialCell);
+
+            columnOrder.forEach(key => {
+                const cell = document.createElement('td');
+                switch (key) {
+                    case 'CS_name':
+                        const link = document.createElement('a');
+                        link.href = '#';
+                        link.textContent = item[key] || '';
+                        link.style.textDecoration = 'underline';
+                        link.style.color = '#0000FF';
+                        link.style.cursor = 'pointer';
+
+                        // 點擊事件：開啟明細視窗，傳入 RCM_id
+                        link.onclick = function (e) {
+                            e.preventDefault();
+                            showDetail(item.RCM_id);
+                        };
+
+                        cell.appendChild(link);
+                        break;
+                    default:
+                        cell.textContent = item[key];
+                        break;
+                }
+
+                row.appendChild(cell);
+            });
+            tbody.appendChild(row);
+        });
+    }
+
+    function showDetail(rcmId) {
+        const detailUrl = `CPay_Detail.html?RCM_id=${encodeURIComponent(rcmId)}`;
+        window.open(detailUrl, '_blank', 'width=900,height=700,scrollbars=yes,resizable=yes');
+    }
+</script>

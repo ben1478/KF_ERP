@@ -166,6 +166,14 @@
                         item['offwork_status'] = "";
                     }
                 }
+
+                if (key === 'work_time' && item['LateMin'] > 0) {
+                    cell.style.backgroundColor = '#FFCCCC'; // 淡紅色
+                    item.Late = Math.max(0, (item.Late || 0) - (item.LateMin || 0));
+                    if (item.early >= 0) {
+                        item['work_status'] = "";
+                    }
+                }
                 row.appendChild(cell);
             });
 

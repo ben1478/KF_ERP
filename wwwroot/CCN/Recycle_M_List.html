@@ -9,7 +9,51 @@
     <script type="text/javascript" src="../tool_js/jquery.table2excel.js"></script>
     <link href="../_include/main.css" rel="stylesheet" type="text/css">
     <script src="../Base.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <title>作業平台</title>
+    <!-- 浮動視窗的 CSS 樣式 -->
+    <style>
+        /* 遮罩背景 */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        /* 視窗主體 */
+        .modal-content {
+            background: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            max-width: 90%;
+            max-height: 85vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        /* 關閉按鈕 */
+        .modal-close {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+            color: #666;
+        }
+
+            .modal-close:hover {
+                color: #000;
+            }
+    </style>
 </head>
 <body>
     <div>
@@ -20,67 +64,68 @@
         </span>
         <span>
             <label>指派人員:</label>
-            <input type="hidden" name="U_num" id="U_num" value="">
-            <input type="text" name="U_name" id="U_name" size="10" maxlength="10" class="box" value="" readonly="">
-            <input type="button" value="..." id="select_user_one">
+            <select name="U_num" id="U_num" style="width:80px;">
+            </select>
+        </span>
+        &nbsp;&nbsp;
+        <span>
+            <label>狀態確認:</label>
+            <select name="finType" id="finType" style="width:80px;">
+                <option value="" selected>請選擇</option>
+                <option value="FIN_T19">電話不通</option>
+                <option value="FIN_T26">空號</option>
+                <option value="FIN_T27">暫停使用</option>
+                <option value="FIN_T02">待處理</option>
+                <option value="FIN_T28">估價、收件中</option>
+                <option value="FIN_T09">無法承作</option>
+                <option value="FIN_T13">已撥款</option>
+                <option value="FIN_T22">無殘值</option>
+                <option value="FIN_T23">嫌利率高</option>
+                <option value="FIN_T29">已核未撥</option>
+                <option value="FIN_T25">其他</option>
+                <option value="NA">尚未撥打</option>
+            </select>
         </span>
         &nbsp;&nbsp;
         <span>
             <label>指派日期:</label>
-            <input type="text" value="" name="checkPayDateS" class="datepickerTW" placeholder="年 /月 /日" style="width:80px;">
+            <input type="text" value="" name="telAsgDateS" class="datepickerTW" placeholder="年 /月 /日" style="width:80px;">
             ~
-            <input type="text" value="" name="checkPayDateE" class="datepickerTW" placeholder="年 /月 /日" style="width:80px;">
+            <input type="text" value="" name="telAsgDateE" class="datepickerTW" placeholder="年 /月 /日" style="width:80px;">
             &nbsp;&nbsp;
         </span>
         <input type="button" value="查詢" onclick="fetchData();" />
+        <input type="button" value="回收" onclick="recycleData();" />
+        <input type="button" value="匯出" onclick="exportToExcel();" />
     </div>
     <br />
-    <table width="1050" border="0" cellspacing="0" cellpadding="0">
+    <table id="MainTable" width="1050" border="0" cellpadding="4" cellspacing="1" bgcolor="#666666">
+        <thead>
+            <tr align="center" bgcolor="#CCCCFF" class="c12-k">
+                <td>序號</td>
+                <td><input type="checkbox" id="selectAll" onclick="toggleSelectAll(this)"></td>
+                <td>申請人</td>
+                <td>申請人ID</td>
+                <td>行動電話</td>
+                <td>指派人員</td>
+                <td>指派日期</td>
+                <td>撥打狀態</td>
+                <td>狀態確認</td>
+                <td>回收時間</td>
+                <td>撥打明細</td>
+            </tr>
+        </thead>
         <tbody>
-            <tr>
-                <td valign="top"> </td>
-                <td align="center" valign="top">
-                    <table id="MainTable" width="1050" border="0" cellpadding="4" cellspacing="1" bgcolor="#666666">
-                        <thead>
-                            <tr align="center" bgcolor="#CCCCFF" class="c12-k">
-                                <td>序號</td>
-                                <td></td>
-                                <td>申請人</td>
-                                <td>申請人ID</td>
-                                <td>行動電話</td>
-                                <td>指派人員</td>
-                                <td>指派日期</td>
-                                <td>撥打狀態</td>
-                                <td>狀態確認</td>
-                                <td>回收時間</td>
-                                <td>撥打明細</td>
-                                <td>客戶明細</td>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr align="center" class="c12-k" bgcolor="#FFFFFF" onmouseover="this.style.background='#FFFF66';" onmouseout="this.style.background='#FFFFFF'; " style="background: rgb(255, 255, 255);">
-                            </tr>
-                            <tr align="center" class="c12-k" bgcolor="#FFFFFF" onmouseover="this.style.background='#FFFF66';" onmouseout="this.style.background='#FFFFFF'; " style="background: rgb(255, 255, 255);">
-                            </tr>
-                            <tr align="center" height="30" bgcolor="#CCCCFF">
-                                <td class="c12-k" colspan="12">
-                                </td>
-                            </tr>
-                        </tbody>
-                        <tfoot>
-                            <tr align="center" height="15" bgcolor="#CCCCFF">
-                                <td class="c12-k" colspan="12">
-                                    <font color="#000080">
-                                        <label id="CountRows"></label>
-                                    </font>
-                                </td>
-                            </tr>
-                        </tfoot>
-                    </table>
-                    <div id="pagination"></div>
+        </tbody>
+        <tfoot>
+            <tr align="center" height="15" bgcolor="#CCCCFF">
+                <td class="c12-k" colspan="11">
+                    <font color="#000080">
+                        <label id="CountRows"></label>
+                    </font>
                 </td>
             </tr>
-        </tbody>
+        </tfoot>
     </table>
 </body>
 </html>
@@ -88,8 +133,301 @@
     const Params = getQueryParams();
     let WebUser = Params.WebUser;
     let WebBC = Params.WebBC;
-
-    const itemsPerPage = 100;
-    let currentPage = 1;
     let data = []; 
+
+    dateTW();
+    updateSelectOptions("U_num", WebUser);
+    fetchData();
+
+    $('.datepickerTW').datepickerTW({
+        changeYear: true,
+        changeMonth: true,
+        dateFormat: 'yy-mm-dd'
+    });
+
+    function updateSelectOptions(selectId, user) {
+        const select = document.getElementById(selectId);
+        if (!select) return;
+
+        // 定義選項資料
+        const optionData = {
+            "K0003": [
+                { text: "請選擇", value: "" },
+                { text: "羅湘婷", value: "K0378" },
+                { text: "朱芸瑭", value: "K0006" },
+                { text: "劉育丞", value: "K9997" },
+                { text: "羅友亨", value: "K0212" },
+                { text: "吳惠玉", value: "K0264" }
+            ],
+            "K0378": [
+                { text: "請選擇", value: "" },
+                { text: "江岳樺", value: "K0379" },
+                { text: "陳采蔆", value: "K0380" },
+                { text: "程大庭", value: "K0371" }
+            ]
+        };
+
+        const list = optionData[user] || [{ text: "請選擇", value: "" }];
+
+        select.innerHTML = list.map(item => `<option value="${item.value}">${item.text}</option>`).join("");
+    }
+
+    function fetchData() {
+        const Recycle_req = {
+            tbInfo: {
+                add_num: WebUser,
+                edit_num: WebUser
+            },
+            telAsgDateS: document.querySelector('input[name="telAsgDateS"]').value,
+            telAsgDateE: document.querySelector('input[name="telAsgDateE"]').value,
+            CS_Name: document.querySelector('input[name="CS_Name"]').value,
+            U_num: document.getElementById("U_num").value,
+            finType: document.getElementById("finType").value
+        };
+
+        const url = `${BASE_URL}/AE_CCN/Recycle_M_Lquery`;
+
+        $('body').css('cursor', 'wait');
+
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include',
+            body: JSON.stringify(Recycle_req)
+        })
+            .then(response => response.json())
+            .then(responseData => {
+                if (responseData.resultCode == "000") {
+                    data = JSON.parse(responseData.objResult);
+                    showTable();
+                } else {
+                    alert(responseData.resultMsg);
+                }
+            })
+            .catch(error => {
+                alert('API 請求失敗:', error);
+            })
+            .finally(
+                $('body').css('cursor', 'default')
+            );
+    }
+
+    function showTable() {
+        document.getElementById('CountRows').innerHTML = `筆數:${data.length}`;
+        const tbody = document.querySelector('#MainTable tbody');
+        tbody.innerHTML = '';
+
+        const columnOrder = ['cs_name', 'CS_ID', 'cs_mtel1', 'U_name', 'Tel_Assign_date', 'Tel_Assign', 'Fin_type_name', 'REC_date',
+            'CallCount'];
+
+        data.forEach((item, index) => {
+            const row = document.createElement('tr');
+            row.setAttribute('align', 'center');
+            row.className = 'c12-k';
+            row.style.backgroundColor = '#FFFFFF';
+            row.onmouseover = function () { this.style.background = '#FCFCC0'; };
+            row.onmouseout = function () { this.style.background = '#FFFFFF'; };
+
+            //把整筆資料存到 tr
+            row.dataset.rowData = JSON.stringify(item);
+
+            // 序號欄位
+            const serialCell = document.createElement('td');
+            serialCell.textContent = index + 1;
+            row.appendChild(serialCell);
+
+            // 勾選框欄位
+            const checkCell = document.createElement('td');
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.className = 'row-checkbox';
+            checkbox.value = item.tm_id || index;
+            checkCell.appendChild(checkbox);
+            row.appendChild(checkCell);
+
+            columnOrder.forEach(key => {
+                const cell = document.createElement('td');
+                switch (key) {
+                    case "CallCount":
+                        const link = document.createElement('a');
+                        link.href = 'javascript:void(0);';
+                        link.textContent = Number(item[key]).toLocaleString();
+                        link.style.cursor = 'pointer';
+                        link.style.color = '#0056b3'; 
+                        link.style.textDecoration = 'underline'; 
+
+                        link.addEventListener('click', (e) => {
+                            e.stopPropagation(); // 避免事件冒泡干擾 tr 的其他點擊邏輯
+                            callDetail(item.tm_id);
+                        });
+
+                        cell.appendChild(link);
+                        break;
+                    default:
+                        cell.textContent = item[key];
+                        break;
+                }
+
+                row.appendChild(cell);
+            });
+            tbody.appendChild(row);
+        });
+    }
+
+    function toggleSelectAll(selectAllCheckbox) {
+        const rowCheckboxes = document.querySelectorAll('#MainTable tbody .row-checkbox');
+        rowCheckboxes.forEach(cb => {
+            cb.checked = selectAllCheckbox.checked;
+        });
+    }
+
+    function callDetail(tmID) {
+        const url = `${BASE_URL}/AE_CCN/Call_Detail_LQuery?tmID=${tmID}`;
+        $('body').css('cursor', 'wait');
+
+        fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include'
+        })
+            .then(response => response.json())
+            .then(responseData => {
+                if (responseData.resultCode === "000") {
+                    const detailData = JSON.parse(responseData.objResult);
+
+                    // 動態生成表格 Data Rows
+                    const tableRowsHTML = detailData.map((item, index) => {
+                        const startTime = item.Call_date_S ? item.Call_date_S.replace('T', ' ').split('.')[0] : '';
+                        const endTime = item.Call_date_E ? item.Call_date_E.replace('T', ' ').split('.')[0] : '';
+
+                        return `
+                        <tr align="center" height="30" bgcolor="#FFFFFF" class="c12-k" onmouseover="this.style.background='#FCFCC0';" onmouseout="this.style.background='#FFFFFF';">
+                            <td>${index + 1}</td>
+                            <td>${item.cs_name || ''}</td>
+                            <td>${item.cs_mtel1 || ''}</td>
+                            <td>${item.Call_type_Show || ''}</td>
+                            <td>${item.Fin_type_name || ''}</td>
+                            <td>${item.Memo || ''}</td>
+                            <td>${item.Call_date_S.replace('T', ' ').split('.')[0] || ''}</td>
+                            <td>${item.Call_date_E.replace('T', ' ').split('.')[0] || ''}</td>
+                            <td>${item.minute_diff ?? ''}</td>
+                        </tr>
+                    `;
+                    }).join('');
+
+                    const tableHTML = `
+                    <table border="0" cellpadding="4" cellspacing="1" bgcolor="#666666">
+                        <tbody>
+                            <tr align="center" height="30" bgcolor="#CCCCFF" class="c12-k">
+                                <td>序</td><td>客戶名稱</td><td>連絡電話1</td>
+                                <td>撥打狀態</td><td>確認狀態</td>
+                                <td>備註</td><td>通話時間(起)</td><td>通話時間(訖)</td><td>通話分鐘</td>
+                            </tr>
+                            ${tableRowsHTML}
+                        </tbody>
+                    </table>
+                `;
+
+                    // 建立浮動視窗元素
+                    const modal = document.createElement('div');
+                    modal.className = 'modal-overlay';
+                    modal.innerHTML = `
+                    <div class="modal-content">
+                        <span class="modal-close">&times;</span>
+                        <h3 style="margin-top:0;">聯絡明細 (ID: ${tmID})</h3>
+                        ${tableHTML}
+                    </div>
+                `;
+
+                    modal.querySelector('.modal-close').onclick = () => modal.remove();
+                    modal.onclick = (e) => {
+                        if (e.target === modal) modal.remove();
+                    };
+
+                    document.body.appendChild(modal);
+                } else {
+                    alert(responseData.resultMsg || '讀取資料失敗');
+                }
+            })
+            .catch(error => {
+                console.error(error);
+                alert('API 請求失敗: ' + error.message);
+            })
+            .finally(() => {
+                $('body').css('cursor', 'default');
+            });
+    }
+
+    function recycleData() {
+        const checkedBoxes = document.querySelectorAll('.row-checkbox:checked');
+        if (checkedBoxes.length === 0) {
+            alert('請至少選擇一筆！');
+            return;
+        }
+
+        const selectedIds = Array.from(checkedBoxes).map(cb => cb.value);
+
+        const url = `${BASE_URL}/AE_CCN/Recycle_M_Upd?user=${WebUser}`;
+
+        $('body').css('cursor', 'wait');
+
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include',
+            body: JSON.stringify(selectedIds)
+        })
+            .then(response => response.json())
+            .then(responseData => {
+                if (responseData.resultCode == "000") {
+                    alert(responseData.resultMsg);
+                } else {
+                    alert(responseData.resultMsg);
+                }
+            })
+            .catch(error => {
+                alert('API 請求失敗:', error);
+            })
+            .finally(
+                fetchData(),
+                $('body').css('cursor', 'default')
+            );
+    }
+
+    function exportToExcel() {
+        const table = document.getElementById('MainTable');
+        if (!table) return;
+
+        const cloneTable = table.cloneNode(true);
+        const tfoot = cloneTable.querySelector('tfoot');
+        if (tfoot) tfoot.remove();
+
+        const rows = cloneTable.querySelectorAll('tr');
+        rows.forEach(row => {
+            if (row.cells.length > 1) {
+                row.deleteCell(1);
+            }
+        });
+
+        const worksheet = XLSX.utils.table_to_sheet(cloneTable, { raw: true });
+
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "電話行銷清單");
+
+        XLSX.writeFile(workbook, `電話行銷清單_${getFormattedDate()}.xlsx`);
+    }
+
+    function getFormattedDate() {
+        const today = new Date();
+        const yyyy = today.getFullYear();
+        const mm = String(today.getMonth() + 1).padStart(2, '0');
+        const dd = String(today.getDate()).padStart(2, '0');
+        return `${yyyy}${mm}${dd}`;
+    }
 </script>
