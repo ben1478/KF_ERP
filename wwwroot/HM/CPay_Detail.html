@@ -11,9 +11,11 @@
     <script src="../Base.js"></script>
     <script src="../_include/exceljs.min.js"></script>
     <script src="../_include/filesaver.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <title>作業平台</title>
 </head>
 <body>
+    <button onclick="downloadPDF()">下載 PDF</button>
     <table width="880px" id="MainTable" border="0" cellpadding="4" cellspacing="1" bgcolor="#666666">
         <thead>
             <tr align="center" bgcolor="#CCCCFF" class="TrHead">
@@ -46,11 +48,12 @@
 <script>
     const urlParams = new URLSearchParams(window.location.search);
     const rcmId = urlParams.get('RCM_id');
+    let csName = "";
 
     fetchData();
 
     function fetchData() {
-        const url = `${BASE_URL}/AE_ACC/CPay_SQuery?rcmID=${rcmId}`;
+        const url = `${BASE_URL}/AE_HM/CPay_SQuery?rcmID=${rcmId}`;
 
         $('body').css('cursor', 'wait');
 
@@ -83,6 +86,10 @@
         const tbody = document.querySelector('#MainTable tbody');
         tbody.innerHTML = '';
 
+        if (data && data.length > 0) {
+            csName = data[0].CS_name || '';
+        }
+
         const columnOrder = ['CS_name', 'CS_PID', 'amount_total', 'month_total', 'RC_count', 'rc_date', 'amount_per_month', 'check_pay_date',
             'invoice_no', 'invoice_date'];
 
@@ -105,5 +112,95 @@
             });
             tbody.appendChild(row);
         });
+    }
+
+    function downloadPDF() {
+        const element = document.getElementById('MainTable');
+
+        const opt = {
+            margin: 0.3,
+            filename: `${csName || '客戶'}_客戶期數明細.pdf`,
+            image: { type: 'jpeg', quality: 0.98 },
+
+            // 設定 PDF 自動分頁規則 (避免表格列被從中裁切)
+            pagebreak: {
+                mode: ['avoid-all', 'css'],
+                avoid: 'tr'
+            },
+
+            html2canvas: {
+                scale: 2,
+                useCORS: true,
+                backgroundColor: '#ffffff',
+                onclone: function (clonedDoc) {
+                    const style = clonedDoc.createElement('style');
+                    style.innerHTML = `
+                    #MainTable {
+                        border-collapse: collapse !important;
+                        border-spacing: 0 !important;
+                        width: 100% !important;
+                        background-color: #ffffff !important;
+                        border: 1px solid #000000 !important;
+                    }
+
+                    /* 防止 tr 橫跨分頁斷開 */
+                    #MainTable tr {
+                        page-break-inside: avoid !important;
+                        break-inside: avoid !important;
+                    }
+
+                    #MainTable tr, 
+                    #MainTable th, 
+                    #MainTable td {
+                        border: 1px solid #000000 !important;
+                        padding: 4px 6px !important;
+                        box-sizing: border-box !important;
+                        color: #000000 !important;
+                    }
+                    #MainTable thead tr, #MainTable thead td, #MainTable thead th {
+                        background-color: #CCCCFF !important;
+                    }
+                    #MainTable tbody tr, #MainTable tbody td {
+                        background-color: #ffffff !important;
+                    }
+                    #MainTable tfoot tr, #MainTable tfoot td {
+                        background-color: #CCCCFF !important;
+                    }
+
+                    /* 隱藏最後兩欄 */
+                    #MainTable thead td:nth-last-child(-n+2),
+                    #MainTable thead th:nth-last-child(-n+2),
+                    #MainTable tbody td:nth-last-child(-n+2) {
+                        display: none !important;
+                    }
+                `;
+                    clonedDoc.head.appendChild(style);
+
+                    const table = clonedDoc.getElementById('MainTable');
+                    if (table) {
+                        table.removeAttribute('bgcolor');
+                        table.removeAttribute('border');
+
+                        // 修正頁尾跨欄數
+                        const tfootTd = table.querySelector('tfoot td');
+                        if (tfootTd) {
+                            tfootTd.setAttribute('colspan', '9');
+                        }
+
+                        // 清除 inline 背景與 mouse 事件
+                        const allCells = table.querySelectorAll('tr, td, th');
+                        allCells.forEach(el => {
+                            el.removeAttribute('bgcolor');
+                            el.style.backgroundColor = '';
+                            el.onmouseover = null;
+                            el.onmouseout = null;
+                        });
+                    }
+                }
+            },
+            jsPDF: { unit: 'in', format: 'a4', orientation: 'landscape' }
+        };
+
+        html2pdf().set(opt).from(element).save();
     }
 </script>

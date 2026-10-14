@@ -162,6 +162,10 @@
         let U_BC = document.querySelector('select[name="U_BC"]').value;
         let User_Num = document.getElementById('U_num').value;
 
+        if (U_BC === "" && ["K0000", "K0001", "K0002"].includes(WebUser)) {
+            U_BC = "BC0100";
+        }
+
         if (U_BC === "") {
             U_BC = WebBC;
         }
