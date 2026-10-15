@@ -48,6 +48,13 @@
                 <td align="right" bgcolor="#CCCCFF">備註</td>
                 <td align="left"><input type="text" id="Remark" name="Remark" size="80" class="box" value=""></td>
             </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
+                <td align="right" bgcolor="#CCCCFF">是否結案</td>
+                <td align="left">
+                    <input type="radio" name="isClose" value="N" checked>尚未結案
+                    <input type="radio" name="isClose" value="Y">已結案
+                </td>
+            </tr>
             <tr class="c12-k" bgcolor="#CCCCFF" height="30">
                 <td colspan="2" align="center">
                     <input type="button" name="btnSave" value="存檔" onclick="saveData();" />
@@ -87,6 +94,7 @@
                         $("input[name='certificate_date_S']").val(data.str_certificate_date_S);
                         $("input[name='certificate_date_E']").val(data.str_certificate_date_E);
                         $("input[name='Remark']").val(data.Remark);
+                        document.querySelector(`input[name="isClose"][value="${data.isClose}"]`).checked = true;
                     } else {
                         alert(response.resultMsg);
                     }
@@ -139,7 +147,8 @@
             str_certificate_date_E: $("input[name='certificate_date_E']").val(),
             Remark: $("input[name='Remark']").val(),
             add_num: WebUser,
-            edit_num: WebUser 
+            edit_num: WebUser,
+            isClose: document.querySelector('input[name="isClose"]:checked').value
         };
 
         if (Id === 'add') {

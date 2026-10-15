@@ -27,6 +27,8 @@
                     <table border="0" with="100%" id="table1">
                         <tr class="c12-k">
                             <td align="left" width="80%">
+                                <input type="radio" name="isClose" value="N" checked>尚未結案
+                                <input type="radio" name="isClose" value="Y">已結案
                                 客戶名稱：
                                 <input type="text" id="cs_name" name="cs_name" value="" size="10" class="c12-k">
                                 <input type="button" value="查詢" onclick="fetchData();" />
@@ -99,17 +101,17 @@
 
 
     function fetchData() {
-    let cs_name = document.getElementById('cs_name').value || '';
-    const url = `${BASE_URL}/AE_ACC/Debt_Certificate_LQuery?cs_name=${cs_name}`;
-
-    fetch(url, {
-        method: 'GET',
-        headers: {
-            'Content-Type': 'application/json'
-        }
-    })
+        let cs_name = document.getElementById('cs_name').value || '';
+        let isClose = document.querySelector('input[name="isClose"]:checked').value;
+        const url = `${BASE_URL}/AE_ACC/Debt_Certificate_LQuery?cs_name=${cs_name}&isClose=${isClose}`;
+        
+        fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
         .then(response => {
-            // 修正：API 回傳 400 仍有 JSON 內容，需正確解析
             return response.json().then(data => ({
                 status: response.status,
                 ok: response.ok,
@@ -122,18 +124,15 @@
                 showPage(currentPage);
                 createPagination();
             } else {
-                // 只顯示 API 回傳訊息，不再顯示 "API 請求失敗"
-                alert(body.resultMsg || '查無資料');
                 data = [];
                 showPage(currentPage);
                 createPagination();
             }
         })
         .catch(error => {
-            // 只有網路或程式錯誤才顯示
             alert('API 請求失敗: ' + error);
         });
-}
+    }
 
     function showPage(page) {
         document.getElementById('CountRows').innerHTML = `筆數:${data.length}`;
@@ -248,13 +247,23 @@
 	    $(clonedTable).attr('id', 'tbExcel');
 
 	    // 隱藏新增的表格
-	    $(clonedTable).hide();
+        $(clonedTable).hide();
+
+        let isCloseValue = document.querySelector('input[name="isClose"]:checked').value;
+        let strClose = '';
+
+        if (isCloseValue === 'Y') {
+            strClose = '_已結案_';
+        } else {
+            strClose = '_尚未結案_';
+        }
+
 	    var fileNa=getCurrentDateTime();
 		    $("#tbExcel").table2excel({
 		    // exclude CSS class
 		    exclude: ".ExHead ",
 		    name: "Worksheet Name",
-		    filename: "債權憑證管理-"+fileNa, //do not include extension
+                filename: "債權憑證管理" + strClose +fileNa, //do not include extension
 		    fileext: ".xls", // file extension
 		    TextIdx: [4,5,6]
 	    }); 
@@ -274,5 +283,5 @@
 
           var formattedDateTime = year + month + day + hours + minutes;
           return formattedDateTime;
-        }
+    }
 </script>
