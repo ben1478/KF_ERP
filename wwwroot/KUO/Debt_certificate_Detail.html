@@ -45,6 +45,13 @@
                 </td>
             </tr>
             <tr class="c12-k" bgcolor="#FFFFFF">
+                <td align="right" bgcolor="#CCCCFF">類型</td>
+                <td align="left">
+                    <input type="radio" name="debtType" value="H" checked>房子
+                    <input type="radio" name="debtType" value="M">機車
+                </td>
+            </tr>
+            <tr class="c12-k" bgcolor="#FFFFFF">
                 <td align="right" bgcolor="#CCCCFF">備註</td>
                 <td align="left"><input type="text" id="Remark" name="Remark" size="80" class="box" value=""></td>
             </tr>
@@ -95,6 +102,7 @@
                         $("input[name='certificate_date_E']").val(data.str_certificate_date_E);
                         $("input[name='Remark']").val(data.Remark);
                         document.querySelector(`input[name="isClose"][value="${data.isClose}"]`).checked = true;
+                        document.querySelector(`input[name="debtType"][value="${data.debtType}"]`).checked = true;
                     } else {
                         alert(response.resultMsg);
                     }
@@ -148,7 +156,8 @@
             Remark: $("input[name='Remark']").val(),
             add_num: WebUser,
             edit_num: WebUser,
-            isClose: document.querySelector('input[name="isClose"]:checked').value
+            isClose: document.querySelector('input[name="isClose"]:checked').value,
+            debtType: document.querySelector('input[name="debtType"]:checked').value
         };
 
         if (Id === 'add') {

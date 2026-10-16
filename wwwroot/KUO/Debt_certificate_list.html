@@ -29,6 +29,14 @@
                             <td align="left" width="80%">
                                 <input type="radio" name="isClose" value="N" checked>尚未結案
                                 <input type="radio" name="isClose" value="Y">已結案
+                                &nbsp;&nbsp;
+                                類型:
+                                <select name="debtType" id="debtType">
+                                    <option value="">請選擇</option>
+                                    <option value="H">房</option>
+                                    <option value="M">機車</option>
+                                </select>
+                                &nbsp;&nbsp;
                                 客戶名稱：
                                 <input type="text" id="cs_name" name="cs_name" value="" size="10" class="c12-k">
                                 <input type="button" value="查詢" onclick="fetchData();" />
@@ -42,15 +50,16 @@
         </tbody>
     </table>
     
-    <table width="1050" border="0" cellspacing="0" cellpadding="0">
+    <table width="1100" border="0" cellspacing="0" cellpadding="0">
         <tbody>
             <tr>
                 <td valign="top"> </td>
                 <td align="center" valign="top">
-                    <table id="MainTable" width="1050" border="0" cellpadding="4" cellspacing="1" bgcolor="#666666">
+                    <table id="MainTable" width="1100" border="0" cellpadding="4" cellspacing="1" bgcolor="#666666">
                         <thead>
                             <tr align="center" bgcolor="#CCCCFF" class="c12-k">
                                 <td width="50">序號</td>
+                                <td width="50">類型</td>
                                 <td width="60">客戶名稱</td>
                                 <td width="60">身分證字號</td>
                                 <td width="60">貸款金額</td>
@@ -103,7 +112,8 @@
     function fetchData() {
         let cs_name = document.getElementById('cs_name').value || '';
         let isClose = document.querySelector('input[name="isClose"]:checked').value;
-        const url = `${BASE_URL}/AE_ACC/Debt_Certificate_LQuery?cs_name=${cs_name}&isClose=${isClose}`;
+        let debtType = document.getElementById('debtType').value;
+        const url = `${BASE_URL}/AE_ACC/Debt_Certificate_LQuery?cs_name=${cs_name}&isClose=${isClose}&debtType=${debtType}`;
         
         fetch(url, {
             method: 'GET',
@@ -151,7 +161,7 @@
             row.setAttribute('onmouseover', "this.style.background='#FCFCC0';");
             row.setAttribute('onmouseout', "this.style.background='#FFFFFF';");
 
-            const columnOrder = ['Debt_ID', 'cs_name', 'CS_PID', 'str_loan_amount', 'str_certificate_date_S', 'str_certificate_date_E', 'Remark', 'Upd'];
+            const columnOrder = ['Debt_ID','debtType', 'cs_name', 'CS_PID', 'str_loan_amount', 'str_certificate_date_S', 'str_certificate_date_E', 'Remark', 'Upd'];
 
             const serialCell = document.createElement('td');
             serialCell.textContent = startIndex + pageData.indexOf(item) + 1;
@@ -164,6 +174,14 @@
                 switch (key) {
                     case 'Debt_ID':
                         Id = item['Debt_ID'];
+                        break;
+                    case 'debtType':
+                        if (item[key] === 'H') {
+                            cell.textContent = '房';
+                        } else {
+                            cell.textContent = '機車';
+                        }
+                        row.appendChild(cell);
                         break;
                     case 'Upd':
                         let encryptedId = encryptParameter(Id);
