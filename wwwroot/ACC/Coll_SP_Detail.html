@@ -1,0 +1,120 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script src="../Base.js"></script>
+    <title>作業平台</title>
+</head>
+<body>
+    <div class="ui-widget-header ui-dialog-titlebar ui-corner-all blockTitle"></div>
+    <br />
+    <textarea name="Expe_note" id="Expe_note" cols="75" rows="10"></textarea>
+    <br />
+    法拍狀態：
+    <select name="auction_status" id="auction_status" class=""></select>
+    <br />
+    <br />
+    <input type="button" value="確認" onclick="saveData();">
+    <input type="button" value="取消" onclick="">
+</body>
+</html>
+<script>
+    let Params = new URLSearchParams(window.location.search);
+    let RCM_Number = Params.get('RCM_id');
+    let WebUser = Params.get('WebUser');
+
+    window.addEventListener('DOMContentLoaded', (event) => {
+        loadItemDropdown({
+            selectId: "auction_status",
+            itemCode: "auction_status"
+        });
+
+        fetchData();
+    });
+
+  
+
+    function fetchData() {
+        const url = `${BASE_URL}/AE_ACC/RC_D_Coll_SQuery?rcmId=${RCM_Number}`;
+
+        fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+            .then(response => response.json())
+            .then(responseData => {
+                if (responseData.resultCode === '000') {
+
+                    const data = JSON.parse(responseData.objResult)[0];
+                    const titleElem = document.querySelector('.blockTitle');
+                    if (titleElem) {
+                        titleElem.textContent = data.CS_name + '-催收備註';
+                    }
+
+                    const noteElem = document.getElementById('Expe_note');
+                    if (noteElem && data.disExpe_note) {
+                        noteElem.value = data.disExpe_note.replace(/<br\s*\/?>/gi, '\n');
+                    }
+
+                    const statusElem = document.getElementById('auction_status');
+                    if (statusElem) {
+                        statusElem.value = data.auction_status;
+                        if (!statusElem.value && data.auction_status) {
+                            setTimeout(() => {
+                                statusElem.value = data.auction_status;
+                            }, 300);
+                        }
+                    }
+                }
+            })
+            .catch(error => {
+                alert('請求失敗，請稍後再試。');
+            })
+    }
+
+    function saveData() {
+
+        const recData = {
+            RCM_id: RCM_Number,
+            Expe_note: $('#Expe_note').val(),
+            auction_status: $("#auction_status").val(),
+            tbInfo: {
+                add_num: WebUser,
+                edit_num: WebUser
+            }
+        };
+
+        const url = `${BASE_URL}/AE_ACC/RC_D_Coll_Upd`;
+        console.log(JSON.stringify(recData));
+
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include',
+            body: JSON.stringify(recData)
+        })
+            .then(response => response.json())
+            .then(response => {
+                if (response.resultCode == "000") {
+                    alert('儲存成功');
+                    window.opener.location.reload();
+                    window.close();
+                } else {
+                    alert('儲存失敗');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('請求失敗');
+            });
+
+    }
+</script>

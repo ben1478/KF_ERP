@@ -246,19 +246,21 @@
             <input type="text" value="" name="checkDateE" class="datepickerTW" placeholder="年 /月 /日" style="width:80px;">
             <input type="button" value="查詢" onclick="fetchThrData();" />
         </div>-->
-
         <div class="tables-wrapper">
             <!-- 房貸表格 -->
             <table border="0" cellpadding="4" cellspacing="1" bgcolor="#666666">
                 <thead>
                     <tr align="center" bgcolor="#CCCCFF" class="c12-k">
-                        <td colspan="6">房貸總覽</td>
+                        <td colspan="9">房貸總覽</td>
                     </tr>
                     <tr align="center" bgcolor="#FFFFFF" class="c12-k">
                         <td>類別</td>
+						<td>件數</td>
                         <td>庫存撥款總額(萬)</td>
                         <td>逾放比</td>
+						<td>總撥款件數</td>
                         <td>撥款總額(萬)</td>
+						<td>件數</td>
                         <td>逾放金額(萬)</td>
                         <td>逾放比</td>
                     </tr>
@@ -266,52 +268,70 @@
                 <tbody>
                     <tr align="center" bgcolor="#FFFFFF" class="c12-k">
                         <td></td>
+						<td id="stockCount_H"></td>
                         <td id="stockAmount_H"></td>
                         <td></td>
+						<td id="totalGetCount_H"></td>
                         <td id="totalGetAmount_H"></td>
                         <td></td>
+						<td></td>
                         <td></td>
                     </tr>
                     <tr align="center" bgcolor="#FFFFFF" class="c12-k">
                         <td>M3</td>
                         <td></td>
+						<td></td>
                         <td id="M3Rate1_H"></td>
                         <td></td>
+						<td></td>
+                        <td id="M3Count_H"></td>
                         <td id="M3Amount_H"></td>
                         <td id="M3Rate2_H"></td>
                     </tr>
                     <tr align="center" bgcolor="#FFFFFF" class="c12-k">
                         <td>M2</td>
                         <td></td>
+						<td></td>
                         <td id="M2Rate1_H"></td>
                         <td></td>
+						<td></td>
+						<td id="M2Count_H"></td>
                         <td id="M2Amount_H"></td>
                         <td id="M2Rate2_H"></td>
                     </tr>
                     <tr align="center" bgcolor="#FFFFFF" class="c12-k">
                         <td>M1</td>
                         <td></td>
+						 <td></td>
                         <td id="M1Rate1_H"></td>
                         <td></td>
-                        <td id="M1Amount_H"></td>
+						<td></td>
+                        <td id="M1Count_H"></td>
+						<td id="M1Amount_H"></td>
                         <td id="M1Rate2_H"></td>
                     </tr>
                     <tr align="center" bgcolor="#FFFFFF" class="c12-k">
-                        <td colspan="6"></td>
+                        <td colspan="9"></td>
                     </tr>
                     <tr align="center" bgcolor="#FFFFFF" class="c12-k">
                         <td></td>
                         <td></td>
+						<td></td>
                         <td></td>
+                        <td></td>
+						<td></td>
                         <td></td>
                         <td>強制執行</td>
                         <td></td>
                     </tr>
                     <tr align="center" bgcolor="#FFFFFF" class="c12-k">
                         <td></td>
+						<td></td>
                         <td></td>
                         <td id="DuringRate1_H"></td>
-                        <td></td>
+                         <td></td>
+						<td></td>
+                        <td id="DuringCount_H"></td>
                         <td id="DuringAmount_H"></td>
                         <td id="DuringRate2_H"></td>
                     </tr>
@@ -319,32 +339,44 @@
                         <td></td>
                         <td></td>
                         <td></td>
+						<td></td>
+                        <td></td>
+                        <td></td>
                         <td></td>
                         <td>本票裁定</td>
                         <td></td>
                     </tr>
                     <tr align="center" bgcolor="#FFFFFF" class="c12-k">
                         <td></td>
+						<td></td>
                         <td></td>
                         <td id="RulingRate1_H"></td>
                         <td></td>
+						<td></td>
+						<td id="RulingCount_H"></td>
                         <td id="RulingAmount_H"></td>
                         <td id="RulingRate2_H"></td>
                     </tr>
                 </tbody>
             </table>
-
+	</div>
+  </div>
+ <div class="container">
+ <div class="tables-wrapper">
             <!-- 機車貸表格 -->
             <table border="0" cellpadding="4" cellspacing="1" bgcolor="#666666">
                 <thead>
                     <tr align="center" bgcolor="#CCCCFF" class="c12-k">
-                        <td colspan="6">機車貸總覽</td>
+                        <td colspan="9">機車貸總覽</td>
                     </tr>
                     <tr align="center" bgcolor="#FFFFFF" class="c12-k">
                         <td>類別</td>
+						<td>件數</td>
                         <td>庫存撥款總額(萬)</td>
                         <td>逾放比</td>
+						<td>總撥款件數</td>
                         <td>撥款總額(萬)</td>
+						<td>件數</td>
                         <td>逾放金額(萬)</td>
                         <td>逾放比</td>
                     </tr>
@@ -352,41 +384,56 @@
                 <tbody>
                     <tr align="center" bgcolor="#FFFFFF" class="c12-k">
                         <td></td>
+						<td id="stockCount_M" ></td>
                         <td id="stockAmount_M"></td>
                         <td></td>
+						<td id="totalGetCount_M" ></td>
                         <td id="totalGetAmount_M"></td>
                         <td></td>
+						<td></td>
                         <td></td>
                     </tr>
                     <tr align="center" bgcolor="#FFFFFF" class="c12-k">
                         <td>M3</td>
                         <td></td>
+						<td></td>
                         <td id="M3Rate1_M"></td>
+						<td></td>
                         <td></td>
+						<td id="M3Count_M"></td>
                         <td id="M3Amount_M"></td>
                         <td id="M3Rate2_M"></td>
                     </tr>
                     <tr align="center" bgcolor="#FFFFFF" class="c12-k">
                         <td>M2</td>
                         <td></td>
+						<td></td>
                         <td id="M2Rate1_M"></td>
                         <td></td>
+						<td></td>
+						<td id="M2Count_M"></td>
                         <td id="M2Amount_M"></td>
                         <td id="M2Rate2_M"></td>
                     </tr>
                     <tr align="center" bgcolor="#FFFFFF" class="c12-k">
                         <td>M1</td>
                         <td></td>
+						<td></td>
                         <td id="M1Rate1_M"></td>
                         <td></td>
-                        <td id="M1Amount_M"></td>
+                        <td></td>
+						<td id="M1Count_M"></td>
+						<td id="M1Amount_M"></td>
                         <td id="M1Rate2_M"></td>
                     </tr>
                     <tr align="center" bgcolor="#FFFFFF" class="c12-k">
-                        <td colspan="6"></td>
+                        <td colspan="9"></td>
                     </tr>
                     <tr align="center" bgcolor="#FFFFFF" class="c12-k">
                         <td></td>
+						<td></td>
+						<td></td>
+						<td></td>
                         <td></td>
                         <td></td>
                         <td></td>
@@ -395,15 +442,21 @@
                     </tr>
                     <tr align="center" bgcolor="#FFFFFF" class="c12-k">
                         <td></td>
+						<td></td>
                         <td></td>
                         <td id="DuringRate1_M"></td>
                         <td></td>
+						<td></td>
+						<td id="DuringCount_M"></td>
                         <td id="DuringAmount_M"></td>
                         <td id="DuringRate2_M"></td>
                     </tr>
                     <tr align="center" bgcolor="#FFFFFF" class="c12-k">
                         <td></td>
                         <td></td>
+						<td></td>
+						<td></td>
+						<td></td>
                         <td></td>
                         <td></td>
                         <td>本票裁定</td>
@@ -411,9 +464,12 @@
                     </tr>
                     <tr align="center" bgcolor="#FFFFFF" class="c12-k">
                         <td></td>
+						<td></td>
                         <td></td>
                         <td id="RulingRate1_M"></td>
                         <td></td>
+						<td></td>
+						<td id="RulingCount_M"></td>
                         <td id="RulingAmount_M"></td>
                         <td id="RulingRate2_M"></td>
                     </tr>
@@ -424,13 +480,16 @@
             <table border="0" cellpadding="4" cellspacing="1" bgcolor="#666666">
                 <thead>
                     <tr align="center" bgcolor="#CCCCFF" class="c12-k">
-                        <td colspan="6">汽車貸總覽</td>
+                        <td colspan="9">汽車貸總覽</td>
                     </tr>
                     <tr align="center" bgcolor="#FFFFFF" class="c12-k">
                         <td>類別</td>
+						<td>件數</td>
                         <td>庫存撥款總額(萬)</td>
                         <td>逾放比</td>
+						<td>總撥款件數</td>
                         <td>撥款總額(萬)</td>
+						<td>件數</td>
                         <td>逾放金額(萬)</td>
                         <td>逾放比</td>
                     </tr>
@@ -438,42 +497,57 @@
                 <tbody>
                     <tr align="center" bgcolor="#FFFFFF" class="c12-k">
                         <td></td>
+						<td id="stockCount_C"></td>
                         <td id="stockAmount_C"></td>
                         <td></td>
+						<td id="totalGetCount_C"></td>
                         <td id="totalGetAmount_C"></td>
                         <td></td>
                         <td></td>
+						<td></td>
                     </tr>
                     <tr align="center" bgcolor="#FFFFFF" class="c12-k">
                         <td>M3</td>
                         <td></td>
+						<td></td>
                         <td id="M3Rate1_C"></td>
                         <td></td>
+						<td></td>
+						<td id="M3Count_C"></td>
                         <td id="M3Amount_C"></td>
                         <td id="M3Rate2_C"></td>
                     </tr>
                     <tr align="center" bgcolor="#FFFFFF" class="c12-k">
                         <td>M2</td>
                         <td></td>
+						<td></td>
                         <td id="M2Rate1_C"></td>
                         <td></td>
+						<td></td>
+						<td id="M2Count_C"></td>
                         <td id="M2Amount_C"></td>
                         <td id="M2Rate2_C"></td>
                     </tr>
                     <tr align="center" bgcolor="#FFFFFF" class="c12-k">
                         <td>M1</td>
                         <td></td>
+						<td></td>
                         <td id="M1Rate1_C"></td>
                         <td></td>
+						<td></td>
+						<td id="M1Count_C"></td>
                         <td id="M1Amount_C"></td>
                         <td id="M1Rate2_C"></td>
                     </tr>
                     <tr align="center" bgcolor="#FFFFFF" class="c12-k">
-                        <td colspan="6"></td>
+                        <td colspan="9"></td>
                     </tr>
                     <tr align="center" bgcolor="#FFFFFF" class="c12-k">
                         <td></td>
                         <td></td>
+						<td></td>
+						<td></td>
+						<td></td>
                         <td></td>
                         <td></td>
                         <td>強制執行</td>
@@ -482,13 +556,19 @@
                     <tr align="center" bgcolor="#FFFFFF" class="c12-k">
                         <td></td>
                         <td></td>
+						<td></td>
                         <td id="DuringRate1_C"></td>
                         <td></td>
+						<td></td>
+                        <td id="DuringCount_C"></td>
                         <td id="DuringAmount_C"></td>
                         <td id="DuringRate2_C"></td>
                     </tr>
                     <tr align="center" bgcolor="#FFFFFF" class="c12-k">
                         <td></td>
+                        <td></td>
+                        <td></td>
+						<td></td>
                         <td></td>
                         <td></td>
                         <td></td>
@@ -497,9 +577,12 @@
                     </tr>
                     <tr align="center" bgcolor="#FFFFFF" class="c12-k">
                         <td></td>
+						<td></td>
                         <td></td>
                         <td id="RulingRate1_C"></td>
                         <td></td>
+						<td></td>
+						<td id="RulingCount_C"></td>
                         <td id="RulingAmount_C"></td>
                         <td id="RulingRate2_C"></td>
                     </tr>
@@ -605,6 +688,10 @@
             for (let key of columnOrder) {
                 const cell = document.createElement('td');
                 switch (key) {
+                    case 'TOT_Count':
+                        cell.textContent = item[key] || 0;
+                        row.appendChild(cell);
+                        break;
                     case 'amount_total':
                         let amountt =  item[key];
                         cell.textContent = amountt.toLocaleString();
@@ -1058,7 +1145,10 @@
         }).then(resData => {
             const dataR = JSON.parse(resData.objResult);
             const stockAmount = dataR.totalGetAmount - dataR.totalSettAmount - dataR.totalBadAmount;
-
+			const totalGetCount = dataR.totalGetCount
+			const StockCount = dataR.totalStockCount
+			
+			
             const updateText = (id, val) => {
                 const el = document.getElementById(`${id}_${type}`);
                 if (el) el.textContent = val;
@@ -1067,12 +1157,16 @@
             const calcRate = (amt, base) => base ? ((amt / base) * 100).toFixed(2) + '%' : '0.00%';
 
             updateText('totalGetAmount', dataR.totalGetAmount.toLocaleString());
-            updateText('stockAmount', stockAmount.toLocaleString());
+			updateText('totalGetCount', totalGetCount);
+			updateText('stockAmount', stockAmount.toLocaleString());
+			updateText('stockCount', StockCount);
 
             const metrics = ['M3', 'M2', 'M1', 'During', 'Ruling'];
             metrics.forEach(m => {
                 const amount = dataR[`${m}Amount`];
+				const count = dataR[`${m}Count`];
                 updateText(`${m}Amount`, amount.toLocaleString());
+				updateText(`${m}Count`, count);
                 updateText(`${m}Rate1`, calcRate(amount, stockAmount));
                 updateText(`${m}Rate2`, calcRate(amount, dataR.totalGetAmount));
             });

@@ -115,14 +115,34 @@
     }
 
     function downloadPDF() {
-        const element = document.getElementById('MainTable');
+        const originalElement = document.getElementById('MainTable');
+        if (!originalElement) return;
 
+        const wrapper = document.createElement('div');
+        wrapper.style.width = '880px';
+        wrapper.style.margin = '0 auto'; // 讓整塊內容在 A4 橫向中置中
+        wrapper.style.backgroundColor = '#ffffff';
+        wrapper.style.padding = '10px';
+        wrapper.style.boxSizing = 'border-box';
+
+        // 最上方的文字標題
+        const headerTitleHTML = `
+        <div style="text-align: center; margin-bottom: 15px;">
+            <h2 style="color: #000080; font-size: 22px; font-weight: bold; margin: 0 0 5px 0;">國峯租賃繳款明細</h2>
+        </div>
+    `;
+        wrapper.innerHTML = headerTitleHTML;
+
+        // 將原本的表格複製一份放入 wrapper 中
+        const clonedTable = originalElement.cloneNode(true);
+        wrapper.appendChild(clonedTable);
+
+        // 設定 html2pdf 參數
         const opt = {
             margin: 0.3,
             filename: `${csName || '客戶'}_客戶期數明細.pdf`,
             image: { type: 'jpeg', quality: 0.98 },
 
-            // 設定 PDF 自動分頁規則 (避免表格列被從中裁切)
             pagebreak: {
                 mode: ['avoid-all', 'css'],
                 avoid: 'tr'
@@ -143,7 +163,6 @@
                         border: 1px solid #000000 !important;
                     }
 
-                    /* 防止 tr 橫跨分頁斷開 */
                     #MainTable tr {
                         page-break-inside: avoid !important;
                         break-inside: avoid !important;
@@ -181,10 +200,11 @@
                         table.removeAttribute('bgcolor');
                         table.removeAttribute('border');
 
-                        // 修正頁尾跨欄數
+                        // 修正頁尾跨欄數 (11欄改為 9 欄)
                         const tfootTd = table.querySelector('tfoot td');
                         if (tfootTd) {
                             tfootTd.setAttribute('colspan', '9');
+                            tfootTd.innerHTML = '<span style="color: #000080 !important; font-weight: bold !important; font-size: 16px !important;">客戶繳款明細結算</span>';
                         }
 
                         // 清除 inline 背景與 mouse 事件
@@ -201,6 +221,7 @@
             jsPDF: { unit: 'in', format: 'a4', orientation: 'landscape' }
         };
 
-        html2pdf().set(opt).from(element).save();
+        // 執行轉檔
+        html2pdf().set(opt).from(wrapper).save();
     }
 </script>
