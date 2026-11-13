@@ -1,0 +1,1146 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+	<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+	<script type="text/javascript" src="../tool_js/jquery.blockUI.js"></script>
+	<link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+	<script type="text/javascript" src="../tool_js/jquery.table2excel.js"></script>
+	<link href="../_include/main.css" rel="stylesheet" type="text/css">
+	<script src="../Base.js"></script>
+	<!-- 引入 JsBarcode 套件 -->
+	<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+	<title>作業平台</title>
+</head>
+<body>
+	<style>
+	.holiday { background-color: #e0e0e0 !important; cursor: not-allowed !important;}
+    .calendar-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+    .calendar-table th { background: #f4f4f4; padding: 10px; border: 1px solid #ddd; }
+    .calendar-table td { height: 105px; vertical-align: top; padding: 5px; border: 1px solid #ddd; cursor: pointer; }
+    .past-date { background-color: #e0e0e0; color: #888; cursor: not-allowed !important; }
+    .holiday { color: red; font-weight: bold; }
+    .booking-item { font-size: 11px; background: #e3f2fd; margin-bottom: 2px; padding: 2px; border-radius: 3px; }
+	.selected-date {
+    background-color: #fff9c4 !important; /* 淡黃色 */
+    border: 2px solid #fbc02d !important; /* 橘黃色邊框 */
+	}
+
+input[name="btnSave"] {
+    height:25px;
+    border: none;                                                /* 移除原有邊框 */
+    font-size: 14px;                                             /* 字體大小 */
+    font-weight: bold;                                           /* 粗體字 */
+    border-radius: 4px;                                          /* 微圓角 */
+    cursor: pointer;                                             /* 滑鼠移過去顯示手指 */
+    box-shadow: 0 3px 6px rgba(33, 150, 243, 0.3);                /* 藍色系微陰影 */
+    transition: all 0.2s ease-in-out;                            /* 動態過渡效果 */
+    letter-spacing: 1px;                                         /* 字距微調 */
+}
+
+  td.Link {
+            text-decoration: underline;
+            font-weight: bold;
+            color: blue;
+            cursor: pointer;
+        }
+
+.btn-virtual-account {
+    background-color: #1976d2;
+    color: #fff;
+    border: none;
+    padding: 4px 8px;
+    font-size: 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+.btn-virtual-account:hover {
+    background-color: #115293;
+}
+</style>
+ <span style="font-size:15px;font-weight: bold;">汽機車-ACH設定</span>
+ <div id="bookingFormArea" style="display: flex; background: #f9f9f9; padding: 15px; border-radius: 5px; border: 1px solid #ddd; margin-bottom: 20px; gap: 25px; align-items: flex-start;">
+    
+    <div id="formLeft" style="flex: 0 0 650px;">
+      
+        <div style="line-height: 2.2;width:100%">
+            設定銀行: 
+             <select name="ACH_BANK" id="ACH_BANK" onchange="initCalendar()" style="width:80px;"></select>
+            <label>設定年月:</label>
+			<select name="getDate" id="getDate" style="width:80px;" onchange="initCalendar()"></select>
+			   <label>設定總金額:</label>  <label id="lblSumAMT"></label>
+			 <br>
+		<label style="display:" >查詢申請人身分證:</label> <input style="display:" type="text" id="CS_PID"  name="CS_PID" size="10" onchange="GetACH_SettingByPID()" value="">
+		<label id="ErrMsg" style="color:red" ></label>
+		<input type="button" value="匯出ACH客戶清單" style="display:none"  id="btnExcel_New" onclick="toAjaxExcel()">
+        </div>
+    </div>
+
+</div>
+
+    <table class="calendar-table">
+        <thead>
+            <tr><th>日</th><th>一</th><th>二</th><th>三</th><th>四</th><th>五</th><th>六</th></tr>
+        </thead>
+        <tbody id="calendarBody"></tbody>
+    </table>
+</div>
+</body>
+</html>
+
+<script>
+    const params = new URLSearchParams(window.location.search);
+    const WebUser = decryptParameter(params.get('User'));
+    let editingBookingId = null;
+    let selectedDate = null;
+    const itemsPerPage = 50;  
+    let currentPage = 1;
+    let data = []; 
+
+    let calendarData = [];
+
+    $(document).ready(function() {
+        loadItemDropdown1({
+            selectId: "ACH_BANK",
+            itemCode: "ACH_BANK"
+        });
+        generateGetDateOptions(3); // 往後推3個月
+       
+        $(document).on('change', '.amt-checkbox', function() {
+            let totalCheckedAmount = 0;
+            $('.amt-checkbox:checked').each(function() {
+                let amt = parseFloat($(this).data('amt')) || 0;
+                totalCheckedAmount += amt;
+            });
+            $('#lblDayTotle').text(totalCheckedAmount.toLocaleString('en-US'));
+        });
+		
+		
+		
+		
+		
+    });
+
+    function loadItemDropdown1({ selectId, itemCode, onlock = null}) {
+        const url = `${BASE_URL}/AE/GetItemList?item_M_code=${itemCode}`;
+        fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                if (data.resultCode === "000") {
+                    const selectElement = document.getElementById(selectId);
+                    const options = JSON.parse(data.objResult);
+                   
+                    options.forEach(option => {
+                        const optionElement = document.createElement('option');
+                        optionElement.value = option.item_D_code;
+                        optionElement.textContent = option.item_D_name;
+                        selectElement.appendChild(optionElement);
+                    });
+
+                    if (onlock !== null) {
+                        selectElement.value = onlock;
+                        selectElement.setAttribute('readonly', true);
+                        selectElement.style.pointerEvents = 'none';
+                    };
+					 initCalendar();
+                } else {
+                    alert('錯誤: ' + (data.resultMsg || '未知錯誤'));
+                }
+            })
+            .catch(error => {
+                console.error(`載入選項 (${itemCode}) 出錯:`, error);
+                alert('無法載入資料，請稍後再試。');
+            });
+    }
+
+    function generateGetDateOptions(monthsToAdd = 0) {
+        const select = document.getElementById("getDate");
+        if (!select) return;
+        select.innerHTML = '';
+
+        const now = new Date();
+        const startYear = now.getFullYear() - 1911;
+        const startMonth = now.getMonth() + 1; 
+
+        const endDate = new Date(now.getFullYear(), now.getMonth() + monthsToAdd, 1);
+        const endYear = endDate.getFullYear() - 1911;
+        const endMonth = endDate.getMonth() + 1;
+
+        for (let y = startYear; y <= endYear; y++) {
+            let mStart = (y === startYear) ? startMonth : 1;
+            let mEnd = (y === endYear) ? endMonth : 12;
+            
+            for (let m = mStart; m <= mEnd; m++) {
+                let monthStr = m.toString().padStart(2, '0');
+                let dateText = `${y}-${monthStr}`;
+
+                let opt = document.createElement('option');
+                opt.value = `${y + 1911}-${monthStr}`; // 西元年給 API
+                opt.innerHTML = dateText;              // 民國年給 User 看
+                select.appendChild(opt);
+            }
+        }
+    }
+
+    function initCalendar() {
+        if(!$("#getDate").val()) return;
+        fetch(`${BASE_URL}/AE/GetCalendarByMonth?YYYYMM=${$("#getDate").val()}&Ach_Bank=${$("#ACH_BANK").val()}`)
+        .then(res => res.json())
+        .then(result => {
+            if (result.resultCode === "000") 
+			{
+                calendarData = JSON.parse(result.objResult);
+                renderTable(calendarData);
+				if($("#ACH_BANK").val()=="OBANK")
+				{
+					$("#btnExcel_New").show();
+				}
+				else
+				{
+					$("#btnExcel_New").hide();
+				}
+            }
+        })
+        .catch(err => {
+            console.error("API 讀取異常", err);
+        });
+    }
+
+
+function toAjaxExcel()
+{  
+	$.blockUI({  message: '<img src="../gif/loading_1.gif" style="width:50%; height:50%;" />'});
+	 const apiUrl = `${BASE_URL}/AE_RPT/OBANK_ACH_RPT_Excel`;
+    
+	document.body.style.cursor = 'wait';
+
+    $.ajax({
+        url: apiUrl,
+        type: 'POST',
+        data: {},
+        contentType: 'application/json',
+        xhrFields: {
+            responseType: 'blob' 
+        },
+        success: function(blob, status, xhr) {
+            var url = window.URL.createObjectURL(blob);
+            var a = document.createElement('a');
+            a.href = url;
+
+            var filename = '王道ACH客戶清單_' + $("#BaseDate").val() + '.xlsx';
+            a.download = filename;
+
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            window.URL.revokeObjectURL(url);
+			$.unblockUI();
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+            alert('Error: ' + textStatus);
+        },
+		 complete: function() {
+            document.body.style.cursor = 'default';
+        }
+    });
+}
+
+
+    function formatDate(date) {
+        const y = date.getFullYear();
+        const m = String(date.getMonth() + 1).padStart(2, '0');
+        const d = String(date.getDate()).padStart(2, '0');
+        return `${y}/${m}/${d}`; 
+    }
+
+   function renderTable(data) {
+    const tbody = document.getElementById('calendarBody');
+    tbody.innerHTML = '';
+    const lblSumAMT = document.getElementById('lblSumAMT');
+    const Ach_Bank = $("#ACH_BANK").val();
+    
+    if (!data || data.length === 0) {
+        if (lblSumAMT) lblSumAMT.innerText = '0';
+        return;
+    }
+
+    let html = '<tr class="trDate">';
+    let totalMonthAmount = 0;
+
+    const firstDayDate = new Date(data[0].DateValue);
+    const firstDayOfWeek = firstDayDate.getDay(); 
+
+    for (let i = 0; i < firstDayOfWeek; i++) {
+        html += '<td class="holiday"></td>';
+    }
+
+    let cellCount = firstDayOfWeek;
+
+    data.forEach((day) => {
+        if (cellCount > 0 && cellCount % 7 === 0) {
+            html += '</tr><tr>';
+        }
+
+        const d = new Date(day.DateValue);
+        const dateStr = formatDate(d); 
+        
+        let classes = [];
+        let tdAttributes = `data-date="${dateStr}"`; 
+
+        const isWeekend = (d.getDay() === 0 || d.getDay() === 6);
+        
+        if (day.IsHoliday === 1 || isWeekend) {
+            classes.push('holiday');
+        } else {
+            const yyyyMmDd = dateStr.replace(/\//g, '-'); 
+            tdAttributes += ` onclick="GetSettingByDate('${yyyyMmDd}','${Ach_Bank}')"`;
+        }
+
+        if (dateStr === selectedDate) {
+            classes.push('selected-date');
+        }
+
+        let amountHtml = '';
+        if (day.RC_amount !== undefined && day.RC_amount !== null && day.IsHoliday === 0) {
+            const amountNum = Number(day.RC_amount);
+            if (!isNaN(amountNum)) {
+                totalMonthAmount += amountNum;
+            }
+            const formattedAmount = amountNum.toLocaleString('en-US');
+            amountHtml = `<div style="color: #2e7d32; font-weight: bold; margin-top: 10px; text-align: right;">$${formattedAmount}</div>`;
+        }
+        
+        html += `
+        <td class="${classes.join(' ')}" ${tdAttributes}>
+            <div style="font-weight:bold; margin-bottom:4px;">${d.getDate()}</div>
+            ${amountHtml}
+        </td>`;
+
+        cellCount++;
+    });
+
+    while (cellCount % 7 !== 0) {
+        html += '<td class="holiday"></td>';
+        cellCount++;
+    }
+
+    html += '</tr>';
+    tbody.innerHTML = html;
+
+    if (lblSumAMT) {
+        lblSumAMT.innerText = totalMonthAmount.toLocaleString('en-US');
+    }
+}
+
+function InsertACH_Setting(ACH_DATE) {
+        const achBank = $("#ACH_BANK").val();
+        const lisRCD_id = [];
+		const lisSelf = [];
+        $('.amt-checkbox:checked').each(function() {
+            lisRCD_id.push($(this).val());
+			lisSelf.push($(this).attr('self'));
+        });
+
+        const add_num = WebUser; 
+
+        const postData = {
+            ACH_DATE: ACH_DATE,
+            Ach_Bank: achBank,
+            lisRCD_id: lisRCD_id,
+			lisSelf: lisSelf,
+            add_num: add_num
+        };
+
+        $.blockUI({ message: '資料儲存中，請稍候...' });
+
+        fetch(`${BASE_URL}/AE_RPT/UpdateACH_SettingAsync`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(postData)
+        })
+        .then(response => response.json())
+        .then(res => {
+            $.unblockUI();
+            if (res.resultCode === "000") {
+                alert("ACH 存檔成功！");
+                initCalendar();
+				if(lisRCD_id.length!=0)
+				{
+					if(achBank!="BOPBANK")
+					{
+						DownloadACHFile(ACH_DATE, achBank);
+					}
+				}
+            } else {
+                alert("存檔失敗：" + res.resultMsg);
+            }
+        })
+        .catch(err => {
+            $.unblockUI();
+            console.error("儲存異常", err);
+            alert("系統連線異常，請重新嘗試。");
+        });
+}
+
+function DownloadACHFile(launchDate, achBank) {
+    const url = `${BASE_URL}/AE_RPT/GenerateACHFile?LaunchDate=${launchDate}&Ach_Bank=${achBank}`;
+
+    fetch(url, {
+        method: 'POST'
+    })
+    .then(response => {
+        if (!response.ok) throw new Error('網路回應不成功');
+        const contentType = response.headers.get("content-type");
+        
+        if (contentType && contentType.includes("application/json")) {
+            return response.json().then(data => {
+                if (data.success || data.Success) {
+                    const fileName = data.fileName || data.FileName;
+                    const base64Str = data.fileBase64 || data.FileBase64;
+                    const byteCharacters = atob(base64Str);
+                    const byteNumbers = new Array(byteCharacters.length);
+                    for (let i = 0; i < byteCharacters.length; i++) {
+                        byteNumbers[i] = byteCharacters.charCodeAt(i);
+                    }
+                    const byteArray = new Uint8Array(byteNumbers);
+                    const blob = new Blob([byteArray], { type: "application/zip" });
+                    triggerBrowserDownload(blob, fileName);
+                } else {
+                    alert("產檔失敗：" + (data.resultMsg || "未知錯誤"));
+                }
+            });
+        } else {
+            let fileName = `${achBank}_ACH_${launchDate.replace(/\//g, '')}.txt`;
+            const disposition = response.headers.get('content-disposition');
+            if (disposition && disposition.indexOf('attachment') !== -1) {
+                const filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
+                const matches = filenameRegex.exec(disposition);
+                if (matches != null && matches[1]) { 
+                    fileName = matches[1].replace(/['"]/g, '');
+                }
+            }
+            return response.blob().then(blob => {
+                const textBlob = new Blob([blob], { type: "text/plain" });
+                triggerBrowserDownload(textBlob, fileName);
+            });
+        }
+    })
+    .catch(error => {
+        console.error('下載失敗:', error);
+        alert('下載 ACH 檔案時發生錯誤: ' + error.message);
+    });
+}
+
+function triggerBrowserDownload(blob, fileName) {
+    const link = document.createElement('a');
+    link.href = window.URL.createObjectURL(blob);
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(link.href);
+}
+
+function GetSettingByDate(ACH_DATE, Ach_Bank){
+	if(Ach_Bank)
+	{
+		$("#ACH_BANK").val(Ach_Bank)
+	}
+    const url = `${BASE_URL}/AE_RPT/GetACH_Setting?ACH_DATE=${ACH_DATE}&Ach_Bank=${$("#ACH_BANK").val()}`;
+    fetch(url)
+        .then(response => response.json())
+        .then(responseData => {
+            if (responseData.resultCode === "000") {
+                const resObj = JSON.parse(responseData.objResult);
+                const currentData = resObj.CurrentList || [];
+                const lastMonthPids = resObj.LastMonthPids || [];
+                OpenSetting(currentData, ACH_DATE, lastMonthPids,Ach_Bank);
+            }
+        }).catch(error => {
+            console.error('載入設定時出錯:', error);
+        });
+}
+
+function GetACH_SettingByPID() {
+    const pid = $("#CS_PID").val()?.trim();
+	$("#ErrMsg").text("");
+    if (!pid) {
+        return;
+    }
+
+    const url = `${BASE_URL}/AE_RPT/GetACH_SettingByPID?YYYYMM=${$("#getDate").val()}&CS_PID=${pid}`;
+    $.blockUI({ message: '正在查詢客戶設定明細...' });
+	
+    fetch(url)
+        .then(response => response.json())
+        .then(responseData => {
+            $.unblockUI();
+            if (responseData.resultCode === "000") {
+                const currentData = JSON.parse(responseData.objResult) || [];
+                if (currentData.length === 0) {
+					$("#ErrMsg").text("查無此身分證字號");
+                    return;
+                }
+                OpenPIDDetailSetting(currentData);
+            } else {
+                alert("查詢失敗：" + (responseData.resultMsg || "未知錯誤"));
+            }
+        }).catch(error => {
+            $.unblockUI();
+            console.error('載入設定時出錯:', error);
+            alert("網路連線異常，請稍後再試。");
+        });
+}
+
+// 暫存資料以供子視窗返回
+let lastPIDDetailData = null;
+
+function OpenPIDDetailSetting(data) {
+    lastPIDDetailData = data;
+    const firstItem = data[0];
+    const customerName = firstItem.CS_name || "";
+    const customerPid = firstItem.CS_PID || "";
+
+    var m_width = "780px";
+    var m_height = "450px";
+    var Title = "客戶繳款明細查詢";
+    
+    var m_Html = `<div style="width:${m_width}; padding: 10px; background-color: #f8f9fa; border-bottom: 2px solid #dee2e6; text-align: left;">`;
+    m_Html += `  <div style="font-size: 1.2em; font-weight: bold; color: #333; margin-bottom: 5px;">`;
+    m_Html += `     客戶姓名：<span style="color: #0056b3;">${customerName}</span>`;
+    m_Html += `  </div>`;
+    m_Html += `  <div style="font-size: 1.1em; font-weight: bold; color: #555;">`;
+    m_Html += `     身分證字號：<span>${customerPid}</span>`;
+    m_Html += `  </div>`;
+    m_Html += `</div>`;
+
+    // 建立表格標頭：增加「產生虛擬帳號」欄位
+    m_Html += `<div style="width:${m_width}; max-height:${m_height}; overflow-y: auto; padding-top: 5px;">`;
+    m_Html += '  <table style="width: 96%; margin: 10px auto; border-collapse: collapse;" border="1" cellspacing="0" cellpadding="6" bordercolor="#ccc">';
+    m_Html += '    <thead>';
+    m_Html += '      <tr bgcolor="#E6F2FF" align="center" style="font-weight: bold; height: 35px;">';
+    m_Html += '        <td style="width:20%">發動日期</td>';
+    m_Html += '        <td style="width:20%">應繳款日期</td>';
+    m_Html += '        <td style="width:25%">設定銀行</td>';
+    m_Html += '        <td style="width:18%">繳款金額</td>';
+    m_Html += '        <td class="VAA" style="width:17%">虛擬帳號</td>';
+    m_Html += '      </tr>';
+    m_Html += '    </thead>';
+    m_Html += '    <tbody>';
+    var ACH_BANK = "";
+    data.forEach((item, index) => {
+		ACH_BANK=item.Ach_Bank
+        const bankName = item.Ach_Bank_Na ? item.Ach_Bank_Na : '<span style="color:#999;">未設定</span>';
+        const formattedAmount = Number(item.RC_amount).toLocaleString('en-US');
+		let isPayOff = item.check_pay_type == "S" ? "已清償" : "";
+
+        const dateClickHtml = `<span onclick="$.unblockUI(); GetSettingByDate('${item.ACH_DATE}','${item.Ach_Bank}');" 
+                                     style="color: #0056b3; font-weight: bold; text-decoration: underline; cursor: pointer;" 
+                                     title="點擊開啟此日期設定視窗">
+                                 ${item.dis_ACH_DATE}
+                               </span>`;
+
+        // 整理給 API 2 使用的西元年月日 (如 disRC_date 為 115/10/20 或 2026/10/20 都能相容轉換)
+        let dueDate = item.RC_date || item.disRC_date || "";
+        dueDate = dueDate.replace(/\//g, '-');
+        if (dueDate.split('-')[0].length < 4) {
+            const dp = dueDate.split('-');
+            dueDate = `${parseInt(dp[0], 10) + 1911}-${dp[1]}-${dp[2]}`;
+        }
+
+        m_Html += `
+            <tr align="center" class="pid-data-row" style="transition: background 0.2s;">
+                <td>${dateClickHtml + ' ' + isPayOff}</td>
+                <td>${item.disRC_date}</td>
+                <td>${bankName}</td>
+                <td style="text-align: right; font-weight: bold; color: #2e7d32;">$${formattedAmount}</td>
+                <td class="VAA">
+                    <button type="button" class="btn-virtual-account" 
+                        onclick="GenerateVirtualAccountAndBarcodes('${item.RCD_id}', '${dueDate}', '${item.RC_amount}','${ACH_BANK}')">
+                        虛擬帳號
+                    </button>
+                </td>
+            </tr>`;
+    });
+
+    m_Html += '    </tbody>';
+    m_Html += '  </table>';
+    m_Html += '</div>';
+
+    var OpenWidth = parseInt(m_width.replace("px", "")) + 50 + "px";
+    var m_themedCSS = {
+        width: OpenWidth,
+        top: '10%',
+        left: '15%',
+        borderRadius: '6px',
+        overflow: 'hidden'
+    };
+
+    $.blockUI({
+        onOverlayClick: $.unblockUI,
+        overlayCSS: { backgroundColor: "#FFF", opacity: 0.5, cursor: "default" },
+        theme: true,
+        title: Title,
+        themedCSS: m_themedCSS,
+        message: m_Html
+    });
+	if(ACH_BANK!="OBANK"&&ACH_BANK!="BOPBANK")
+	{
+		$(".VAA").hide();
+	}
+	
+}
+
+
+// 銀行資訊設定表（便於日後擴充）
+const BANK_CONFIG = {
+    OBANK: {
+        code: "048 (王道商業銀行)",
+        branch: "0011-營業部(臨櫃用)",
+        title: "繳款帳號與條碼明細",
+        dialogHeight: "670px",
+        hasBarcode: true
+    },
+    DEFAULT: {
+        code: "118 (板信商業銀行)",
+        branch: "(僅支援ATM轉帳、網銀、App轉帳)",
+        title: "繳款帳號",
+        dialogHeight: "270px",
+        hasBarcode: false
+    }
+};
+
+
+// 產生虛擬帳號與超商條碼功能
+async function GenerateVirtualAccountAndBarcodes(rcdId, dueDate, amount, AchBank) {
+    $.blockUI({ message: '資料載入中，請稍候...' });
+
+    const isObank = AchBank === 'OBANK';
+    const bankInfo = isObank ? BANK_CONFIG.OBANK : BANK_CONFIG.DEFAULT;
+
+    const urlVA = `${BASE_URL}/AE/GenerateVirtualAccount?RCD_id=${rcdId}&ACH_BANK=${AchBank}`;
+    const urlBarcodes = `${BASE_URL}/AE/GenerateSupermarketBarcodes?RCD_id=${rcdId}&dueDate=${dueDate}&amount=${amount}`;
+
+    try {
+        // 僅在 OBANK 時才去取條碼資料
+        const requests = [fetch(urlVA).then(res => res.json())];
+        if (isObank) {
+            requests.push(fetch(urlBarcodes).then(res => res.json()));
+        }
+
+        const [vaRes, barcodeRes] = await Promise.all(requests);
+        $.unblockUI();
+
+        // 虛擬帳號驗證
+        if (vaRes.resultCode !== "000") {
+            alert("取得虛擬帳號失敗：" + (vaRes.resultMsg || "未知錯誤"));
+            return;
+        }
+
+        // 條碼驗證 (僅 OBANK)
+        let barcodes = {};
+        if (isObank) {
+            if (barcodeRes.resultCode !== "000") {
+                alert("取得超商條碼失敗：" + (barcodeRes.resultMsg || "未知錯誤"));
+                return;
+            }
+            barcodes = (typeof barcodeRes.objResult === 'string')
+                ? JSON.parse(barcodeRes.objResult)
+                : (barcodeRes.objResult || {});
+        }
+
+        const virtualAccount = vaRes.objResult || "";
+        const formattedAmt = Number(amount).toLocaleString('en-US');
+        const calculatedDueDate = typeof addOneMonth === 'function' ? addOneMonth(dueDate) : dueDate;
+
+        // 超商條碼區塊 (僅 OBANK 顯示)
+        const barcodeSectionHtml = isObank ? `
+            <div style="background: #fafafa; border: 1px solid #e0e0e0; padding: 12px; border-radius: 4px; text-align: center;">
+                <h4 style="margin: 0 0 10px 0; color: #333; text-align: left;">超商代收條碼</h4>
+                <div style="margin-bottom: 12px;">
+                    <div style="font-size: 11px; color: #666;">第一段條碼</div>
+                    <svg id="barcode1"></svg>
+                </div>
+                <div style="margin-bottom: 12px;">
+                    <div style="font-size: 11px; color: #666;">第二段條碼</div>
+                    <svg id="barcode2"></svg>
+                </div>
+                <div style="margin-bottom: 5px;">
+                    <div style="font-size: 11px; color: #666;">第三段條碼</div>
+                    <svg id="barcode3"></svg>
+                </div>
+            </div>` : '';
+
+        // 整合對話框 HTML
+        const modalHtml = `
+        <div style="padding: 15px; text-align: left; background: #fff; font-size: 14px; max-height: 650px; overflow-y: auto;">
+            <!-- 虛擬帳號區塊 -->
+            <div style="background: #eef5fc; border-left: 4px solid #1976d2; padding: 10px 15px; border-radius: 4px; margin-bottom: 15px;">
+                <h4 style="margin: 0 0 8px 0; color: #0d47a1;">ATM 虛擬帳號資訊</h4>
+                <table style="width: 100%; border-collapse: collapse; font-size: 15px;">
+                    <tr><td style="width: 90px; color: #555; padding: 3px 0;">銀行代碼：</td><td><b>${bankInfo.code} ${bankInfo.branch}</b></td></tr>
+                    <tr><td style="color: #555; padding: 3px 0;">虛擬帳號：</td><td><b>${virtualAccount}</b></td></tr>
+                    <tr><td style="color: #555; padding: 3px 0;">應繳金額：</td><td><b>$${formattedAmt} 元</b></td></tr>
+                    <tr><td style="color: #555; padding: 3px 0;">繳款期限：</td><td><b>${calculatedDueDate}</b></td></tr>
+                </table>
+            </div>
+
+            <!-- 超商條碼區塊 -->
+            ${barcodeSectionHtml}
+
+            <!-- 操作按鈕 -->
+            <div style="text-align: center; margin-top: 15px;">
+                <input type="button" value="返回明細" onclick="BackToDetailSetting()" 
+                       style="padding: 6px 20px; font-weight: bold; cursor: pointer; border-radius: 4px; background: #607d8b; color: white; border: none; margin-right: 8px;">
+                <input type="button" value="匯出圖片" onclick="ExportBarcodesToImage('${rcdId}', '${dueDate}', '${amount}', '${virtualAccount}', '${AchBank}')" 
+                       style="padding: 6px 20px; font-weight: bold; cursor: pointer; border-radius: 4px; background: #2e7d32; color: white; border: none;">
+            </div>
+        </div>`;
+
+        // 開啟 BlockUI 彈窗
+        $.blockUI({
+            onOverlayClick: $.unblockUI,
+            overlayCSS: { backgroundColor: "#000", opacity: 0.4, cursor: "default" },
+            theme: true,
+            title: bankInfo.title,
+            themedCSS: {
+                width: '600px',
+                height: bankInfo.dialogHeight,
+                top: '3%',
+                left: '28%',
+                borderRadius: '6px',
+                overflow: 'hidden'
+            },
+            message: modalHtml
+        });
+
+        // 僅在 OBANK 且有條碼時進行渲染
+        if (isObank) {
+            setTimeout(() => {
+                const renderOptions = { format: "CODE39", width: 1.5, height: 40, displayValue: true, fontSize: 13 };
+                if (barcodes.barcode1) JsBarcode("#barcode1", barcodes.barcode1, renderOptions);
+                if (barcodes.barcode2) JsBarcode("#barcode2", barcodes.barcode2, renderOptions);
+                if (barcodes.barcode3) JsBarcode("#barcode3", barcodes.barcode3, renderOptions);
+            }, 80);
+        }
+
+    } catch (err) {
+        $.unblockUI();
+        console.error("產生繳款條碼/虛擬帳號異常", err);
+        alert("網路或系統異常，請稍後再試。");
+    }
+}
+
+function BackToDetailSetting() {
+    if (lastPIDDetailData) {
+        OpenPIDDetailSetting(lastPIDDetailData);
+    } else {
+        $.unblockUI();
+    }
+}
+
+
+function addOneMonth(dueDate) {
+    // 支援 Date 物件或 "YYYY-MM-DD" / "YYYY/MM/DD" 字串格式
+    let date;
+    if (typeof dueDate === 'string') {
+        const parts = dueDate.split(/[-/]/);
+        if (parts.length === 3) {
+            // 注意：月份 index 從 0 開始 (0 = 1月)
+            date = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+        } else {
+            date = new Date(dueDate);
+        }
+    } else {
+        date = new Date(dueDate);
+    }
+
+    const currentDay = date.getDate();
+    
+    // 設定到目標月份（月份 + 1）的第 1 天，避免直接 setMonth 因天數溢位跳到下下個月
+    // 例：1/31 直接 +1 個月可能因為 2 月沒 31 天而跳到 3 月
+    date.setDate(1);
+    date.setMonth(date.getMonth() + 1);
+
+    // 取得目標月份的最大天數
+    const daysInTargetMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+
+    // 如果原日期超過目標月份天數，則取目標月份最後一天；否則維持原日期
+    date.setDate(Math.min(currentDay, daysInTargetMonth));
+
+    // 格式化輸出為 YYYY-MM-DD
+    const yyyy = date.getFullYear();
+    const mm = String(date.getMonth() + 1).padStart(2, '0');
+    const dd = String(date.getDate()).padStart(2, '0');
+
+    return `${yyyy}-${mm}-${dd}`;
+}
+
+
+// 匯出條碼為圖片下載
+function ExportBarcodesToImage(rcdId, dueDate, amount, virtualAccount, AchBank) {
+    const isObank = (AchBank === 'OBANK');
+    const bankConfig = isObank ? BANK_CONFIG.OBANK : BANK_CONFIG.DEFAULT;
+    const finalDueDate = typeof addOneMonth === 'function' ? addOneMonth(dueDate) : dueDate;
+
+    // 1. 若為 OBANK，檢查 DOM 中的 3 段條碼 SVG 是否已渲染完成
+    const svgIds = ['#barcode1', '#barcode2', '#barcode3'];
+    let svgs = [];
+    if (isObank) {
+        svgs = svgIds.map(id => document.querySelector(id));
+        if (svgs.some(svg => !svg)) {
+            alert("條碼尚未生成完成，請稍候再試。");
+            return;
+        }
+    }
+
+    // 2. 依銀行類型動態決定畫布尺寸 (非 OBANK 沒有條碼，高度大幅縮減)
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    const canvasWidth = 560;
+    const canvasHeight = isObank ? 750 : 265;
+    canvas.width = canvasWidth;
+    canvas.height = canvasHeight;
+
+    // 3. 繪製純白底色
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+
+    // 4. 頂部大標題 (26px)
+    ctx.fillStyle = '#1a237e';
+    ctx.font = 'bold 26px "Microsoft JhengHei", Arial';
+    ctx.textAlign = 'center';
+    const mainTitle = isObank ? '繳款帳號與超商條碼單' : 'ATM 虛擬帳號繳款單';
+    ctx.fillText(mainTitle, canvasWidth / 2, 45);
+
+    // 5. ATM 虛擬帳號外框 (高度 170px，配合合併後的 4 行資訊)
+    const boxX = 25;
+    const boxY = 65;
+    const boxW = canvasWidth - 50;
+    const boxH = 185;
+
+    ctx.fillStyle = '#eef5fc';
+    ctx.fillRect(boxX, boxY, boxW, boxH);
+    ctx.strokeStyle = '#90caf9';
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(boxX, boxY, boxW, boxH);
+
+	if(isObank)
+	{
+		// ATM 區塊標題 (20px)
+		ctx.textAlign = 'left';
+		ctx.fillStyle = '#0d47a1';
+		ctx.font = 'bold 20px "Microsoft JhengHei", Arial';
+		ctx.fillText('【ATM 虛擬帳號資訊】', 40, 95);
+
+		// 銀行代碼與分行代號（依 bankInfo 合併顯示）
+		ctx.fillStyle = '#333333';
+		ctx.font = 'bold 18px "Microsoft JhengHei", Arial';
+		ctx.fillText(`銀行代碼：${bankConfig.code} ${bankConfig.branch}`, 40, 130);
+	}
+	else
+	{
+		// ATM 區塊標題 (20px)
+		ctx.textAlign = 'left';
+		ctx.fillStyle = '#0d47a1';
+		ctx.font = 'bold 20px "Microsoft JhengHei", Arial';
+		ctx.fillText(`【ATM 虛擬帳號資訊】`, 40, 95);
+
+		ctx.textAlign = 'left';
+		ctx.fillStyle = '#0d47a1';
+		ctx.font = 'bold 20px "Microsoft JhengHei", Arial';
+		ctx.fillText(`${bankConfig.branch}`, 40, 235);
+
+		// 銀行代碼與分行代號（依 bankInfo 合併顯示）
+		ctx.fillStyle = '#333333';
+		ctx.font = 'bold 18px "Microsoft JhengHei", Arial';
+		ctx.fillText(`銀行代碼：${bankConfig.code} `, 40, 135);
+	}
+    
+
+    // 虛擬帳號（標籤 + 鮮明深紅色強調）
+    ctx.fillText('虛擬帳號：', 40, 165);
+    ctx.fillStyle = '#d32f2f';
+    ctx.font = 'bold 22px Arial';
+    ctx.fillText(virtualAccount || '', 130, 165);
+
+    // 應繳金額與繳款期限
+    ctx.fillStyle = '#333333';
+    ctx.font = 'bold 18px "Microsoft JhengHei", Arial';
+    ctx.fillText(`應繳金額：$${Number(amount).toLocaleString('en-US')} 元`, 40, 200);
+    ctx.fillText(`繳款期限：${finalDueDate}`, 300, 200);
+
+    // 觸發下載檔案共用邏輯
+    const triggerDownload = () => {
+        const link = document.createElement('a');
+        const sanitizedDate = String(finalDueDate).replace(/[-/]/g, '');
+        link.download = `繳款單_${rcdId}_${sanitizedDate}.png`;
+        link.href = canvas.toDataURL('image/png');
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
+    // 6. 若非 OBANK，繪製完 ATM 資訊後直接匯出檔案
+    if (!isObank) {
+        triggerDownload();
+        return;
+    }
+
+    // 7. 若為 OBANK，繼續繪製超商代收條碼
+    ctx.fillStyle = '#333333';
+    ctx.font = 'bold 20px "Microsoft JhengHei", Arial';
+    ctx.fillText('【超商代收條碼】', 40, 275);
+
+    // 將 SVG 轉成 Image 物件以供 Canvas 繪製
+    const svgToImage = (svgElement) => {
+        return new Promise((resolve, reject) => {
+            const svgData = new XMLSerializer().serializeToString(svgElement);
+            const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+            const url = URL.createObjectURL(svgBlob);
+            const img = new Image();
+            img.onload = () => {
+                URL.revokeObjectURL(url);
+                resolve(img);
+            };
+            img.onerror = reject;
+            img.src = url;
+        });
+    };
+
+    Promise.all(svgs.map(svg => svgToImage(svg)))
+        .then(images => {
+            const startY = 290;
+            const stepY = 145;
+            const labels = ['第一段條碼', '第二段條碼', '第三段條碼'];
+
+            images.forEach((img, index) => {
+                const curY = startY + (index * stepY);
+
+                // 條碼段別標籤
+                ctx.fillStyle = '#666666';
+                ctx.font = 'bold 16px "Microsoft JhengHei", Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText(labels[index], canvasWidth / 2, curY + 16);
+
+                // 條碼圖片置中繪製
+                const imgX = (canvasWidth - img.width) / 2;
+                ctx.drawImage(img, imgX, curY + 24);
+            });
+
+            triggerDownload();
+        })
+        .catch(err => {
+            console.error("繳款單條碼圖片產生失敗", err);
+            alert("匯出圖片失敗，請稍候再試。");
+        });
+}
+
+
+
+
+
+function OpenSetting(data, ACH_DATE, lastMonthPids,Ach_Bank) {
+    var m_width = "640PX;";
+    var m_height = "600px";
+    var Title = "ACH設定";
+	let isVirtual=false;
+	let Head_colspan=5;
+	if(($("#ACH_BANK").val()=="OBANK" || $("#ACH_BANK").val()=="BOPBANK"))
+	{
+		isVirtual=true;
+		Head_colspan=6;
+	}
+	else
+	{
+		m_width = "580PX;";
+		m_height = "600px";
+	}
+		
+	
+    var m_Html = `<div style="width:${m_width}; overflow-y: scroll;">`;
+    m_Html += ' <table style="width: 98%;margin:auto" border="1" id="Title" cellspacing="0" cellpadding="3" bgcolor=""> ';
+    m_Html += ' <tr bgcolor="#CCCCFF" height="35" align="center"> ';
+    m_Html += '  <td style="font-size:1.4em" colspan='+ Head_colspan +' >';
+    m_Html += '        ' + $("#ACH_BANK option:selected").text() + ' 發動日期: ' + convertToROCDate(ACH_DATE) + '<br>';
+    m_Html += '        <label>設定總金額:</label>$<label id="lblDayTotle"></label>';
+    m_Html += `        <input type="button" value="存檔" name="btnSave" class="modern-btn-save" onclick="InsertACH_Setting('${ACH_DATE}')">`;
+    m_Html += '  </td>';
+    m_Html += ' <tr bgcolor="#CCCCFF" height="35" align="center"> ';    
+    m_Html += '  <td style="font-size:1.4em" colspan='+ Head_colspan +' >';
+    m_Html += '        <input type="text" id="txtSearchCustomer" placeholder="輸入姓名關鍵字..." style="padding: 5px; width: 130px; border: 1px solid #ccc; border-radius: 4px; margin-right: 10px;">';
+    m_Html += '  </td>';
+    m_Html += '</tr> ';
+    m_Html += '</tr> ';
+    m_Html += '<tr bgcolor="#CCCCFF" align="center"><td style="width:12%">ACH設定 </td>'
+	if(isVirtual)
+	{
+		m_Html += '<td style="width:16%">虛擬帳戶<br>自行繳款</td>'
+	}
+	
+	m_Html += '<td style="width:22%">專案名稱</td><td style="width:27%">客戶姓名</td><td style="width:12%">應繳日期</td><td style="width:22%">繳款金額</td></tr> ';
+    m_Html += '</table> ';
+    m_Html += '</div>';
+    m_Html += `<div style="width:${m_width};height:${m_height};overflow-y: scroll; ">`;
+    m_Html += '<table id="DataTable" style="width: 98%;margin:auto" border="1" id="Title" cellspacing="0" cellpadding="3" bgcolor=""><tbody>';
+
+    let Sum_RC_amount = 0;
+    let RowCount = 1;
+    let hasAnySetting = false;
+
+    data.forEach((item) => {
+        const hasAch = item.Ach_DESC?.trim();
+        if (item.isSetting == "1") {
+            hasAnySetting = true;
+        }
+
+        const isChecked = (item.isSetting == "1" && item.Is_Self_Pay == "N"  ) ? "checked" : "";
+		
+		
+		const checkboxHtml = !hasAch
+            ? `${RowCount.toString().padStart(2, '0')+'.'}<input type="checkbox" self='N' class="amt-checkbox" id="${item.RCD_id}" data-amt="${item.RC_amount}" data-pid="${item.CS_PID}" value="${item.RCD_id}" ${isChecked}>`
+            : `${RowCount.toString().padStart(2, '0')+'.'}`;
+		
+		const isChecked_Self = item.Is_Self_Pay == "Y" ? "checked" : "";
+        
+        let checkbox_SelfPayHtml =  `<td style="width:16%;text-align:left;"><input type="checkbox" self='Y' class="amt-checkbox" id="${item.RCD_id}_S" data-amt="${item.RC_amount}" data-pid="${item.CS_PID}" value="${item.RCD_id}" ${isChecked_Self}> `
+        let btnVACC = "";
+		if(!(isVirtual))
+		{
+			checkbox_SelfPayHtml="";
+		}
+		else
+		{
+			if(isChecked_Self)
+			{
+				btnVACC = `<button type="button" class="btn-virtual-account" onclick="GenerateVirtualAccountAndBarcodes('${item.RCD_id}', '${item.disRC_date}', '${item.RC_amount}','${Ach_Bank}')">虛擬帳號 </button></td>`
+			}
+			else
+			{
+				btnVACC ="</td>";
+			}
+			
+		}
+		
+
+        const trStyle = hasAch ? 'style="background-color:#ffcccc;color:red;"' : '';
+        const trTitle = hasAch ? 'title="ACH 帳號尚未設定"' : '';
+        
+		 let name_cs = hasAch ? 'Link' : '';
+		 let name_onclick = hasAch 
+							? `onclick="window.open('RC_Ach_Detail.html?HA_id=${item.HA_id}&RCM_id=${item.RCM_id}&AchDate=${ACH_DATE}&User=${encryptParameter(WebUser)}', '_blank', 'scrollbars=yes,resizable=yes,top=100,width=500,height=350');"` 
+							: '';
+		 
+        var LogHtml = `
+                    <tr class="data-row" ${trStyle} ${trTitle}>
+                        <td style="width:12%;text-align:left;">${checkboxHtml}</td>
+						${checkbox_SelfPayHtml} ${btnVACC} 
+                        <td style="width:22%">${item.proName}</td>
+                        <td class="td-cs-name ${name_cs}" ${name_onclick} style="width:27%">${item.CS_name}-${item.CS_PID}</td>
+                        <td style="width:12%">${item.disRC_date}</td>
+                        <td style="width:22%;text-align:right;">${item.RC_amount.toLocaleString()}</td>
+                    </tr> `;
+        m_Html += LogHtml;
+        
+        if(isChecked_Self||isChecked) {
+            Sum_RC_amount += item.RC_amount;
+        }
+        RowCount++;
+    });
+
+    m_Html += `</tbody></table>`;
+    m_Html += '   </div>    ';
+    
+    var OpenWidth = parseInt(m_width.toUpperCase().replace("PX", "")) + 50 + "px";
+    var m_themedCSS = {
+        width: OpenWidth,
+        top: '1%',
+        left: '18%',
+    };
+    
+    $.blockUI({
+        onOverlayClick: $.unblockUI,
+        overlayCSS: { backgroundColor: "#FFF", opacity: 0.5, cursor: "default" },
+        theme: true,
+        title: Title,
+        themedCSS: m_themedCSS,
+        message: m_Html
+    });
+    
+    document.getElementById('lblDayTotle').innerText = Sum_RC_amount.toLocaleString('en-US');
+
+    function recalculateTotal() {
+        let totalCheckedAmount = 0;
+        $('.amt-checkbox:checked').each(function() {
+            let amt = parseFloat($(this).data('amt')) || 0;
+            totalCheckedAmount += amt;
+        });
+        $('#lblDayTotle').text(totalCheckedAmount.toLocaleString('en-US'));
+    }
+
+    $(document).off('change', '#checkAll').on('change', '#checkAll', function() {
+        const isChecked = $(this).prop('checked');$('.data-row:visible').find('.amt-checkbox').prop('checked', isChecked);
+        recalculateTotal();
+    });
+
+    $(document).off('change', '.amt-checkbox').on('change', '.amt-checkbox', function() {
+        recalculateTotal();
+        if ($('.amt-checkbox:not(:checked)').length > 0) {$('#checkAll').prop('checked', false);
+        } else if ($('.amt-checkbox:checked').length === $('.amt-checkbox').length) {$('#checkAll').prop('checked', true);
+        }
+    });
+
+    if (!hasAnySetting && lastMonthPids && lastMonthPids.length > 0) {
+        if (confirm("偵測到當日尚未設定任何資料，是否要直接帶入上個月同期的預約設定？")) {
+            let autoSumAmount = 0;
+            $('.amt-checkbox').each(function() {
+                const currentPid = $(this).data('pid');
+                if (lastMonthPids.includes(currentPid)) {
+                    $(this).prop('checked', true);
+                    let amt = parseFloat($(this).data('amt')) || 0;
+                    autoSumAmount += amt;
+                }
+            });
+            $('#lblDayTotle').text(autoSumAmount.toLocaleString('en-US'));
+        }
+    }
+
+    $(document).on('input', '#txtSearchCustomer', function() {
+        const keyword = $(this).val().trim().toLowerCase();
+        if (keyword === "") {
+            $('.data-row').show();
+            return;
+        }
+        $('.data-row').each(function() {
+            const customerName = $(this).find('.td-cs-name').text().trim().toLowerCase();
+            if (customerName.indexOf(keyword) !== -1) {
+                $(this).show();
+            } else {
+                $(this).hide();
+            }
+        });
+    });
+	
+	
+	$('#DataTable').on('change', '.amt-checkbox', function () {
+		  if (this.checked) {
+			// 找出同一個 td 裡的其他 .amt-checkbox 並取消勾選
+			$(this).closest('tr').find('.amt-checkbox').not(this).prop('checked', false);
+		  }
+		});
+	
+}
+
+function convertToROCDate(dateStr) {
+    if (!dateStr) return '';
+    const parts = dateStr.split('-');
+    if(parts.length < 3) return dateStr;
+    const rocYear = parseInt(parts[0], 10) - 1911;
+    return `${rocYear}-${parts[1]}-${parts[2]}`;
+}
+</script>

@@ -81,7 +81,7 @@
     document.getElementById("date_begin_settle").innerHTML = '<b>清償基準日: ' + localStorage.getItem('date_begin_settle') + '</b>';
     document.getElementById("TotalSettAmt").innerText = localStorage.getItem('TotalSettAmt') + '元';
     document.getElementById("RP_AMT").innerHTML = '<b>結清本金: ' + localStorage.getItem('RP_AMT') + '元</b>'; 
-    if (pj_Title === "PJ00046" || pj_Title === "PJ00047" || pj_Title === "PJ00048") {
+    if (pj_Title === "PJ00046" || pj_Title === "PJ00047" || pj_Title === "PJ00048" || pj_Title === "PJ00053" || pj_Title === "PJ00054") {
         fetchSpecRett();
     } else {
         document.getElementById("BreakAmt_text").innerHTML = '<b>' + localStorage.getItem('BreakAmt_text') + ':</b>';
@@ -93,7 +93,7 @@
     }
     document.getElementById("Delay_AMT").innerHTML = '<b>延滯利息:' + localStorage.getItem('Delay_AMT') + '元</b>';
     document.getElementById("cs_name_1").innerHTML = '<b>清償:' + localStorage.getItem('cs_name') + '</b>';
-    if (pj_Title === "PJ00046" || pj_Title === "PJ00047" || pj_Title === "PJ00048") {
+    if (pj_Title === "PJ00046" || pj_Title === "PJ00047" || pj_Title === "PJ00048" || pj_Title === "PJ00053" || pj_Title === "PJ00054") {
         divBank.innerHTML = `
         <div style="margin: 1px 0; line-height: 1.4;">中國信託(822) 營業部(0901)</div><br />
         <div style="margin: 1px 0; line-height: 1.4;">帳號:901540925841</div><br />

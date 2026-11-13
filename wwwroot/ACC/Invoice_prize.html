@@ -1,0 +1,643 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+	<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+	<script type="text/javascript" src="../tool_js/jquery.blockUI.js"></script>
+	<link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+	<script type="text/javascript" src="../tool_js/jquery.table2excel.js"></script>
+	<link href="../_include/main.css" rel="stylesheet" type="text/css">
+	<script src="../Base.js"></script>
+	<title>作業平台</title>
+</head>
+<body>
+	<style type="text/css">
+		#MainTable td.Link {
+			text-decoration: underline;
+			font-weight: bold;
+			color: blue;
+			cursor: pointer;
+		}
+	</style>
+
+	<table width="1180" border="0" cellspacing="0" cellpadding="0">
+		<tbody>
+			<tr>
+				<td align="left" valign="top">
+					<table width="100%" border="0" cellspacing="0" cellpadding="0">
+						<tbody>
+							<tr>
+								<td width="20">　</td>
+								<td width="200" height="24">　<span class="c14k">　<strong>中獎發票資訊</strong></span></td>
+							</tr>
+							<tr>
+								<td></td>
+								<td class="c12-k">
+									<label for="YYYYMM">兌獎年月：</label>
+									<select id="YYYYMM">
+									</select>
+									<input type="submit" name="submit" value="查詢" onclick="fetchData();">
+									<input type="button" name="button" value="維護中獎發票" onclick="GetLotteryTable('','');">
+								</td>
+							</tr>
+						</tbody>
+					</table>
+				</td>
+			</tr>
+			<tr>
+				<td align="center" valign="top">
+					<table width="1180" border="0" cellspacing="0" cellpadding="0">
+						<tbody>
+							<tr>
+								<td valign="top" background="../image/form_04.gif">　</td>
+								<td align="left" valign="top" background="../image/form_05.gif">
+									<table width="1050" border="0" cellspacing="0" cellpadding="1">
+										<tbody>
+											<tr>
+												<td height="100" align="center" valign="top">
+													<table width="1000" id="MainTable" border="0" cellpadding="4" cellspacing="1" bgcolor="#666666">
+														<thead>
+															<tr align="center" bgcolor="#CCCCFF" class="c12-k"> 
+															<td width="30">SEQ</td>
+																<td width="80">發票日期</td>
+																<td width="80">發票號碼</td>
+																<td width="50">獎項</td>
+																<td width="70">金額</td>
+																<td width="80">客戶名稱</td>
+																<td width="80">客戶電話</td>
+																<td width="250">客戶地址</td>
+																
+															</tr>
+														</thead>
+														<tbody>
+															<tr align="center" class="c12-k" bgcolor="#FFFFFF" onmouseover="this.style.background='#FFFF66';" onmouseout="this.style.background='#FFFFFF'; " style="background: rgb(255, 255, 255);">
+															</tr>
+															<tr align="center" class="c12-k" bgcolor="#FFFFFF" onmouseover="this.style.background='#FFFF66';" onmouseout="this.style.background='#FFFFFF'; " style="background: rgb(255, 255, 255);">
+															</tr>
+															<tr align="center" height="30" bgcolor="#CCCCFF">
+																<td class="c12-k" colspan="16">
+																</td>
+															</tr>
+														</tbody>
+														
+													</table>
+													
+												</td>
+											</tr>
+											<tr>
+												<td height="100" align="center" valign="top">
+													<div id="pagination"></div>
+												</td>
+											</tr>
+										</tbody>
+									</table>
+								</td>
+							</tr>
+						</tbody>
+					</table>
+				</td>
+			</tr>
+		</tbody>
+	</table>
+	<div id="tables-container">
+	</div>
+</body>
+</html>
+<script>
+	const Params = getQueryParams();
+    let WebUser = Params.WebUser;
+    let WebBC = Params.WebBC;
+    let data = []; 
+
+	window.onload = function () {
+		 loadYYYYMM({
+            selectId: "YYYYMM"
+        });	
+		
+	}
+
+	
+    function loadYYYYMM({ selectId}) {
+        const url = `${BASE_URL}/AE_ACC/Getlottery_Mon`;
+        fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                if (data.resultCode === "000") {
+                    const selectElement = document.getElementById(selectId);
+                    const options = JSON.parse(data.objResult);
+                   
+                    options.forEach(option => {
+                        const optionElement = document.createElement('option');
+                        optionElement.value = option.lottery_mon;
+                        optionElement.textContent = option.lottery_Desc;
+                        selectElement.appendChild(optionElement);
+                    });
+					fetchData();
+                } else {
+                    alert('錯誤: ' + (data.resultMsg || '未知錯誤'));
+                }
+            })
+            .catch(error => {
+                console.error(`載入選項出錯:`, error);
+                alert('無法載入資料，請稍後再試。');
+            });
+    }
+
+    function fetchData() {
+        let YYYY = document.getElementById('YYYYMM').value.substring(0,4)
+		let MM = document.getElementById('YYYYMM').value.substring(5)
+        const url = `${BASE_URL}/AE_ACC/GetInvoice_prize?YYYY=${YYYY}&MM=${MM}`;
+		
+        fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+            .then(response => response.json())
+            .then(responseData => {
+                if (responseData.resultCode == "000") {
+                    data = JSON.parse(responseData.objResult);
+					 if (data.ResultCode == "000") {
+						showPage(JSON.parse(data.objResult));
+					}
+                } else {
+                    alert(response.resultMsg);
+                }
+            })
+            .catch(error => {
+				console.log(`API 請求失敗: error=${error}`);
+                alert('API 請求失敗:', error);
+            });
+    }
+
+   
+	function showPage(page) {
+        const tbody = document.querySelector('#MainTable tbody');
+        tbody.innerHTML = '';
+
+        for (let item of page) {
+            const row = document.createElement('tr');
+            row.setAttribute('align', 'center');
+            row.setAttribute('class', 'c12-k');
+            row.setAttribute('bgcolor', '#FFFFFF');
+            row.setAttribute('onmouseover', "this.style.background='#FCFCC0';");
+            row.setAttribute('onmouseout', "this.style.background='#FFFFFF';");
+
+            const columnOrder = ['yyyymmdd', 'invoice_no', 'prize_name', 'prize_amount', 'CS_name', 'CS_MTEL1', 'CS_address'];
+			
+			const serialCell = document.createElement('td');
+            serialCell.textContent =  page.indexOf(item) + 1;
+            row.appendChild(serialCell);
+            
+			for (let key of columnOrder) 
+			{
+				const cell = document.createElement('td');
+				switch (key) 
+				{
+					case 'CS_address':
+						cell.innerHTML = item[key] || '';
+						cell.style.textAlign = 'left'; // 設定文字靠左
+						row.appendChild(cell);
+						break;
+					default:
+                        cell.textContent = item[key] || '';
+                        row.appendChild(cell);
+                }
+             }
+            
+            tbody.appendChild(row);
+        }
+    }
+
+
+function GetLotteryTable(YYYY = "", MM = "") {
+	if(YYYY=='')
+	{
+		YYYY=document.getElementById('YYYYMM').value.substring(0,4)
+		MM=document.getElementById('YYYYMM').value.substring(5)
+	}
+    const url = `${BASE_URL}/AE_ACC/GetLotteryTable?YYYY=${YYYY}&MM=${MM}`;
+    fetch(url)
+        .then(response => response.json())
+        .then(responseData => {
+            if (responseData.ResultCode === "000" || responseData.resultCode === "000") {
+                const dataObj = typeof responseData.objResult === "string" 
+                    ? JSON.parse(responseData.objResult) 
+                    : (responseData.objResult || responseData);
+
+                const lotteryList = dataObj.lotteryList || [];
+                const lislottery_YM = dataObj.lislottery_YM || [];
+
+                let currentYYYY = YYYY;
+                let currentMM = MM;
+
+                // 若未傳入年月，直接在資料端取得最大值解析
+                if (!currentYYYY || !currentMM) {
+                    const ymStrings = lislottery_YM.map(item => (item && item.lottery_YM) ? item.lottery_YM : item).filter(Boolean);
+                    if (ymStrings.length > 0) {
+                        const maxYM = ymStrings.sort()[ymStrings.length - 1]; // 取最大/最新的期別
+                        const parts = maxYM.split('-');
+                        currentYYYY = parts[0] || "";
+                        currentMM = parts[1] || "";
+                    }
+                }
+
+                // 傳入已經決定好的 currentYYYY 與 currentMM
+                OpenSetting(lotteryList, lislottery_YM, currentYYYY, currentMM);
+            } else {
+                alert("查詢失敗：" + (responseData.ResultMessage || "未知錯誤"));
+            }
+        }).catch(error => {
+            console.error('載入開獎設定時出錯:', error);
+        });
+}
+
+
+function formatLotteryPeriodTitle(yyyy, mm) {
+    if (!yyyy || !mm) return "統一發票中獎號碼單";
+    
+    var startMonth = parseInt(mm, 10);
+    var endMonth = startMonth + 1;
+    
+    // 補零顯示 (例: 3 -> 03, 4 -> 04)
+    var startStr = startMonth.toString().padStart(2, '0');
+    var endStr = endMonth.toString().padStart(2, '0');
+    
+    return `${yyyy-1911}年 ${startStr}-${endStr}月 統一發票中獎號碼單`;
+}
+
+// 1. 主要檢視介面
+function OpenSetting(lotteryList, lislottery_YM, YYYY, MM) {
+    var m_width = "620px";
+    var Title = formatLotteryPeriodTitle(YYYY, MM);
+
+    // 抽取各獎項號碼
+    var spec1Num = lotteryList.filter(x => x.lottery_type === '特別獎').map(x => x.lottery_num).join('<br>') || '-';
+    var spec2Num = lotteryList.filter(x => x.lottery_type === '特獎').map(x => x.lottery_num).join('<br>') || '-';
+    var headNums = lotteryList.filter(x => x.lottery_type === '頭獎').map(x => x.lottery_num);
+    var headNumHtml = headNums.length > 0 ? headNums.join('<br>') : '-';
+
+    // 組裝期別導覽列
+    var ymLinksHtml = '';
+    if (lislottery_YM && lislottery_YM.length > 0) {
+        ymLinksHtml = '<div style="margin-bottom: 8px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center;">';
+        ymLinksHtml += '<span style="font-weight: bold; font-size: 13px; color: #555;">期別選擇：</span>';
+        
+        lislottery_YM.forEach(function(item) {
+            var ymVal = (item && item.lottery_YM) ? item.lottery_YM : item;
+            if (ymVal) {
+                var parts = ymVal.split('-');
+                var itemY = parts[0] || '';
+                var itemM = parts[1] || '';
+                var mStart = parseInt(itemM, 10);
+                var labelText = !isNaN(mStart) 
+                    ? `${itemY}年${mStart.toString().padStart(2, '0')}-${(mStart + 1).toString().padStart(2, '0')}月` 
+                    : ymVal;
+
+                var isCurrent = (itemY === YYYY && itemM === MM);
+                var bgStyle = isCurrent ? 'background: #0d6efd; color: #fff;' : 'background: #fff; color: #0d6efd;';
+
+                ymLinksHtml += `
+                    <a href="javascript:void(0);" 
+                       onclick="GetLotteryTable('${itemY}', '${itemM}')" 
+                       style="${bgStyle} text-decoration: none; padding: 2px 8px; border: 1px solid #0d6efd; border-radius: 4px; font-size: 12px; transition: all 0.2s;">
+                       ${labelText}
+                    </a>`;
+            }
+        });
+        ymLinksHtml += '</div>';
+    }
+
+    var m_Html = `
+        <div style="padding: 10px 15px; text-align: left; font-family: 'Microsoft JhengHei', sans-serif; height: 100%; box-sizing: border-box; display: flex; flex-direction: column; justify-content: space-between; overflow: hidden;">
+            <div>
+                <!-- 頂部操作列：期別導覽 + 外部官網連結 + 維護按鈕 -->
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px;">
+                    <div style="flex: 1;">
+                        ${ymLinksHtml}
+                    </div>
+                    <div style="margin-left: 10px; display: flex; gap: 8px; white-space: nowrap;">
+                       
+                       
+						<button type="button" onclick='OpenAddSetting(${JSON.stringify(lislottery_YM)}, ${JSON.stringify(lotteryList)})' 
+								style="background: #0d6efd; color: #fff; border: none; padding: 4px 10px; border-radius: 4px; font-size: 13px; cursor: pointer;">
+						   ⚙️ 新增/維護獎號
+						</button>
+                    </div>
+                </div>
+
+                <table style="width: 100%; border-collapse: collapse; background-color: #fff; font-size: 13px;">
+                    <thead>
+                        <tr style="background-color: #f2f4f7; border-bottom: 2px solid #ccc;">
+                            <th style="padding: 6px; border: 1px solid #ddd; width: 18%; text-align: center;">獎別</th>
+                            <th style="padding: 6px; border: 1px solid #ddd; text-align: left;">中獎號碼與規則說明</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td style="padding: 6px; border: 1px solid #ddd; text-align: center; font-weight: bold; color: #d9534f;">特別獎</td>
+                            <td style="padding: 6px; border: 1px solid #ddd;">
+                                <div style="font-size: 18px; font-weight: bold; color: #d9534f; letter-spacing: 2px;">${spec1Num}</div>
+                                <div style="font-size: 12px; color: #666;">同期統一發票收執聯8位數號碼與特別獎號碼相同者獎金 1,000 萬元</div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 6px; border: 1px solid #ddd; text-align: center; font-weight: bold; color: #d9534f;">特獎</td>
+                            <td style="padding: 6px; border: 1px solid #ddd;">
+                                <div style="font-size: 18px; font-weight: bold; color: #d9534f; letter-spacing: 2px;">${spec2Num}</div>
+                                <div style="font-size: 12px; color: #666;">同期統一發票收執聯8位數號碼與特獎號碼相同者獎金 200 萬元</div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 6px; border: 1px solid #ddd; text-align: center; font-weight: bold; color: #d9534f;">頭獎</td>
+                            <td style="padding: 6px; border: 1px solid #ddd;">
+                                <div style="font-size: 18px; font-weight: bold; color: #d9534f; letter-spacing: 2px; line-height: 1.2;">${headNumHtml}</div>
+                                <div style="font-size: 12px; color: #666;">同期統一發票收執聯8位數號碼與頭獎號碼相同者獎金 20 萬元</div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 5px 6px; border: 1px solid #ddd; text-align: center; font-weight: bold;">二獎</td>
+                            <td style="padding: 5px 6px; border: 1px solid #ddd; font-size: 12px; color: #444;">
+                                同期統一發票收執聯末 <strong>7 位數</strong> 號碼與頭獎中獎號碼末7位相同者各得獎金 4 萬元
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 5px 6px; border: 1px solid #ddd; text-align: center; font-weight: bold;">三獎</td>
+                            <td style="padding: 5px 6px; border: 1px solid #ddd; font-size: 12px; color: #444;">
+                                同期統一發票收執聯末 <strong>6 位數</strong> 號碼與頭獎中獎號碼末6位相同者各得獎金 1 萬元
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 5px 6px; border: 1px solid #ddd; text-align: center; font-weight: bold;">四獎</td>
+                            <td style="padding: 5px 6px; border: 1px solid #ddd; font-size: 12px; color: #444;">
+                                同期統一發票收執聯末 <strong>5 位數</strong> 號碼與頭獎中獎號碼末5位相同者各得獎金 4 千元
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 5px 6px; border: 1px solid #ddd; text-align: center; font-weight: bold;">五獎</td>
+                            <td style="padding: 5px 6px; border: 1px solid #ddd; font-size: 12px; color: #444;">
+                                同期統一發票收執聯末 <strong>4 位數</strong> 號碼與頭獎中獎號碼末4位相同者各得獎金 1 千元
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 5px 6px; border: 1px solid #ddd; text-align: center; font-weight: bold;">六獎</td>
+                            <td style="padding: 5px 6px; border: 1px solid #ddd; font-size: 12px; color: #444;">
+                                同期統一發票收執聯末 <strong>3 位數</strong> 號碼與頭獎中獎號碼末3位相同者各得獎金 2 百元
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div style="text-align: right; margin-top: 10px;">
+                <button type="button" onclick="$.unblockUI();" style="padding: 5px 16px; border: 1px solid #ccc; background: #f8f9fa; border-radius: 4px; cursor: pointer; font-size: 13px;">關閉</button>
+            </div>
+        </div>
+    `;
+
+    var OpenWidth = parseInt(m_width.toUpperCase().replace("PX", "")) + "px";
+    var m_themedCSS = {
+        width: OpenWidth,
+        top: '2.5%',
+        left: 'calc(50% - ' + (parseInt(OpenWidth) / 2) + 'px)',
+        boxSizing: 'border-box'
+    };
+
+    $.blockUI({
+        onOverlayClick: $.unblockUI,
+        overlayCSS: { backgroundColor: "#000", opacity: 0.4, cursor: "default" },
+        theme: true,
+        title: Title,
+        themedCSS: m_themedCSS,
+        message: m_Html
+    });
+}
+
+
+// 輔助函式：計算下一期 (雙月制：01 -> 03 -> 05 -> 07 -> 09 -> 11 -> 次年01)
+function getNextPeriod(yyyy, mm) {
+    let year = parseInt(yyyy, 10);
+    let month = parseInt(mm, 10);
+
+    if (month >= 11) {
+        year += 1;
+        month = 1;
+    } else {
+        month += 2;
+    }
+
+    return {
+        yyyy: year.toString(),
+        mm: month.toString().padStart(2, '0')
+    };
+}
+
+// 維護/新增獎號介面
+function OpenAddSetting(lislottery_YM, currentLotteryList) {
+    var m_width = "520px";
+
+    // 1. 整理並找出目前 DB 裡「最新一期」
+    var ymStrings = (lislottery_YM || []).map(item => (item && item.lottery_YM) ? item.lottery_YM : item).filter(Boolean).sort();
+    
+    var latestYYYY = "", latestMM = "";
+    if (ymStrings.length > 0) {
+        var latestYM = ymStrings[ymStrings.length - 1]; // 最大/最新一期
+        var parts = latestYM.split('-');
+        latestYYYY = parts[0];
+        latestMM = parts[1];
+    } else {
+        // 若 DB 全空，預設今年 01 月
+        latestYYYY = new Date().getFullYear().toString();
+        latestMM = "01";
+    }
+
+    // 2. 計算「下一期」
+    var nextPeriod = getNextPeriod(latestYYYY, latestMM);
+
+    // 3. 預設選中「下一期」(新增模式)
+    var defaultYYYY = nextPeriod.yyyy;
+    var defaultMM = nextPeriod.mm;
+
+    // 4. 下拉選單只提供「最新一期 (修改)」與「下一期 (新增)」兩種選擇
+    var latestLabel = `${latestYYYY}年${latestMM}-${(parseInt(latestMM,10)+1).toString().padStart(2,'0')}月 (修改最新期)`;
+    var nextLabel = `${nextPeriod.yyyy}年${nextPeriod.mm}-${(parseInt(nextPeriod.mm,10)+1).toString().padStart(2,'0')}月 (新增下一期)`;
+
+    var periodOptions = `
+        <option value="${nextPeriod.yyyy}-${nextPeriod.mm}" selected>${nextLabel}</option>
+        <option value="${latestYYYY}-${latestMM}">${latestLabel}</option>
+    `;
+
+    var m_Html = `
+        <div style="padding: 20px; text-align: left; font-family: 'Microsoft JhengHei', sans-serif; font-size: 14px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; background: #eef2f7; padding: 10px; border-radius: 4px;">
+                <div>
+                    <strong>維護期別：</strong>
+                    <select id="inp_period_select" onchange="onPeriodChange()" style="padding: 4px 6px; font-size: 14px; font-weight: bold;">
+                        ${periodOptions}
+                    </select>
+                </div>
+                <a href="https://invoice.etax.nat.gov.tw/index.html" target="_blank" 
+                   style="color: #198754; text-decoration: none; font-size: 13px; font-weight: bold;">
+                   🔗 財政部官網
+                </a>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+                <div>
+                    <label style="font-weight: bold; color: #d9534f; display: block; margin-bottom: 4px;">特別獎 (1組 8位數)：</label>
+                    <input type="text" id="inp_spec1" maxlength="8" placeholder="8位數字" 
+                           style="width: 100%; padding: 6px; font-size: 16px; letter-spacing: 2px; box-sizing: border-box;" 
+                           oninput="this.value=this.value.replace(/[^0-9]/g,'');">
+                </div>
+
+                <div>
+                    <label style="font-weight: bold; color: #d9534f; display: block; margin-bottom: 4px;">特獎 (1組 8位數)：</label>
+                    <input type="text" id="inp_spec2" maxlength="8" placeholder="8位數字" 
+                           style="width: 100%; padding: 6px; font-size: 16px; letter-spacing: 2px; box-sizing: border-box;" 
+                           oninput="this.value=this.value.replace(/[^0-9]/g,'');">
+                </div>
+
+                <div>
+                    <label style="font-weight: bold; color: #d9534f; display: block; margin-bottom: 4px;">頭獎 (3組 8位數)：</label>
+                    <div style="display: flex; flex-direction: column; gap: 6px;">
+                        <input type="text" id="inp_spec3_1" maxlength="8" placeholder="頭獎號碼一" 
+                               style="width: 100%; padding: 6px; font-size: 16px; letter-spacing: 2px; box-sizing: border-box;" 
+                               oninput="this.value=this.value.replace(/[^0-9]/g,'');">
+                        <input type="text" id="inp_spec3_2" maxlength="8" placeholder="頭獎號碼二" 
+                               style="width: 100%; padding: 6px; font-size: 16px; letter-spacing: 2px; box-sizing: border-box;" 
+                               oninput="this.value=this.value.replace(/[^0-9]/g,'');">
+                        <input type="text" id="inp_spec3_3" maxlength="8" placeholder="頭獎號碼三" 
+                               style="width: 100%; padding: 6px; font-size: 16px; letter-spacing: 2px; box-sizing: border-box;" 
+                               oninput="this.value=this.value.replace(/[^0-9]/g,'');">
+                    </div>
+                </div>
+            </div>
+
+            <div style="text-align: right; margin-top: 20px; display: flex; justify-content: flex-end; gap: 8px;">
+                <button type="button" onclick="GetLotteryTable('${latestYYYY}', '${latestMM}')" 
+                        style="padding: 6px 14px; border: 1px solid #ccc; background: #fff; border-radius: 4px; cursor: pointer;">
+                    返回
+                </button>
+                <button type="button" onclick="SaveLotteryTable()" 
+                        style="padding: 6px 16px; border: none; background: #0d6efd; color: #fff; font-weight: bold; border-radius: 4px; cursor: pointer;">
+                    儲存資料
+                </button>
+            </div>
+        </div>
+    `;
+
+    var OpenWidth = parseInt(m_width.toUpperCase().replace("PX", "")) + "px";
+    var m_themedCSS = {
+        width: OpenWidth,
+        top: '10%',
+        left: 'calc(50% - ' + (parseInt(OpenWidth) / 2) + 'px)',
+        boxSizing: 'border-box'
+    };
+
+    $.blockUI({
+        onOverlayClick: $.unblockUI,
+        overlayCSS: { backgroundColor: "#000", opacity: 0.4, cursor: "default" },
+        theme: true,
+        title: "維護統一發票中獎號碼",
+        themedCSS: m_themedCSS,
+        message: m_Html
+    });
+
+    // 暫存資料以供切換選單時回填
+    window._cachedLatestYM = `${latestYYYY}-${latestMM}`;
+    window._cachedLotteryList = currentLotteryList || [];
+}
+
+// 切換期別時：若是最新一期則回填資料，若是下一期則清空欄位
+function onPeriodChange() {
+    var selectedYM = document.getElementById("inp_period_select").value;
+    
+    if (selectedYM === window._cachedLatestYM) {
+        // 切換到「修改最新期」：自動帶出該期號碼
+        var list = window._cachedLotteryList;
+        var spec1 = list.find(x => x.lottery_type === '特別獎')?.lottery_num || '';
+        var spec2 = list.find(x => x.lottery_type === '特獎')?.lottery_num || '';
+        var headList = list.filter(x => x.lottery_type === '頭獎').map(x => x.lottery_num);
+
+        document.getElementById("inp_spec1").value = spec1;
+        document.getElementById("inp_spec2").value = spec2;
+        document.getElementById("inp_spec3_1").value = headList[0] || '';
+        document.getElementById("inp_spec3_2").value = headList[1] || '';
+        document.getElementById("inp_spec3_3").value = headList[2] || '';
+    } else {
+        // 切換到「新增下一期」：清空輸入欄位
+        document.getElementById("inp_spec1").value = '';
+        document.getElementById("inp_spec2").value = '';
+        document.getElementById("inp_spec3_1").value = '';
+        document.getElementById("inp_spec3_2").value = '';
+        document.getElementById("inp_spec3_3").value = '';
+    }
+}
+
+function SaveLotteryTable() {
+    var periodVal = document.getElementById("inp_period_select").value; // 例: "2026-07"
+    var parts = periodVal.split('-');
+    var yyyy = parts[0];
+    var mm = parts[1];
+
+    var spec1 = document.getElementById("inp_spec1").value.trim();
+    var spec2 = document.getElementById("inp_spec2").value.trim();
+    var spec3_1 = document.getElementById("inp_spec3_1").value.trim();
+    var spec3_2 = document.getElementById("inp_spec3_2").value.trim();
+    var spec3_3 = document.getElementById("inp_spec3_3").value.trim();
+
+    // 格式驗證：皆需 8 位數字
+    var numRegex = /^\d{8}$/;
+    if (!numRegex.test(spec1)) { alert("特別獎號碼需為 8 位數字！"); return; }
+    if (!numRegex.test(spec2)) { alert("特獎號碼需為 8 位數字！"); return; }
+    if (!numRegex.test(spec3_1) || !numRegex.test(spec3_2) || !numRegex.test(spec3_3)) {
+        alert("頭獎 3 組號碼皆需為 8 位數字！");
+        return;
+    }
+
+    var postData = [
+        { lottery_yyyy: yyyy, lottery_mon: mm, lottery_type: "SPEC1", lottery_num: spec1 },
+        { lottery_yyyy: yyyy, lottery_mon: mm, lottery_type: "SPEC2", lottery_num: spec2 },
+        { lottery_yyyy: yyyy, lottery_mon: mm, lottery_type: "SPEC3", lottery_num: spec3_1 },
+        { lottery_yyyy: yyyy, lottery_mon: mm, lottery_type: "SPEC3", lottery_num: spec3_2 },
+        { lottery_yyyy: yyyy, lottery_mon: mm, lottery_type: "SPEC3", lottery_num: spec3_3 }
+    ];
+
+    var userNum = encodeURIComponent(typeof WebUser !== "undefined" ? WebUser : "");
+    var url = `${BASE_URL}/AE_ACC/SaveLotteryTable?u_num=${userNum}`;
+
+    fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(postData)
+    })
+    .then(async res => {
+        // 先讀取字串，避免 body 為空時 res.json() 報錯
+        const text = await res.text();
+        let data = {};
+        
+        try {
+            data = text ? JSON.parse(text) : {};
+        } catch (e) {
+            console.error("後端回傳非 JSON 格式:", text);
+        }
+
+        // 判斷 HTTP 狀態與業務代碼
+        if (res.ok && (data.ResultCode === "000" || data.resultCode === "000" || !data.ResultCode)) {
+            alert("儲存成功！");
+            location.reload();
+        } else {
+            const errorMsg = data.ResultMsg || data.ResultMessage || `HTTP ${res.status}: ${text || '無回傳訊息'}`;
+            alert("儲存失敗：" + errorMsg);
+        }
+    })
+    .catch(err => {
+        console.error("儲存出錯:", err);
+        alert("儲存過程發生錯誤！");
+    });
+}
+	
+	
+</script>	

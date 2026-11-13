@@ -6,7 +6,7 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
-    <script src="../Base.js"></script>
+    <script src="../Base.js?ff=5555"></script>
     <title>作業平台</title>
 </head>
 <body>
@@ -18,12 +18,17 @@
     <label for="Car">汽車貸款</label>
     <label>撥款年月:</label>
     <select name="getDate" id="getDate" style="width:80px;"></select>
-    <input type="button" value="查詢(月)" onclick="fetchData('M')" />
+	<input type="button" value="查詢(月)" onclick="fetchData('M')" />
     <input type="button" value="查詢(年)" onclick="fetchData('Y')" />
     <input type="button" value="匯出撥款資料(月)" onclick="exportToExcel('M')" />
     <input type="button" value="匯出撥款資料(年)" onclick="exportToExcel('Y')" />
     <input type="button" value="匯出全部撥款資料" onclick="exportToExcel('A')" />
-
+	<br>
+    
+<label>申請人:</label>
+	<input type="text" id="CS_Name" name="CS_Name" size="15" value="">
+	<label>ACH狀態:</label>
+	<select name="Ach_State" id="Ach_State" style="width: 60px;"></select>
     <table width="1350px" id="MainTable" border="0" cellpadding="4" cellspacing="1" bgcolor="#666666" style="margin-top: 3px;">
         <thead>
             <tr align="center" bgcolor="#CCCCFF" class="TrHead">
@@ -70,6 +75,10 @@
 
     window.onload = function () {
         generateGetDateOptions(107, 11);
+		loadItemDropdown({
+			selectId: "Ach_State",
+			itemCode: "Ach_State"
+		});
     };
 
     function generateGetDateOptions(startYear, startMonth) {
@@ -105,13 +114,14 @@
 
     function fetchData(type) {
         const pjtype = document.querySelector('input[name="LoanType"]:checked').value;
-
+		const CS_Name = $("#CS_Name").val();
+		const Ach_State = $("#Ach_State").val();
         let parts = $("#getDate").val().split('-');
         let adYear = parseInt(parts[0], 10) + 1911;
         let adMM = parseInt(parts[1], 10);
 
         var yyyyMM = adYear.toString() + adMM.toString().padStart(2, '0');
-        let url = `${BASE_URL}/AE_ACC/GetRcACH_LQuery?yyyyMM=${yyyyMM}&type=${type}&pjtype=${pjtype}`;
+        let url = `${BASE_URL}/AE_ACC/GetRcACH_LQuery?yyyyMM=${yyyyMM}&type=${type}&pjtype=${pjtype}&CS_Name=${CS_Name}&Ach_State=${Ach_State}`;
 
         $.ajax({
             url: url,
@@ -154,7 +164,7 @@
 
             const keys = Object.keys(item);
             keys.forEach(key => {
-                if (key !== 'RCM_id' && key !== 'FileCount' && key !== 'RCM_cknum') {
+                if (key !== 'RCM_id' && key !== 'FileCount'&& key !== 'HA_id' && key !== 'RCM_cknum') {
                     const cell = document.createElement('td');
                     cell.textContent = item[key];
                     row.appendChild(cell);
@@ -169,8 +179,8 @@
                 "../images/edit.png",
                 "修改",
                 function () {
-                    window.open(`RC_Ach_Detail.html?RCM_id=${item.RCM_id}&User=${encryptParameter(WebUser)}`
-                        , '_blank', 'scrollbars=yes,resizable=yes,top=100,width=500,height=250');
+                    window.open(`RC_Ach_Detail.html?time=${getFormattedCompactDateTime()}&RCM_id=${item.RCM_id}&HA_id=${item.HA_id}&User=${encryptParameter(WebUser)}`
+                        , '_blank', 'scrollbars=yes,resizable=yes,top=100,width=500,height=350');
                 }
             ));
             tbody.appendChild(row);
@@ -192,8 +202,8 @@
 
         if (row) {
 
-            row.cells[11].textContent = updatedData.str_Ach_State;
-            row.cells[12].textContent = updatedData.Ach_Note;
+            row.cells[12].textContent = updatedData.str_Ach_State;
+            row.cells[13].textContent = updatedData.Ach_Note;
         }
     }
 

@@ -1,0 +1,285 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+	<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+	<script type="text/javascript" src="../tool_js/jquery.blockUI.js"></script>
+	<link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+	<script type="text/javascript" src="../tool_js/jquery.table2excel.js"></script>
+	<link href="../_include/main.css" rel="stylesheet" type="text/css">
+	<script src="../Base.js"></script>
+	<title>作業平台</title>
+</head>
+<body>
+	<style type="text/css">
+		#MainTable td.Link {
+			text-decoration: underline;
+			font-weight: bold;
+			color: blue;
+			cursor: pointer;
+		}
+	</style>
+
+	<table width="1180" border="0" cellspacing="0" cellpadding="0">
+		<tbody>
+			<tr>
+				<td align="left" valign="top">
+					<table width="100%" border="0" cellspacing="0" cellpadding="0">
+						<tbody>
+							<tr>
+								<td width="20">　</td>
+								<td width="200" height="24">　<span class="c14k">　<strong>南北二區獎金報表</strong></span></td>
+							</tr>
+							<tr>
+								<td></td>
+								<td class="c12-k">
+									<label for="YYYY">選擇年份：</label>
+									<select id="YYYY">
+									</select>
+									<label for="Area">區域</label>
+									<select id="Area">
+									<option value="North">北區</option>
+									<option value="South">南區</option>
+									</select>
+									<input type="submit" name="submit" value="查詢" onclick="fetchData();">
+									
+								</td>
+							</tr>
+						</tbody>
+					</table>
+				</td>
+			</tr>
+			<tr>
+				<td align="center" valign="top">
+					<table width="1180" border="0" cellspacing="0" cellpadding="0">
+						<tbody>
+							<tr>
+								<td valign="top" background="../image/form_04.gif">　</td>
+								<td align="left" valign="top" background="../image/form_05.gif">
+									<table width="1150" border="0" cellspacing="0" cellpadding="1">
+										<tbody>
+											<tr>
+												<td height="100" align="center" valign="top">
+													<table width="1180" id="MainTable" border="0" cellpadding="4" cellspacing="1" bgcolor="#666666">
+														<thead>
+															<tr align="center" bgcolor="#CCCCFF" class="c12-k"> 
+																<td width="50">序</td>
+																<td width="80">月份</td>
+																<td width="100" id='Loc1_Amt'></td>
+																<td width="100" id='Loc2_Amt'></td>
+																<td width="100" id='Loc3_Amt'></td>
+																<td width="150">總業績</td>
+																<td width="100">達成率</td>
+																<td width="100">獎金</td>
+																<td width="300">獎金公式</td>
+																
+															</tr>
+														</thead>
+														<tbody>
+															<tr align="center" class="c12-k" bgcolor="#FFFFFF" onmouseover="this.style.background='#FFFF66';" onmouseout="this.style.background='#FFFFFF'; " style="background: rgb(255, 255, 255);">
+															</tr>
+															<tr align="center" class="c12-k" bgcolor="#FFFFFF" onmouseover="this.style.background='#FFFF66';" onmouseout="this.style.background='#FFFFFF'; " style="background: rgb(255, 255, 255);">
+															</tr>
+															<tr align="center" height="30" bgcolor="#CCCCFF">
+																<td class="c12-k" colspan="16">
+																</td>
+															</tr>
+														</tbody>
+														
+													</table>
+													
+												</td>
+											</tr>
+											<tr>
+												<td height="100" align="center" valign="top">
+													<div id="pagination"></div>
+												</td>
+											</tr>
+										</tbody>
+									</table>
+								</td>
+							</tr>
+						</tbody>
+					</table>
+				</td>
+			</tr>
+		</tbody>
+	</table>
+	<div id="tables-container">
+	</div>
+</body>
+</html>
+<script>
+	const Params = getQueryParams();
+    let WebUser = Params.WebUser;
+    let WebBC = Params.WebBC;
+
+    const itemsPerPage = 20;  
+    let currentPage = 1;
+    let data = []; 
+
+	window.onload = function () {
+		loadYYYYY();	
+	}
+
+	
+	
+
+	function loadYYYYY() {
+		// 1. 取得系統當前的西元年份
+		  const currentYear = new Date().getFullYear();
+
+		  // 2. 抓取 HTML 中的 select 元素
+		  const selectElement = document.getElementById('YYYY');
+
+		  // 3. 設定要產生的 3 個西元年份
+		  const years = [ currentYear - 1, currentYear ];
+
+		  // 4. 動態建立選單
+		  years.forEach(year => {
+			const option = document.createElement('option');
+			
+			// value 依然維持西元年 (例如: 2026)
+			option.value = year; 
+
+			// textContent 改顯示民國年 (例如: 民國 115 年)
+			const minguoYear = year - 1911;
+			option.textContent = `${minguoYear} 年`;
+
+			// 預設選取今年
+			if (year === currentYear) {
+			  option.selected = true;
+			}
+
+			selectElement.appendChild(option);
+		  });
+    }
+
+    function fetchData() {
+        let YYYY = document.getElementById('YYYY').value
+		let Area = document.getElementById('Area').value
+        const url = `${BASE_URL}/AE_FT/GetBonusReport?YYYY=${YYYY}&Area=${Area}`;
+		if(Area=="North")
+		{
+			document.getElementById('Loc1_Amt').innerHTML="台北";
+			document.getElementById('Loc2_Amt').innerHTML="新北";
+			document.getElementById('Loc3_Amt').innerHTML="桃園";
+		}
+		else
+		{
+			document.getElementById('Loc1_Amt').innerHTML="台中";
+			document.getElementById('Loc2_Amt').innerHTML="台南";
+			document.getElementById('Loc3_Amt').innerHTML="高雄";
+		}
+        fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+            .then(response => response.json())
+            .then(responseData => {
+                if (responseData.resultCode == "000") {
+                    data = JSON.parse(responseData.objResult);
+                    showPage(currentPage);
+                    createPagination();
+                } else {
+                    alert(response.resultMsg);
+                }
+            })
+            .catch(error => {
+				console.log(`API 請求失敗: error=${error}`);
+                alert('API 請求失敗:', error);
+            });
+    }
+
+   
+	function showPage(page) {
+        const tbody = document.querySelector('#MainTable tbody');
+        tbody.innerHTML = '';
+
+        const startIndex = (page - 1) * itemsPerPage;
+        const endIndex = Math.min(startIndex + itemsPerPage, data.length);
+        const pageData = data.slice(startIndex, endIndex);
+		
+
+        for (let item of pageData) {
+            const row = document.createElement('tr');
+            row.setAttribute('align', 'center');
+            row.setAttribute('class', 'c12-k');
+            row.setAttribute('bgcolor', '#FFFFFF');
+            row.setAttribute('onmouseover', "this.style.background='#FCFCC0';");
+            row.setAttribute('onmouseout', "this.style.background='#FFFFFF';");
+
+            const columnOrder = ['DisMM', 'Loc1_Amt', 'Loc2_Amt', 'Loc3_Amt', 'TotalAmt','BaseRate','BonusAmt','BonusFormula'];
+			
+			const serialCell = document.createElement('td');
+            serialCell.textContent = startIndex + pageData.indexOf(item) + 1;
+            row.appendChild(serialCell);
+            
+			for (let key of columnOrder) {
+                const cell = document.createElement('td');
+                switch (key) {
+					case 'BonusFormula':
+						cell.innerHTML = item[key].replace(/\r?\n/g, "<br>");
+						cell.style.textAlign = 'left';
+                        row.appendChild(cell);
+						break;
+					
+                    default:
+                        cell.textContent = item[key] || '';
+                        row.appendChild(cell);
+                }
+            }
+            
+            tbody.appendChild(row);
+        }
+    }
+
+	function getCurrentDateTime() {
+      var currentDate = new Date();
+
+      var year = currentDate.getFullYear();
+      var month = ('0' + (currentDate.getMonth() + 1)).slice(-2);
+      var day = ('0' + currentDate.getDate()).slice(-2);
+      var hours = ('0' + currentDate.getHours()).slice(-2);
+      var minutes = ('0' + currentDate.getMinutes()).slice(-2);
+
+      var formattedDateTime = year + month + day + hours + minutes;
+      return formattedDateTime;
+    }
+
+	function exportToExcel() {
+
+		let DateS = document.getElementById('RC_dateS').value
+		let DateE = document.getElementById('RC_dateE').value
+        const url = `${BASE_URL}/AE_ACC/RC_Repay_Excel?DateS=${DateS}&DateE=${DateE}`;
+		
+        $.ajax({
+            url: url,
+            method: 'POST',
+            xhrFields: {
+                responseType: 'blob'
+            },
+            contentType: 'application/json',
+            success: function (response) {
+                const url = window.URL.createObjectURL(response);
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = url;
+                a.download = `應收帳款-本金餘額表-${getCurrentDateTime()}.xlsx`;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+            },
+            error: function (err) {
+                alert('Error generating file');
+            }
+        });
+    }
+
+	
+	
+</script>	
